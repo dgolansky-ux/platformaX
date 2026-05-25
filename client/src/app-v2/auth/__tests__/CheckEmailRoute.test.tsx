@@ -22,9 +22,12 @@ describe("CheckEmailRoute", () => {
     ).toBeDefined();
   });
 
-  test("renders provided e-mail from query string in subheading", () => {
+  test("shows a neutral message and never renders a concrete e-mail from the URL", () => {
     renderCheck("/check-email?email=anna%40example.org");
-    expect(screen.getByText(/anna@example\.org/i)).toBeDefined();
+    expect(
+      screen.getByText(/wyślemy link aktywacyjny na podany adres e-mail/i),
+    ).toBeDefined();
+    expect(screen.queryByText(/anna@example\.org/i)).toBeNull();
   });
 
   test("offers a link to onboarding", () => {

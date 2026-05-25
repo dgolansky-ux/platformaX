@@ -54,7 +54,7 @@ export function RegisterRoute() {
       return;
     }
     setErrors({});
-    navigate(`/check-email?email=${encodeURIComponent(email.trim())}`);
+    navigate("/check-email");
   }
 
   return (

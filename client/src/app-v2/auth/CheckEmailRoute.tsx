@@ -1,4 +1,4 @@
-import { useSearchParams, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { FormNotice } from "./forms/SubmitButton";
 import stackStyles from "./forms/FormStack.module.css";
@@ -15,18 +15,11 @@ const BRAND = {
 };
 
 export function CheckEmailRoute() {
-  const [params] = useSearchParams();
-  const email = params.get("email")?.trim() ?? "";
-
   return (
     <AuthLayout
       brand={BRAND}
       heading="Sprawdź swoją skrzynkę"
-      subheading={
-        email
-          ? `Przygotowaliśmy link aktywacyjny dla adresu ${email}.`
-          : "Przygotowaliśmy link aktywacyjny."
-      }
+      subheading="Jeśli dane są poprawne, wyślemy link aktywacyjny na podany adres e-mail po podłączeniu backendu identity."
       footer={
         <>
           Wrócisz do logowania?{" "}
