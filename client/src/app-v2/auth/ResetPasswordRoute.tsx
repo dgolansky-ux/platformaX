@@ -4,7 +4,13 @@ import { AuthLayout } from "./AuthLayout";
 import { FormField } from "./forms/FormField";
 import { SubmitButton, FormNotice } from "./forms/SubmitButton";
 import { validateEmail } from "./forms/validation";
+import { identityAuthAdapter } from "../../features-v2/identity";
+import type { IdentityAuthAdapter } from "../../features-v2/identity";
 import stackStyles from "./forms/FormStack.module.css";
+
+type ResetPasswordRouteProps = {
+  authAdapter?: IdentityAuthAdapter;
+};
 
 const BRAND = {
   kicker: "Reset hasła",
@@ -17,21 +23,32 @@ const BRAND = {
   ],
 };
 
-export function ResetPasswordRoute() {
+export function ResetPasswordRoute({
+  authAdapter = identityAuthAdapter,
+}: ResetPasswordRouteProps = {}) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | undefined>(undefined);
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const emailCheck = validateEmail(email);
     if (!emailCheck.valid) {
       setError(emailCheck.message);
-      setSentTo(null);
       return;
     }
     setError(undefined);
-    setSentTo(email.trim());
+    setFormError(null);
+    setSubmitting(true);
+    const result = await authAdapter.resetPassword(email.trim());
+    setSubmitting(false);
+    if (!result.ok) {
+      setFormError(result.error.message);
+      return;
+    }
+    setSent(true);
   }
 
   return (
@@ -48,11 +65,11 @@ export function ResetPasswordRoute() {
         </>
       }
     >
-      {sentTo ? (
+      {sent ? (
         <FormNotice title="Wiadomość przygotowana">
-          Jeśli konto powiązane z <strong>{sentTo}</strong> istnieje, otrzymasz
-          link do ustawienia nowego hasła. Sprawdź skrzynkę i folder Spam.
-          (Wysyłka maila zostanie podłączona razem z backendem tożsamości.)
+          Jeśli konto powiązane z podanym adresem istnieje, wyślemy link do
+          ustawienia nowego hasła. Sprawdź skrzynkę i folder Spam. Ze względów
+          bezpieczeństwa nie potwierdzamy, czy adres jest zarejestrowany.
         </FormNotice>
       ) : (
         <form onSubmit={handleSubmit} noValidate className={stackStyles.stack}>
@@ -66,7 +83,12 @@ export function ResetPasswordRoute() {
             onChange={(e) => setEmail(e.target.value)}
             error={error}
           />
-          <SubmitButton>Wyślij link resetujący</SubmitButton>
+          <SubmitButton disabled={submitting}>
+            {submitting ? "Wysyłanie…" : "Wyślij link resetujący"}
+          </SubmitButton>
+          {formError ? (
+            <FormNotice title="Nie udało się wysłać linku">{formError}</FormNotice>
+          ) : null}
         </form>
       )}
     </AuthLayout>
