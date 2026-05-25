@@ -357,3 +357,20 @@ Before every commit, verify:
 - [ ] `pnpm rules:check` PASS.
 - [ ] PRE-COMMIT DECISION is COMMIT_ALLOWED.
 - [ ] SELF-AUDIT / INDEPENDENT REVIEW PASS section is complete.
+
+## 22. Code quality and scalability rules (enforced by guards)
+
+These rules are enforced by `scripts/check-code-quality-structure.mjs`, `scripts/check-scalability-patterns.mjs`, `scripts/check-frontend-performance-patterns.mjs`, `scripts/check-dependency-discipline.mjs`, and `scripts/check-logging-pii-security.mjs`.
+
+1. **No large files.** File limits are enforced per type (route/page 280, regular .tsx 220, CSS module 320, backend service/repository/policy/router/mapper 240).
+2. **No large functions.** Max 80 lines per function. React components max 140 lines.
+3. **No unbounded lists.** Every list/feed/search must have `limit` + `maxLimit` + cursor or explicit fixed cap.
+4. **Every list/feed/search needs limit + maxLimit + cursor/fixed cap + stable order.** Tie-breaker must be `id` or `createdAt`.
+5. **No N+1 in feed/profile/comments/reactions.** Use batch/bulk queries, not per-item loops.
+6. **No sync fanout in request path.** Notifications, search indexing, and expensive projections go through events/outbox.
+7. **Public DTO never exposes PII.** No email, phone, dateOfBirth, privateContact, authMetadata in public outputs.
+8. **UI buttons cannot be no-op.** Every button must perform a real action, open a modal, navigate, call an adapter, or be visibly disabled.
+9. **Animation must respect prefers-reduced-motion.** CSS animations/transitions require a `prefers-reduced-motion` media query. `transition: all` is forbidden.
+10. **New dependencies require review report justification.** No heavy packages for simple tasks. No duplicate libraries for the same purpose.
+11. **Any exception must include reason + review/ticket path.** Exception markers without justification fail the guard.
+12. **Profile/feed/social runtime must be batch/cursor/read-model ready.** No unbounded queries, no full-table scans, no raw DB records in public output.

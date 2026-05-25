@@ -249,6 +249,12 @@ At minimum:
 - `node scripts/check-removed-product-areas.mjs`
 - `node scripts/check-public-api-surface.mjs`
 - `node scripts/check-public-dto-pii.mjs`
+- `node scripts/check-code-quality-structure.mjs`
+- `node scripts/check-scalability-patterns.mjs`
+- `node scripts/check-frontend-performance-patterns.mjs`
+- `node scripts/check-status-truth-consistency.mjs`
+- `node scripts/check-dependency-discipline.mjs`
+- `node scripts/check-logging-pii-security.mjs`
 - dependency boundary checker (`dependency-cruiser` or ESLint boundaries)
 
 ## 14. Acceptance
@@ -260,4 +266,9 @@ Architecture is acceptable only when:
 - no legacy runtime is reachable,
 - active routes and chunks are clean,
 - public DTOs pass PII tests,
-- rules are enforced in CI, not only in docs.
+- rules are enforced in CI, not only in docs,
+- no unbounded lists/feeds/searches exist without limit+cursor,
+- no functions exceed 80 lines (components 140),
+- no `transition: all` in CSS modules,
+- no PII in logs or public DTOs,
+- dependency discipline is maintained.

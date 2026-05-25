@@ -25,7 +25,7 @@
     "guards:review": "node scripts/check-review-reports-index.mjs && node scripts/check-pre-commit-decision.mjs && node scripts/check-self-audit-evidence.mjs",
     "guards:self-audit": "node scripts/check-self-audit-evidence.mjs",
     "guards:bramka": "node scripts/check-bramka-acceptance.mjs",
-    "guards:all-local": "node scripts/rules-check.mjs && node scripts/check-secret-scan.mjs && node scripts/check-local-secret-scan.mjs && node scripts/check-script-safety.mjs && node scripts/check-review-reports-index.mjs && node scripts/check-pre-commit-decision.mjs && node scripts/check-self-audit-evidence.mjs && node scripts/check-bramka-acceptance.mjs",
+    "guards:all-local": "node scripts/rules-check.mjs && node scripts/check-secret-scan.mjs && node scripts/check-local-secret-scan.mjs && node scripts/check-script-safety.mjs && node scripts/check-review-reports-index.mjs && node scripts/check-pre-commit-decision.mjs && node scripts/check-self-audit-evidence.mjs && node scripts/check-bramka-acceptance.mjs && node scripts/check-code-quality-structure.mjs && node scripts/check-scalability-patterns.mjs && node scripts/check-frontend-performance-patterns.mjs && node scripts/check-status-truth-consistency.mjs && node scripts/check-dependency-discipline.mjs && node scripts/check-logging-pii-security.mjs",
     "scaffold:domain": "node scripts/scaffold-domain.mjs",
     "scaffold:ui-shell": "node scripts/scaffold-ui-shell.mjs",
     "scaffold:route": "node scripts/scaffold-route.mjs",
