@@ -1,5 +1,5 @@
 import { readFileSync, existsSync, readdirSync } from "fs";
-import { join, relative } from "path";
+import { join, relative, posix } from "path";
 
 const ROOT = process.cwd();
 
@@ -57,6 +57,34 @@ function getDomainName(relPath) {
   return null;
 }
 
+function extractImportPaths(content) {
+  const paths = [];
+  const staticImport = /(?:import|export)\s+.*?\s+from\s+["']([^"']+)["']/g;
+  const dynamicImport = /import\(\s*["']([^"']+)["']\s*\)/g;
+  const requireCall = /require\(\s*["']([^"']+)["']\s*\)/g;
+  let m;
+  while ((m = staticImport.exec(content)) !== null) paths.push(m[1]);
+  while ((m = dynamicImport.exec(content)) !== null) paths.push(m[1]);
+  while ((m = requireCall.exec(content)) !== null) paths.push(m[1]);
+  return paths;
+}
+
+function resolveRelativeImport(fileRelPath, importPath) {
+  if (!importPath.startsWith(".")) return null;
+  const fileDir = posix.dirname(fileRelPath);
+  return posix.normalize(posix.join(fileDir, importPath));
+}
+
+function getImportedDomainAndModule(resolvedPath) {
+  const m1 = resolvedPath.match(/^server\/domains-v2\/([^/]+)\/(.+)/);
+  if (m1) return { domain: m1[1], module: m1[2].split("/")[0] };
+
+  const m2 = resolvedPath.match(/^client\/src\/features-v2\/([^/]+)\/(.+)/);
+  if (m2) return { domain: m2[1], module: m2[2].split("/")[0] };
+
+  return null;
+}
+
 let violations = 0;
 
 for (const scanDir of SCAN_DIRS) {
@@ -68,16 +96,13 @@ for (const scanDir of SCAN_DIRS) {
     try { content = readFileSync(fp, "utf-8"); } catch { continue; }
     const rel = relative(ROOT, fp).replace(/\\/g, "/");
     const currentDomain = getDomainName(rel);
+    const importPaths = extractImportPaths(content);
 
-    const importLines = content.split("\n").filter(l =>
-      l.includes("import") && (l.includes("from") || l.includes("require"))
-    );
-
-    for (const line of importLines) {
+    for (const imp of importPaths) {
       if (rel.startsWith("client/src/app-v2/")) {
         const legacyPatterns = ["features/", "pages/", "components/", "legacy"];
         for (const lp of legacyPatterns) {
-          if (line.includes(lp)) {
+          if (imp.includes(lp)) {
             console.error(`BOUNDARY_VIOLATION: legacy import "${lp}" in ${rel}`);
             violations++;
           }
@@ -87,14 +112,36 @@ for (const scanDir of SCAN_DIRS) {
 
       if (!currentDomain) continue;
 
-      for (const blocked of CROSS_DOMAIN_BLOCKED) {
-        const crossPattern = new RegExp(`domains-v2/(?!${currentDomain}/)\\w+/${blocked}`);
-        if (crossPattern.test(line)) {
-          const isAllowed = CROSS_DOMAIN_ALLOWED.some(a => line.includes(a));
-          if (!isAllowed) {
-            console.error(`BOUNDARY_VIOLATION: cross-domain "${blocked}" import in ${rel}`);
-            violations++;
-          }
+      const crossPatternAbs = new RegExp(`domains-v2/(?!${currentDomain}/)\\w+/(${CROSS_DOMAIN_BLOCKED.join("|").replace(/\./g, "\\.")})`);
+      if (crossPatternAbs.test(imp)) {
+        const isAllowed = CROSS_DOMAIN_ALLOWED.some((a) => imp.includes(a));
+        if (!isAllowed) {
+          console.error(`BOUNDARY_VIOLATION: cross-domain import in ${rel} (import: "${imp}")`);
+          violations++;
+        }
+        continue;
+      }
+
+      if (imp.startsWith(".")) {
+        const resolved = resolveRelativeImport(rel, imp);
+        if (!resolved) continue;
+
+        const target = getImportedDomainAndModule(resolved);
+        if (!target) continue;
+        if (target.domain === currentDomain) continue;
+
+        const isBlockedModule = CROSS_DOMAIN_BLOCKED.some(
+          (b) => target.module === b || target.module.startsWith(b + ".")
+        );
+        const isAllowedModule = CROSS_DOMAIN_ALLOWED.some(
+          (a) => target.module === a || target.module.startsWith(a + ".")
+        );
+
+        if (isBlockedModule && !isAllowedModule) {
+          console.error(
+            `BOUNDARY_VIOLATION: cross-domain "${target.module}" import from "${target.domain}" in ${rel} (import: "${imp}", resolved: "${resolved}")`
+          );
+          violations++;
         }
       }
     }

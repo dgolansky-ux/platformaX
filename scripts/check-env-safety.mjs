@@ -14,10 +14,14 @@ const BLOCKED_SECRETS = [
   "sk_test",
 ];
 
-const SAFE_FILES = [
+const PLACEHOLDER_SAFE_FILES = new Set([
   ".env.example",
   ".env.test.example",
-  "docs/security/SECRET_HANDLING_POLICY.md",
+]);
+
+const PLACEHOLDER_SAFE_PREFIXES = [
+  "docs/security/",
+  "docs/templates/",
 ];
 
 const BANNED_FILES = [".env", ".env.local", ".env.production"];
@@ -37,6 +41,12 @@ function walk(dir) {
   return results;
 }
 
+function isPlaceholderSafeFile(rel) {
+  if (PLACEHOLDER_SAFE_FILES.has(rel)) return true;
+  if (PLACEHOLDER_SAFE_PREFIXES.some((p) => rel.startsWith(p))) return true;
+  return false;
+}
+
 let violations = 0;
 
 for (const banned of BANNED_FILES) {
@@ -49,12 +59,15 @@ for (const banned of BANNED_FILES) {
 const allFiles = walk(ROOT);
 for (const fp of allFiles) {
   const rel = relative(ROOT, fp).replace(/\\/g, "/");
-  if (SAFE_FILES.includes(rel)) continue;
   if (rel.startsWith("scripts/")) continue;
   if (rel.startsWith("docs/")) continue;
 
   let content;
-  try { content = readFileSync(fp, "utf-8"); } catch { continue; }
+  try {
+    content = readFileSync(fp, "utf-8");
+  } catch {
+    continue;
+  }
 
   for (const secret of BLOCKED_SECRETS) {
     if (content.includes(secret)) {
@@ -62,10 +75,34 @@ for (const fp of allFiles) {
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes(secret)) {
           const trimmed = lines[i].trim();
-          if (trimmed.startsWith("//") || trimmed.startsWith("#") || trimmed.startsWith("*")) continue;
-          if (trimmed.includes("placeholder") || trimmed.includes("PLACEHOLDER") || trimmed.includes("example") || trimmed.includes("EXAMPLE")) continue;
-          if (/=\s*["']?\s*$/.test(trimmed) || /=\s*["']?your[-_]/.test(trimmed)) continue;
-          console.error(`ENV_SECRET_VIOLATION: "${secret}" in ${rel}:${i + 1}`);
+          if (
+            trimmed.startsWith("//") ||
+            trimmed.startsWith("#") ||
+            trimmed.startsWith("*")
+          )
+            continue;
+
+          if (isPlaceholderSafeFile(rel)) {
+            if (
+              trimmed.includes("placeholder") ||
+              trimmed.includes("PLACEHOLDER") ||
+              trimmed.includes("example") ||
+              trimmed.includes("EXAMPLE") ||
+              /=\s*["']?\s*$/.test(trimmed) ||
+              /=\s*["']?your[-_]/.test(trimmed)
+            )
+              continue;
+          }
+
+          if (
+            /=\s*["']?\s*$/.test(trimmed) ||
+            /=\s*["']?your[-_]/.test(trimmed)
+          )
+            continue;
+
+          console.error(
+            `ENV_SECRET_VIOLATION: "${secret}" in ${rel}:${i + 1}`
+          );
           violations++;
         }
       }

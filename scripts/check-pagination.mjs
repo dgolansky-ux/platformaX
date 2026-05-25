@@ -10,13 +10,40 @@ const SCAN_DIRS = [
 ];
 
 const LIST_INDICATORS = [
-  "findAll", "findMany", "getList", "fetchList", "listAll",
-  "searchAll", "getFeed", "fetchFeed", "queryAll",
+  "findAll",
+  "findMany",
+  "getList",
+  "fetchList",
+  "listAll",
+  "searchAll",
+  "getFeed",
+  "fetchFeed",
+  "queryAll",
+  "getAll",
+];
+
+const QUERY_PATTERNS = [
+  /\.select\(\s*\)\s*\.from\s*\(/,
+  /db\.select\(\s*\)\s*\.from\s*\(/,
 ];
 
 const PAGINATION_MARKERS = [
-  "limit", "maxLimit", "cursor", "fixedCap", "stableOrder",
-  "offset", "pageSize", "perPage", "take",
+  "limit",
+  "maxLimit",
+  "cursor",
+  "fixedCap",
+  "stableOrder",
+  "offset",
+  "pageSize",
+  "perPage",
+  "take",
+];
+
+const SAFE_MARKERS = [
+  "MOCK_LOCAL_ONLY",
+  "FIXED_CAP",
+  "UI_ONLY",
+  "TEST_FIXTURE",
 ];
 
 function walk(dir) {
@@ -43,15 +70,41 @@ for (const scanDir of SCAN_DIRS) {
   for (const fp of files) {
     if (!/\.(ts|tsx|js|jsx|mjs)$/.test(fp)) continue;
     let content;
-    try { content = readFileSync(fp, "utf-8"); } catch { continue; }
+    try {
+      content = readFileSync(fp, "utf-8");
+    } catch {
+      continue;
+    }
     const rel = relative(ROOT, fp).replace(/\\/g, "/");
+
+    const hasSafeMarker = SAFE_MARKERS.some((m) => content.includes(m));
+    if (hasSafeMarker) continue;
 
     for (const indicator of LIST_INDICATORS) {
       if (content.includes(indicator)) {
         runtimeListsFound = true;
-        const hasPagination = PAGINATION_MARKERS.some(m => content.includes(m));
+        const hasPagination = PAGINATION_MARKERS.some((m) =>
+          content.includes(m)
+        );
         if (!hasPagination) {
-          console.error(`PAGINATION_VIOLATION: "${indicator}" without pagination in ${rel}`);
+          console.error(
+            `PAGINATION_VIOLATION: "${indicator}" without pagination in ${rel}`
+          );
+          violations++;
+        }
+      }
+    }
+
+    for (const qp of QUERY_PATTERNS) {
+      if (qp.test(content)) {
+        runtimeListsFound = true;
+        const hasPagination = PAGINATION_MARKERS.some((m) =>
+          content.includes(m)
+        );
+        if (!hasPagination) {
+          console.error(
+            `PAGINATION_VIOLATION: unbounded query pattern without pagination in ${rel}`
+          );
           violations++;
         }
       }
