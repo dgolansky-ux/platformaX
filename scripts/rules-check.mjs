@@ -19,6 +19,9 @@ const GUARDS = [
   "check-file-complexity.mjs",
   "check-build-artifacts.mjs",
   "check-supabase-migrations-safety.mjs",
+  "check-domain-registry.mjs",
+  "check-domain-scaffold.mjs",
+  "check-feature-registry.mjs",
   "validate-bundle.mjs --smoke",
 ];
 

@@ -39,6 +39,8 @@ Composition shell for the ${shellName} area.
 - Must not import domain internals (repository, service, policy, mapper)
 - May compose from domain public-api/contracts/events
 - May use shared UI components from features-v2/shared-ui
+- No no-op buttons: onClick={() => {}} is forbidden
+- Use fixtures/local state for scaffold; no fake runtime
 
 ## Status history
 
@@ -47,7 +49,12 @@ Composition shell for the ${shellName} area.
 | ${new Date().toISOString().split("T")[0]} | SCAFFOLD_ONLY | this file | initial scaffold |
 `);
 
-writeFileSync(join(shellDir, ".gitkeep"), "");
+writeFileSync(join(shellDir, "index.ts"), `/**
+ * app-v2/${shellName} — UI shell barrel
+ * Status: SCAFFOLD_ONLY
+ */
+export {};
+`);
 
 console.log(`SCAFFOLD_UI_SHELL_CREATED: ${shellName}`);
 console.log(`  path: client/src/app-v2/${shellName}/`);

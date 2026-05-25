@@ -1,83 +1,49 @@
 # PlatformaX V2 — Domain Ownership Matrix
 
-Status: `ACTIVE`  
-Owner: Architecture / Domain Governance  
-Purpose: define source-of-truth ownership, allowed readers, writers and review triggers
+## Owner domains
 
-## 1. Rule
+| Domain | Owns | Does NOT own | Reads from | Public surface | Status |
+|---|---|---|---|---|---|
+| identity | profile, auth subject, public/private profile DTO, professions | feed, friendships, communities, posts | — | public-api, contracts, events | SCAFFOLD_ONLY |
+| social | friends/contact graph, relationship state, contact access | profile PII, posts, feed engine | identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| communities-v2 | community profile, members, roles, settings, invites, join requests, feed settings | posts, comments, chat, events, modules | identity, social (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| content-v2 | posts, feeds, comments, reactions, topics, read-models | memberships, roles, profiles, friendships | identity, communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| channels | channel definitions, memberships, settings | messages, chat history, community roles | communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| chat | messages, conversations, read state, typing indicators | channels, community roles, profiles | channels, identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| events | event definitions, RSVPs, event lifecycle, visibility | community membership, profiles, posts | identity, communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| modules | ModuleDefinition, registry, enablement | actual module business data | communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| media | media assets, upload contracts, validation, refs | base64/dataUrl payloads (FORBIDDEN) | identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 
-Every important concept has one owner.
+## Composition domains
 
-Read models, hubs, dashboards and composition layers are not source of truth.
+| Domain | Owns | Does NOT own | Reads from | Public surface | Status |
+|---|---|---|---|---|---|
+| public-hub | composition/read view of public profiles and communities | source-of-truth data | identity, communities-v2, content-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 
-## 2. Matrix
+## Operational domains
 
-| Concept | Owner | May read through | May write through | Forbidden |
+| Domain | Owns | Does NOT own | Reads from | Public surface | Status |
+|---|---|---|---|---|---|
+| notifications | notification delivery, templates, preferences | content creation, profiles | identity, communities-v2 (events) | public-api, contracts, events | SCAFFOLD_ONLY |
+| search | search indexing, query engine, relevance | source data | all domains (events/public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| moderation | moderation rules, reports, actions, queues | content creation | content-v2, communities-v2 (events) | public-api, contracts, events | SCAFFOLD_ONLY |
+| audit | audit log, trail, events | business logic | all domains (events) | public-api, contracts, events | SCAFFOLD_ONLY |
+| system | health, config, feature flags, maintenance | domain data | internal metrics | public-api, contracts, events | SCAFFOLD_ONLY |
+
+## Application layers
+
+| Layer | Purpose | Owns data | Reads from | Status |
 |---|---|---|---|---|
-| Auth subject | identity | identity public contracts | identity service | other domains owning auth internals |
-| Private user profile | identity | private/admin DTO only | identity service | public DTO exposure |
-| Public profile summary | identity | PublicProfileDTO | identity service | raw DB record sharing |
-| Profession/category metadata | identity | identity contracts | identity admin/service | hardcoded copies in unrelated domains |
-| Friendship relation | social | social public-api | social service | identity/content storing relationship truth |
-| Contact access grants | social + identity policy | public contracts | social service | exposing private contact data |
-| Community | communities-v2 | communities public-api | communities service | content/modules owning community truth |
-| Community membership | communities-v2 | communities public-api/policy | communities service | content/chat/events owning roles |
-| Community feed settings | communities-v2 | public policy contract | communities service | content deciding role truth |
-| Post | content-v2/posts | content public-api | content service | profile/community domains owning posts |
-| Feed item | content-v2/feeds | content feed contracts | content read-model worker/service | social/community storing feed items as truth |
-| Comment | content-v2/comments | content public-api | content service | other domains storing comments |
-| Reaction | content-v2/reactions | content public-api | content service | per-card N+1 reaction fetches |
-| Topic/article | content-v2/topics | content/modules/public-hub contracts | content service | communities owning topics |
-| Channel | channels | channels public-api | channels service | community membership conflated with follows |
-| Channel follow | channels | channels public-api | channels service | social friendship conflated with channel follow |
-| Conversation | chat | chat public-api | chat service | newsletter as mass direct messages |
-| Message | chat | chat public-api | chat service | synchronous fanout loops |
-| Event | events | events public-api | events service | payment/ticket coupling without ADR |
-| Participant registration | events | events public-api | events service | unpaginated participant lists |
-| Module definition | modules | modules contracts | modules service | hardcoded module tabs in owners |
-| Module enablement | modules | modules public-api | modules service | public-hub owning enablement truth |
-| Public Hub page | public-hub | composition contracts | composition only | public-hub owning module data |
-| Media asset | media | media public-api | media service | base64/dataUrl in owner domains |
-| Notification | notifications | notification contracts | outbox/worker | sync fanout in request path |
-| Search projection | search | search contracts | projection worker | full table scans/private query logs |
-| Audit log | audit | admin/audit contracts | append-only audit service | public audit exposure |
-| Feature flags/config | system | system public contracts | system service | secrets in frontend/docs |
+| publisher | Content publishing orchestration | NO | content-v2, identity (public-api) | SCAFFOLD_ONLY |
+| app-shell | Application shell composition | NO | all domains (public-api) | SCAFFOLD_ONLY |
+| onboarding | User onboarding flow | NO | identity, communities-v2 (public-api) | SCAFFOLD_ONLY |
 
-## 3. Review triggers
+## Cross-domain import rules
 
-The following changes require architecture review:
-
-- any `public-api.ts` change
-- any public DTO change
-- any policy change
-- any routing/App.tsx change
-- any `scripts/check-*` or `scripts/validate-*` change
-- any migration affecting ownership tables
-- any cross-domain contract
-- any change to env/security handling
-- any CODEOWNERS or CI weakening
-- any removed-area exception
-
-## 4. CODEOWNERS baseline
-
-```txt
-/server/domains-v2/**                 @architecture-owner
-/client/src/app-v2/**                 @architecture-owner
-/client/src/features-v2/**            @architecture-owner
-/client/src/App.tsx                   @architecture-owner
-/scripts/check-*                      @governance-owner
-/scripts/validate-*                   @governance-owner
-/docs/architecture/**                 @architecture-owner
-/.github/workflows/**                 @governance-owner
-```
-
-For a one-person project, the owner can be the project owner. The point is not bureaucracy. The point is forced conscious review.
-
-## 5. Acceptance
-
-This matrix is accepted when:
-
-- every active domain has an owner,
-- every source-of-truth entity is assigned,
-- CODEOWNERS can be derived from it,
-- check scripts can use it as a reference.
+| Allowed cross-domain | Blocked cross-domain |
+|---|---|
+| public-api.ts | repository |
+| contracts.ts | service |
+| events.ts | policy |
+| explicitly public DTO | router, mapper, db, schema |
+| | cache-keys, internal |

@@ -22,6 +22,18 @@ if (REMOVED_ROUTES.includes(routePath)) {
   process.exit(1);
 }
 
+const KNOWN_DOMAINS = [
+  "identity", "social", "communities-v2", "content-v2",
+  "channels", "chat", "events", "modules", "public-hub",
+  "notifications", "media", "search", "moderation", "audit", "system",
+];
+
+if (!KNOWN_DOMAINS.includes(domainName)) {
+  console.error(`BLOCKED: Domain "${domainName}" is not in the registry.`);
+  console.error("Known domains: " + KNOWN_DOMAINS.join(", "));
+  process.exit(1);
+}
+
 if (!routePath.startsWith("/")) {
   console.error(`Route path must start with /`);
   process.exit(1);

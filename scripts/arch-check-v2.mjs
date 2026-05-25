@@ -12,6 +12,9 @@ const GUARDS = [
   "check-public-dto-pii.mjs",
   "check-media-base64.mjs",
   "check-pagination.mjs",
+  "check-domain-registry.mjs",
+  "check-domain-scaffold.mjs",
+  "check-feature-registry.mjs",
 ];
 
 let failed = 0;
