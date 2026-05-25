@@ -50,5 +50,8 @@ jobs:
       - name: Architecture check
         run: pnpm arch:check:v2
 
+      - name: Secret scan
+        run: pnpm guards:secrets
+
       - name: Bundle validation (smoke)
         run: pnpm guards:bundle

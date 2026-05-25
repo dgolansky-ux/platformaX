@@ -25,7 +25,7 @@ const SAFE_FILES = new Set([
   "docs/security/SECRET_HANDLING_POLICY.md",
 ]);
 
-const SAFE_PREFIXES = ["scripts/check-", "scripts/rules-", "scripts/arch-", "scripts/validate-", "scripts/audit-", "scripts/no-commit-"];
+const SAFE_PREFIXES = ["scripts/check-", "scripts/rules-", "scripts/arch-", "scripts/validate-", "scripts/audit-", "scripts/no-commit-", "docs/review/"];
 const SKIP_DIRS = new Set(["node_modules", ".git", "dist", "coverage", ".cache", ".turbo"]);
 const SKIP_EXTENSIONS = new Set([".lock", ".png", ".jpg", ".gif", ".ico", ".woff", ".woff2", ".ttf", ".eot"]);
 
