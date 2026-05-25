@@ -5,6 +5,7 @@ import { RegisterRoute } from "./auth/RegisterRoute";
 import { ResetPasswordRoute } from "./auth/ResetPasswordRoute";
 import { CheckEmailRoute } from "./auth/CheckEmailRoute";
 import { OnboardingFlow } from "./onboarding/OnboardingFlow";
+import { ProfilePage } from "./profile/ProfilePage";
 
 export function AppRouter() {
   return (
@@ -16,6 +17,7 @@ export function AppRouter() {
         <Route path="/reset-password" element={<ResetPasswordRoute />} />
         <Route path="/check-email" element={<CheckEmailRoute />} />
         <Route path="/onboarding" element={<OnboardingFlow />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

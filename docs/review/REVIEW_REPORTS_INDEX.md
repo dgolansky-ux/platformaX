@@ -1,6 +1,6 @@
 # Review Reports Index
 
-Last updated: 2026-05-25 (Step 21)
+Last updated: 2026-05-25 (Step 22)
 
 ## Allowed statuses
 
@@ -36,3 +36,4 @@ Last updated: 2026-05-25 (Step 21)
 | step-19-public-landing-page | Public landing page UI shell (app-v2) | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_19_REPORT.md |
 | step-20-auth-register-onboarding-shell | Auth + register + onboarding UI shell (app-v2) | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_20_REPORT.md |
 | step-21-supabase-auth-identity-adapter | Supabase Auth adapter + identity auth integration | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_21_REPORT.md |
+| step-22-personal-profile-mobile-shell | Personal profile mobile UI shell (app-v2) | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_22_REPORT.md (visual parity manual review) |
