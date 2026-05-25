@@ -4,7 +4,7 @@ import { ProfileBio } from "./ProfileBio";
 import { ProfileStatusBar } from "./ProfileStatusBar";
 import { ProfileModeSwitcher } from "./ProfileModeSwitcher";
 import { ProfileBanner } from "./ProfileBanner";
-import styles from "../profile.module.css";
+import styles from "../styles/profile-header.module.css";
 
 type ProfileHeaderProps = {
   profile: PersonalProfileView;

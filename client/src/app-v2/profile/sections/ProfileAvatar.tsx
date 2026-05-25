@@ -1,4 +1,4 @@
-import styles from "../profile.module.css";
+import styles from "../styles/profile-header.module.css";
 
 type ProfileAvatarProps = {
   initial: string;
@@ -7,6 +7,11 @@ type ProfileAvatarProps = {
   onTogglePreview: () => void;
 };
 
+/**
+ * Mobile avatar. Mirrors legacy ProfileHeaderAvatar 1:1:
+ * 144x144 white outer padding 3px → gradient ring 3px → inner #EFF6FF surface
+ * with the user's initial. Eye button below toggles preview menu.
+ */
 export function ProfileAvatar({
   initial,
   isOwner,
@@ -14,14 +19,16 @@ export function ProfileAvatar({
   onTogglePreview,
 }: ProfileAvatarProps) {
   return (
-    <div className={styles.avatar}>
-      <div className={styles.avatarInner} aria-hidden="true">
-        {initial}
+    <div className={styles.avatarWrap}>
+      <div className={styles.avatar}>
+        <div className={styles.avatarRing} aria-hidden="true">
+          <div className={styles.avatarInner}>{initial}</div>
+        </div>
       </div>
       {isOwner ? (
         <button
           type="button"
-          className={styles.eyeButton}
+          className={`${styles.eyeButton} ${previewOpen ? styles.eyeButtonActive : ""}`}
           aria-label="Podgląd profilu"
           aria-pressed={previewOpen}
           onClick={onTogglePreview}

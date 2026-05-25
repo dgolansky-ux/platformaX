@@ -1,6 +1,6 @@
 # Review Reports Index
 
-Last updated: 2026-05-25 (Step 25)
+Last updated: 2026-05-25 (Step 26)
 
 ## Allowed statuses
 
@@ -40,3 +40,4 @@ Last updated: 2026-05-25 (Step 25)
 | step-23-personal-profile-desktop-adaptation | Personal profile desktop/tablet adaptation (app-v2) | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_23_REPORT.md (desktop visual parity manual review) |
 | step-24-professional-profile-mobile-layer | Professional profile mobile layer — mode of personal profile (app-v2) | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_24_REPORT.md (mobile UI shell, data pending) |
 | step-25-professional-profile-desktop-adaptation | Professional profile desktop/tablet adaptation (app-v2) | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_25_REPORT.md (desktop visual parity manual review) |
+| step-26-profile-legacy-parity-and-size-guards | Profile legacy parity + CSS/file-size guards (app-v2) | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_26_REPORT.md + PROFILE_PARITY_AUDIT.md |

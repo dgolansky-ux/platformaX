@@ -1,4 +1,5 @@
-import styles from "../profile.module.css";
+import sec from "../styles/profile-sections.module.css";
+import pro from "../styles/profile-professional.module.css";
 
 type ProfessionBlockProps = {
   isOwner: boolean;
@@ -12,21 +13,21 @@ type ProfessionBlockProps = {
  */
 export function ProfessionBlock({ isOwner }: ProfessionBlockProps) {
   return (
-    <section className={styles.section} aria-label="Zawód">
-      <div className={styles.professionEmpty}>
-        <div className={styles.professionEmptyIcon} aria-hidden="true">
+    <section className={sec.section} aria-label="Zawód">
+      <div className={pro.professionEmpty}>
+        <div className={pro.professionEmptyIcon} aria-hidden="true">
           💼
         </div>
-        <div className={styles.professionEmptyBody}>
-          <p className={styles.emptyTitle}>Dodaj zawód</p>
-          <p className={styles.emptyText}>
+        <div className={pro.professionEmptyBody}>
+          <p className={sec.emptyTitle}>Dodaj zawód</p>
+          <p className={sec.emptyText}>
             Uzupełnij profil zawodowy aby być znajdowanym
           </p>
         </div>
         {isOwner ? (
           <button
             type="button"
-            className={styles.professionAddButton}
+            className={pro.addButton}
             title="Edytor zawodów będzie dostępny w kolejnym etapie"
             disabled
           >

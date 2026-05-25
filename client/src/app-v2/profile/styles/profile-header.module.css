@@ -1,0 +1,350 @@
+/* Profile header: name, avatar+bio row, banner, social links, preview menu.
+   Imported by ProfileHeader, ProfileAvatar, ProfileBio, ProfileBanner,
+   ProfileSocialLinks and ProfilePage (preview banner).
+   Mobile sizes mirror legacy ProfileHeader 1:1. */
+
+.header {
+  padding: 6px 0 0;
+}
+
+.name {
+  margin: 0;
+  padding: 6px 12px 8px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.avatarBioRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 6px;
+  overflow: hidden;
+}
+
+.avatarCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  flex-shrink: 0;
+  padding-left: 4px;
+}
+
+.separator {
+  flex-shrink: 0;
+  align-self: stretch;
+  width: 1px;
+  margin: 0 10px 0 4px;
+  border-radius: 1px;
+  opacity: 0.45;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #1e4fd8 20%,
+    #1e4fd8 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 4px 0.5px rgba(30, 79, 216, 0.25);
+  animation:
+    px-divider-drop 0.6s ease-out both,
+    px-divider-pulse 3s ease-in-out 0.6s infinite;
+  transform-origin: top center;
+}
+
+.bioCol {
+  flex: 1;
+  min-width: 0;
+  padding: 0 8px 0 6px;
+}
+
+.label {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.bioText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bioEmpty {
+  font-style: italic;
+  color: var(--color-text-soft);
+}
+
+/* Avatar wraps with negative bottom margin so it overlaps the banner edge,
+   like the legacy ProfileHeaderAvatar (`mb-[-14px] z-20`). */
+.avatarWrap {
+  position: relative;
+  margin-bottom: -14px;
+  z-index: 2;
+}
+
+.avatar {
+  position: relative;
+  width: 144px;
+  height: 144px;
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 3px;
+  box-shadow:
+    0 8px 32px rgba(15, 60, 201, 0.28),
+    0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 1.1s ease-in-out;
+}
+
+/* Gradient ring sits between the white outer padding and the inner letter
+   surface — legacy uses bg-gradient-to-br from-[#0F3CC9] to-[#6366F1]. */
+.avatarRing {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  padding: 3px;
+  background: linear-gradient(135deg, #0f3cc9, #6366f1);
+}
+
+.avatarInner {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff6ff;
+  color: var(--color-primary);
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.eyeButton {
+  position: absolute;
+  bottom: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 2.5px solid #fff;
+  background: rgba(30, 79, 216, 0.75);
+  color: #fff;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  z-index: 3;
+  transition: background 180ms ease;
+}
+
+.eyeButtonActive {
+  background: var(--color-primary);
+}
+
+.eyeButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.locationRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 0;
+  font-size: 13px;
+  color: var(--color-text-soft);
+}
+
+.banner {
+  position: relative;
+  margin: 12px 4px 0;
+  aspect-ratio: 5 / 2;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--gradient-primary);
+  box-shadow: 0 6px 24px rgba(15, 60, 201, 0.18);
+}
+
+.bannerShare {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+.bannerShare:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.socialLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 12px 0;
+}
+
+.socialLink {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.socialLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.socialLinkedin { background: #0a66c2; }
+.socialGithub { background: #24292e; }
+.socialInstagram {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+}
+.socialWebsite { background: #475569; }
+
+.previewMenu {
+  margin: 0 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  animation: px-dropdown-in 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.previewMenuTitle {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.previewBody {
+  font-size: 12px;
+  color: var(--color-text-soft);
+}
+
+.previewOption {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.previewOption:hover {
+  background: var(--color-primary-soft);
+}
+
+.previewOption:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1024px) {
+  .name {
+    font-size: 26px;
+    padding-inline: 24px;
+  }
+
+  .avatarBioRow {
+    padding-inline: 24px;
+  }
+
+  .banner {
+    aspect-ratio: 10 / 3;
+    margin-inline: 24px;
+  }
+
+  .socialLinks {
+    padding-inline: 24px;
+  }
+}
+
+@media (hover: hover) {
+  .socialLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .separator,
+  .avatar,
+  .eyeButton,
+  .previewMenu {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@keyframes px-divider-drop {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0.45;
+  }
+}
+
+@keyframes px-divider-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes px-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

@@ -1,5 +1,5 @@
 import type { SocialLink, SocialLinkKind } from "../types";
-import styles from "../profile.module.css";
+import styles from "../styles/profile-header.module.css";
 
 type ProfileSocialLinksProps = {
   links: ReadonlyArray<SocialLink>;
