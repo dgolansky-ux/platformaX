@@ -1,0 +1,129 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 60px;
+}
+
+@media (max-width: 540px) {
+  .inner {
+    height: 56px;
+  }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+
+.brandMark {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--gradient-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: var(--shadow-soft);
+}
+
+.nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.linkGhost {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.linkGhost:hover,
+.linkGhost:focus-visible {
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.linkGhost:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.linkPrimary {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  background: var(--gradient-primary);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+}
+
+.linkPrimary:hover,
+.linkPrimary:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.32);
+  filter: brightness(1.04);
+}
+
+.linkPrimary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .linkGhost {
+    padding: 0 10px;
+    font-size: 13.5px;
+  }
+  .linkPrimary {
+    padding: 0 12px;
+    font-size: 13.5px;
+  }
+  .brand {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .linkGhost {
+    display: none;
+  }
+}

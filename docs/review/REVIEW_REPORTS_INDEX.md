@@ -1,6 +1,6 @@
 # Review Reports Index
 
-Last updated: 2026-05-25 (Step 17a)
+Last updated: 2026-05-25 (Step 19)
 
 ## Allowed statuses
 
@@ -33,3 +33,4 @@ Last updated: 2026-05-25 (Step 17a)
 | step-17-documentation-freshness | Documentation freshness gate | `9842b0e` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_17_REPORT.md |
 | step-17a-coding-standards-hardening | Coding standards + agent self-audit hardening | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_17A_REPORT.md |
 | step-18-final-bramka-acceptance | Final BRAMKA acceptance 25/25 | `22654b8` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_18_REPORT.md |
+| step-19-public-landing-page | Public landing page UI shell (app-v2) | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_19_REPORT.md |
