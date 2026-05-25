@@ -18,6 +18,24 @@ The landing page CTAs that were explicit `href="#"` placeholders in step-19
 are now repointed to real client routes (`<Link to="/login">` /
 `<Link to="/register">`).
 
+## Follow-up fixes (post-merge, branch `fix/auth-privacy-wording`)
+
+A small privacy + product-wording pass was applied after the initial shell
+landed on `main`. No architecture change, no Supabase, no backend, no
+migrations.
+
+- **Privacy fix:** the e-mail address is no longer passed in the URL.
+  `RegisterRoute` now navigates to `/check-email` (previously
+  `/check-email?email=…`), and `CheckEmailRoute` no longer reads or renders a
+  concrete e-mail from `useSearchParams`. It shows a neutral message instead:
+  "Jeśli dane są poprawne, wyślemy link aktywacyjny na podany adres e-mail po
+  podłączeniu backendu identity." Tests assert the URL carries no e-mail query
+  and that no concrete address is rendered.
+- **Wording fix:** the onboarding profile option label "Twórca / Pasja" was
+  renamed to "Twórca / zainteresowania". This is copy only — it does **not**
+  reactivate the legacy passions/pasje product area, which remains a removed
+  area per `PlatformaX-V2-legacy-containment.md` §5.
+
 ## Baseline
 
 - Branch: `feat/auth-register-onboarding-shell` (cut from `main` at `884175c`)

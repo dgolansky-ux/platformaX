@@ -1,16 +1,21 @@
 // TEST_FIXTURE: testing-library helpers (getAllByRole) used to enumerate
 // rendered DOM — not a runtime list query (see scripts/check-pagination.mjs).
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { MemoryRouter, Routes, Route, useLocation } from "react-router-dom";
 import { describe, expect, test } from "vitest";
 import { RegisterRoute } from "../RegisterRoute";
+
+function CheckEmailProbe() {
+  const location = useLocation();
+  return <div>CHECK_EMAIL_ROUTE[search:{location.search}]</div>;
+}
 
 function renderRegister(initial = "/register") {
   return render(
     <MemoryRouter initialEntries={[initial]}>
       <Routes>
         <Route path="/register" element={<RegisterRoute />} />
-        <Route path="/check-email" element={<div>CHECK_EMAIL_ROUTE</div>} />
+        <Route path="/check-email" element={<CheckEmailProbe />} />
         <Route path="/login" element={<div>LOGIN_ROUTE</div>} />
       </Routes>
     </MemoryRouter>,
@@ -52,13 +57,14 @@ describe("RegisterRoute", () => {
     expect(screen.getByText(/hasła nie są identyczne/i)).toBeDefined();
   });
 
-  test("navigates to /check-email on valid submit (no real backend)", () => {
+  test("navigates to /check-email on valid submit without leaking e-mail in the URL", () => {
     renderRegister();
     typeInto(screen.getByLabelText(/^e-mail/i), "anna@example.org");
     typeInto(screen.getByLabelText(/^hasło/i), "haslo1234");
     typeInto(screen.getByLabelText(/powtórz hasło/i), "haslo1234");
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(screen.getByRole("button", { name: /załóż konto/i }));
-    expect(screen.getByText("CHECK_EMAIL_ROUTE")).toBeDefined();
+    expect(screen.getByText(/CHECK_EMAIL_ROUTE\[search:\]/)).toBeDefined();
+    expect(screen.queryByText(/anna@example\.org/i)).toBeNull();
   });
 });

@@ -8,7 +8,7 @@ type ProfileOption = {
 
 const OPTIONS: ReadonlyArray<ProfileOption> = [
   { id: "personal", title: "Profil osobisty", subtitle: "Relacje i bliscy" },
-  { id: "creator", title: "Twórca / Pasja", subtitle: "Dziel się tym, co robisz" },
+  { id: "creator", title: "Twórca / zainteresowania", subtitle: "Dziel się tym, co robisz" },
   { id: "pro", title: "Profil zawodowy", subtitle: "Branża i kontakty" },
   { id: "local", title: "Lokalna inicjatywa", subtitle: "Wokół miejsca i sąsiedztwa" },
 ];
