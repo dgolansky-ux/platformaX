@@ -4,7 +4,7 @@ Generated: 2026-05-25T10:02Z
 
 ## Summary
 
-Added documentation freshness enforcement: REVIEW_REPORTS_INDEX.md tracks all review reports with status tracking, and two new guards enforce index consistency and PRE-COMMIT DECISION presence in reports from Step 17 onward.
+Added documentation freshness enforcement: REVIEW_REPORTS_INDEX.md tracks all review reports with status tracking, and three new guards enforce index consistency, PRE-COMMIT DECISION presence, and SELF-AUDIT evidence in reports from Step 17 onward.
 
 ## Changes
 
@@ -23,6 +23,7 @@ Added documentation freshness enforcement: REVIEW_REPORTS_INDEX.md tracks all re
 
 - `check-review-reports-index.mjs` — validates index exists, all step-* folders are indexed, statuses are from allowlist, ACTIVE_EVIDENCE has evidence path, SUPERSEDED has reference
 - `check-pre-commit-decision.mjs` — enforces PRE-COMMIT DECISION section with 15 required fields in reports from Step 17+
+- `check-self-audit-evidence.mjs` — enforces SELF-AUDIT / INDEPENDENT REVIEW PASS section with 12 required fields in reports from Step 17+
 
 ## PRE-COMMIT DECISION
 
@@ -41,6 +42,21 @@ Added documentation freshness enforcement: REVIEW_REPORTS_INDEX.md tracks all re
 - Tests: PASS (all tests including 18 new)
 - Build: PASS (vite build)
 - Commit decision: COMMIT_ALLOWED — all gates green, documentation-only change
+
+## SELF-AUDIT / INDEPENDENT REVIEW PASS
+
+- What I changed: Added 3 guard scripts, 3 test files, REVIEW_REPORTS_INDEX.md, AGENT_SELF_AUDIT_PROTOCOL.md, updated package.json, rules-check.mjs, CI workflow, step-17 reports
+- What I might have broken: Nothing — governance/docs only, no runtime code touched
+- Domain boundaries affected: none
+- Cross-domain imports check: clean — no domain code modified
+- Legacy/runtime check: clean — no V1 imports added
+- Fake DONE/status truth check: clean — no banned statuses introduced
+- PII/base64/secrets check: clean — no PII, no base64, no secrets in changes
+- Routes/nav/build graph check: clean — no routes or nav changes
+- Guard weakening check: none — only added new guards, no existing guards removed or weakened
+- Evidence reviewed: STEP_17_REPORT.md, REVIEW_INDEX_MATRIX.md, PRE_COMMIT_DECISION_MATRIX.md, AGENT_SELF_AUDIT_PROTOCOL.md
+- Gates run: check/lint/test/build/rules:check(21/21)/arch:check:v2(9/9)/guards:domains/secrets/review/commit/bundle/all-local — all PASS
+- Remaining risks: none — documentation and governance enforcement only
 
 ## Final status
 
