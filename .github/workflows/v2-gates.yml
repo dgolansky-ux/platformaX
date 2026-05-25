@@ -56,5 +56,8 @@ jobs:
       - name: Review reports & self-audit
         run: pnpm guards:review
 
+      - name: BRAMKA acceptance matrix
+        run: pnpm guards:bramka
+
       - name: Bundle validation (smoke)
         run: pnpm guards:bundle
