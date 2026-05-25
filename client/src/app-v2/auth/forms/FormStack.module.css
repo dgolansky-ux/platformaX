@@ -1,0 +1,69 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.rowEnd {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.smallLink {
+  font-size: 12.5px;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.smallLink:hover,
+.smallLink:focus-visible {
+  text-decoration: underline;
+}
+
+.smallLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.checkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.check {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
+.checkText a {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.checkText a:hover,
+.checkText a:focus-visible {
+  text-decoration: underline;
+}
+
+.inlineError {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-danger);
+  font-weight: 500;
+}
