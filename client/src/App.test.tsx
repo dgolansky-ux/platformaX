@@ -2,9 +2,9 @@ import { render, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 import { App } from "./App";
 
-test("renders PlatformaX V2 Foundation heading", () => {
+test("App renders the public landing page hero", () => {
   render(<App />);
   expect(
-    screen.getByText("PlatformaX V2 Foundation"),
+    screen.getByRole("heading", { level: 1, name: /relacji, społeczności i działania/i }),
   ).toBeDefined();
 });
