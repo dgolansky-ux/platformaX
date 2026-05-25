@@ -1,6 +1,6 @@
-# Step 08 — File Manifest
+# Step 08 — File Manifest (v2)
 
-Total tracked files in commit: 151
+Total files in ZIP: 153
 
 ## Structure
 
@@ -22,13 +22,13 @@ client/src/features-v2/shared-ui/.gitkeep
 client/src/main.tsx
 client/src/test-setup.ts
 commitlint.config.mjs
-docs/ (56 markdown files across ai/, architecture/, quality-gates/, release/, review/, security/, templates/)
+docs/ (governance, architecture, ADRs, quality-gates, review reports, templates, security, ai)
 eslint.config.js
 index.html
 package.json
 pnpm-lock.yaml
 pnpm-workspace.yaml
-scripts/ (25 files: 23 .mjs guards/scaffolds + 2 placeholders)
+scripts/ (25+ .mjs guard/scaffold scripts)
 scripts/__tests__/ (4 test files)
 server/index.ts
 server/index.test.ts
@@ -40,3 +40,9 @@ vite-env.d.ts
 vite.config.ts
 vitest.config.ts
 ```
+
+## Changes from v1 to v2
+
+- Updated `README.md` (was Step 01 description, now PlatformaX V2 Clean Repo status)
+- Enhanced `scripts/validate-bundle.mjs` (real ZIP validation, classifyEntry, 16 self-test cases)
+- Extended `scripts/__tests__/validate-bundle.test.ts` (12 tests including classifyEntry)

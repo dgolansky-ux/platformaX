@@ -1,36 +1,68 @@
-# PlatformaX V2 — Step 01 Governance Foundation
+# PlatformaX V2 — Clean Repo
 
-Status: `L1_GOVERNANCE_READY_CANDIDATE`  
-Scope: governance documents only  
-Feature work: forbidden in this step
+Status: `BRAMKA_LOCAL_IMPLEMENTATION_IN_PROGRESS`  
+GitHub manual gates: `PENDING`  
+Branch: `main`
 
-This package contains the first governance layer for PlatformaX V2. It is designed to be copied into a clean repository before any feature work starts.
+## What is this
 
-The goal of this step is to make the project rules explicit, reviewable and enforceable by later gates. These files do not replace automated checks. They define what later `scripts/check-*`, Husky hooks, CI, branch protection and audit reports must enforce.
+PlatformaX V2 is a modular-monolith platform rebuilt from scratch with full governance, architecture enforcement, and quality gates.
 
-## Included areas
+## Local BRAMKA gates
 
-- Core active rules
-- Coding standards
-- Architecture enforcement
-- Domain status truth
-- Legacy containment
-- Execution map
-- Domain ownership matrix
-- ADR system
-- Agent operating policies
-- Governance templates
-- Review report index
-- Gate acceptance matrix
+All local gates are implemented and passing:
 
-## Non-goals
+- **Type check** — `pnpm check`
+- **Lint** — `pnpm lint`
+- **Tests** — `pnpm test`
+- **Build** — `pnpm build`
+- **Rules umbrella** — `pnpm rules:check` (14 sub-guards)
+- **Arch umbrella** — `pnpm arch:check:v2` (6 sub-guards)
+- **Commit decision** — `pnpm guards:commit`
+- **Bundle validation** — `pnpm guards:bundle`
+- **Secret scan** — `pnpm guards:secrets`
+- **Script safety** — `pnpm guards:scripts`
+- **All local** — `pnpm guards:all-local`
 
-This package does not create application code.
-This package does not implement `rules:check`.
-This package does not configure GitHub, Supabase or Railway.
-This package does not approve any production runtime.
-This package does not allow legacy runtime imports.
+## Git hooks (Husky)
 
-## Required next step
+| Hook | Guards |
+|---|---|
+| `pre-commit` | diff-safety, fake-done, removed-areas, env-safety, test-env-safety, tsc, eslint, lint-staged |
+| `pre-push` | rules:check, arch:check:v2, domain-boundaries, domain-status, removed-areas, test-env, lint, test, build |
+| `commit-msg` | commitlint (type + scope enum) |
 
-After these files are reviewed and copied into the repo, proceed to Step 02: clean repository skeleton and package scripts.
+## GitHub CI
+
+Workflow `.github/workflows/v2-gates.yml` runs full gate suite on push/PR to `main`.
+
+## Pending manual GitHub steps
+
+- Branch protection for `main`
+- Required status checks (`gates` job)
+- Require PR before merge
+- CODEOWNERS review enforcement
+- GitHub secret scanning / push protection
+- Dependabot alerts
+- Railway/Supabase deployment policies
+
+See `docs/review/step-06-branch-protection/GITHUB_MANUAL_ACTIONS.md` for details.
+
+## Project structure
+
+```
+client/          — React frontend (Vite)
+server/          — Express backend
+shared/          — Shared types/contracts
+scripts/         — Guard scripts and generators
+docs/            — Governance, architecture, ADRs, review reports
+.github/         — CI workflow, CODEOWNERS, PR template
+.husky/          — Git hooks
+```
+
+## Forbidden in current phase
+
+- Product features (profiles, feeds, marketplace, etc.)
+- Supabase/Railway runtime
+- Legacy code imports
+- Direct push to `main` (once branch protection is set)
