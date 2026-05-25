@@ -107,18 +107,46 @@ describe("ProfilePage — personal profile mobile shell", () => {
 
   test("CTAs that need a backend are disabled-policy, never silent no-ops", () => {
     renderProfile();
-    expect(screen.getByRole("tab", { name: /zawodowy/i })).toHaveProperty("disabled", true);
     const communities = screen.getByText(/^Społeczności$/).closest("button");
     expect(communities?.disabled).toBe(true);
   });
 
-  test("professional profile is NOT an active separate domain/route", () => {
+  test("professional layer is a MODE of the same profile, not a separate domain/route", () => {
     renderProfile();
-    // professional layer content must not render in this PR
+    // default mode is personal: professional content is not shown
     expect(screen.queryByText(/Specjaliści/)).toBeNull();
-    expect(screen.queryByText(/Dodaj zawód/)).toBeNull();
-    // no separate professional-profile frontend feature folder
+    // switching to the professional tab reveals the professional layer in place
+    fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
+    expect(screen.getByRole("heading", { name: /Specjaliści/ })).toBeDefined();
+    expect(screen.getByText(/Dodaj zawód/)).toBeDefined();
+    // personal-only sections are hidden in professional mode
+    expect(screen.queryByRole("region", { name: /^Kontakty$/ })).toBeNull();
+    // it is still the same /profile route, and there is no separate domain folder
     expect(existsSync(join(ROOT, "client/src/features-v2/professional-profile"))).toBe(false);
+  });
+
+  test("can switch back to personal after professional (mode is local view state)", () => {
+    renderProfile();
+    fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
+    expect(screen.getByRole("region", { name: /Zawód/ })).toBeDefined();
+    fireEvent.click(screen.getByRole("tab", { name: /^Osobisty$/ }));
+    expect(screen.getByRole("region", { name: /^Kontakty$/ })).toBeDefined();
+    expect(screen.queryByRole("heading", { name: /Specjaliści/ })).toBeNull();
+  });
+
+  test("professional layer renders its sections and CTAs are not no-ops", () => {
+    renderProfile();
+    fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
+    expect(screen.getByRole("region", { name: /^Zawód$/ })).toBeDefined();
+    expect(screen.getByRole("region", { name: /Specjaliści/ })).toBeDefined();
+    expect(screen.getByRole("region", { name: /Działania zawodowe/ })).toBeDefined();
+    // Klasyczny/Sieć tabs switch via local state
+    fireEvent.click(screen.getByRole("tab", { name: /^Sieć$/ }));
+    expect(screen.getByText(/Dodaj działania aby zobaczyć widok sieci/)).toBeDefined();
+    fireEvent.click(screen.getByRole("tab", { name: /^Klasyczny$/ }));
+    // "add activity" opens a local sheet (real CTA, not a no-op)
+    fireEvent.click(screen.getByRole("button", { name: /Dodaj działanie zawodowe/ }));
+    expect(screen.getByRole("dialog", { name: /Co chcesz dodać/ })).toBeDefined();
   });
 
   test("public render contains no private PII (phone / dateOfBirth / private email)", () => {

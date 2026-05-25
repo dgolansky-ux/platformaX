@@ -4,16 +4,18 @@ import styles from "../profile.module.css";
 type ProfileModeSwitcherProps = {
   mode: ProfileViewMode;
   onSelectPersonal: () => void;
+  onSelectProfessional: () => void;
 };
 
 /**
- * Osobisty / Zawodowy switch. This PR ships the personal layer only, so the
- * professional option is a disabled-policy state (not a separate route/domain).
- * Gesture swipe is GESTURE_PENDING — the hint + buttons are present.
+ * Osobisty / Zawodowy switch. Both are modes of the SAME profile — switching is
+ * local view state, not a separate route/domain. Gesture swipe is
+ * GESTURE_PENDING — the hint + buttons are present.
  */
 export function ProfileModeSwitcher({
   mode,
   onSelectPersonal,
+  onSelectProfessional,
 }: ProfileModeSwitcherProps) {
   return (
     <>
@@ -31,10 +33,9 @@ export function ProfileModeSwitcher({
           <button
             type="button"
             role="tab"
-            aria-selected={false}
-            className={styles.switcherButton}
-            title="Profil zawodowy będzie dostępny w kolejnym etapie"
-            disabled
+            aria-selected={mode === "professional"}
+            className={`${styles.switcherButton} ${mode === "professional" ? styles.switcherButtonActive : ""}`}
+            onClick={onSelectProfessional}
           >
             Zawodowy
           </button>

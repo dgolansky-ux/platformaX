@@ -13,6 +13,7 @@ type ProfileHeaderProps = {
   onTogglePreview: () => void;
   onSelectPreview: (kind: ProfilePreviewKind) => void;
   onSelectPersonal: () => void;
+  onSelectProfessional: () => void;
   onShare: () => void;
 };
 
@@ -27,6 +28,7 @@ export function ProfileHeader({
   onTogglePreview,
   onSelectPreview,
   onSelectPersonal,
+  onSelectProfessional,
   onShare,
 }: ProfileHeaderProps) {
   return (
@@ -84,7 +86,11 @@ export function ProfileHeader({
         </p>
       ) : null}
 
-      <ProfileModeSwitcher mode={mode} onSelectPersonal={onSelectPersonal} />
+      <ProfileModeSwitcher
+        mode={mode}
+        onSelectPersonal={onSelectPersonal}
+        onSelectProfessional={onSelectProfessional}
+      />
 
       <ProfileBanner onShare={onShare} />
     </header>

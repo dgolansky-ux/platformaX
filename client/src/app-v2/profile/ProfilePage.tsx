@@ -12,6 +12,7 @@ import { ProfilePortalCards } from "./sections/ProfilePortalCards";
 import { ProfileContacts } from "./sections/ProfileContacts";
 import { ProfileQuickFeed } from "./sections/ProfileQuickFeed";
 import { ProfilePersonalSections } from "./sections/ProfilePersonalSections";
+import { ProfileProfessionalLayer } from "./sections/ProfileProfessionalLayer";
 import styles from "./profile.module.css";
 
 type ProfilePageProps = {
@@ -91,6 +92,7 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
             onTogglePreview={() => setPreviewOpen((v) => !v)}
             onSelectPreview={handleSelectPreview}
             onSelectPersonal={() => setMode("personal")}
+            onSelectProfessional={() => setMode("professional")}
             onShare={shareProfile}
           />
 
@@ -110,15 +112,22 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
 
           <ProfileSocialLinks links={profile.socialLinks} />
           <ProfilePortalCards />
-          <ProfileContacts contacts={profile.contacts} />
-          <ProfileQuickFeed items={profile.quickFeed} />
-          <div className={styles.personalGrid}>
-            <ProfilePersonalSections
-              presentationPostCount={profile.presentationPostCount}
-              milestoneCount={profile.milestoneCount}
-              isOwner={profile.isOwner}
-            />
-          </div>
+
+          {mode === "personal" ? (
+            <>
+              <ProfileContacts contacts={profile.contacts} />
+              <ProfileQuickFeed items={profile.quickFeed} />
+              <div className={styles.personalGrid}>
+                <ProfilePersonalSections
+                  presentationPostCount={profile.presentationPostCount}
+                  milestoneCount={profile.milestoneCount}
+                  isOwner={profile.isOwner}
+                />
+              </div>
+            </>
+          ) : (
+            <ProfileProfessionalLayer isOwner={profile.isOwner} />
+          )}
         </main>
       </div>
     </div>
