@@ -156,6 +156,17 @@ Policy rules:
 
 Hard limit violations require either refactor or explicit `COMPLEXITY_EXCEPTION` report. `eslint-disable max-lines` is not enough.
 
+### Stylesheet limits (enforced by `scripts/check-file-size-limits.mjs`)
+
+| File type | Hard limit | Reaction |
+|---|---:|---|
+| CSS module (`*.module.css`) | 360 lines | split by surface (layout / header / sections / per-block) |
+| Global CSS (`*.css`, not module) | 500 lines | split by feature or extract tokens |
+
+CSS limits are wired into `pnpm rules:check` and fail closed. Exceptional
+fixtures may include the `ALLOW_FILE_SIZE_EXCEPTION` marker — only with a
+documented justification in the step report.
+
 ## 7. Testing standard
 
 Required test types:

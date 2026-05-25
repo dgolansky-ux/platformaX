@@ -1,5 +1,6 @@
 import { useState } from "react";
-import styles from "../profile.module.css";
+import sec from "../styles/profile-sections.module.css";
+import pro from "../styles/profile-professional.module.css";
 
 type ProfileProfessionalActivitiesProps = {
   isOwner: boolean;
@@ -24,22 +25,24 @@ const WORK_TYPES: ReadonlyArray<WorkType> = [
 
 /**
  * Professional layer — activities (§23). Classic / Network tabs are local view
- * state. No activity data yet, so both tabs show empty states. The "add" CTA
- * opens a local "Co chcesz dodać?" sheet; its options route to editors that do
- * not exist yet, so they are disabled-policy (no fake routes, no no-ops).
+ * state. No activity data yet, so both tabs show empty states. Classic tab also
+ * mirrors legacy ProfileProfessionalSection's "Moja praca" disabled anchor and
+ * "Moduł w budowie" warning card. The "add" CTA opens a local "Co chcesz
+ * dodać?" sheet; its options route to editors that don't exist yet, so they
+ * are disabled-policy (no fake routes, no no-ops).
  */
 export function ProfileProfessionalActivities({ isOwner }: ProfileProfessionalActivitiesProps) {
   const [tab, setTab] = useState<ActivityTab>("classic");
   const [sheetOpen, setSheetOpen] = useState(false);
 
   return (
-    <section className={styles.section} aria-label="Działania zawodowe">
-      <div className={styles.activityTabs} role="tablist" aria-label="Widok działań">
+    <section className={sec.section} aria-label="Działania zawodowe">
+      <div className={pro.activityTabs} role="tablist" aria-label="Widok działań">
         <button
           type="button"
           role="tab"
           aria-selected={tab === "classic"}
-          className={`${styles.activityTab} ${tab === "classic" ? styles.activityTabActive : ""}`}
+          className={`${pro.activityTab} ${tab === "classic" ? pro.activityTabActive : ""}`}
           onClick={() => setTab("classic")}
         >
           Klasyczny
@@ -48,7 +51,7 @@ export function ProfileProfessionalActivities({ isOwner }: ProfileProfessionalAc
           type="button"
           role="tab"
           aria-selected={tab === "network"}
-          className={`${styles.activityTab} ${tab === "network" ? styles.activityTabActive : ""}`}
+          className={`${pro.activityTab} ${tab === "network" ? pro.activityTabActive : ""}`}
           onClick={() => setTab("network")}
         >
           Sieć
@@ -56,40 +59,63 @@ export function ProfileProfessionalActivities({ isOwner }: ProfileProfessionalAc
       </div>
 
       {tab === "classic" ? (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon} aria-hidden="true">🧰</div>
-          <p className={styles.emptyTitle}>Brak działań zawodowych</p>
-          <p className={styles.emptyText}>
-            {isOwner
-              ? "Dodaj projekt, usługę lub case study aby pokazać swoją pracę."
-              : "Ten użytkownik nie dodał jeszcze żadnych działań zawodowych."}
-          </p>
+        <>
           {isOwner ? (
             <button
               type="button"
-              className={styles.professionAddButton}
-              aria-expanded={sheetOpen}
-              onClick={() => setSheetOpen(true)}
+              className={pro.workplaceAnchor}
+              title="Sekcja Miejsce pracy będzie dostępna wkrótce"
+              disabled
             >
-              Dodaj działanie zawodowe
+              <span aria-hidden="true">+</span> Moja praca
             </button>
           ) : null}
-        </div>
+
+          <div className={pro.workplaceWarning} role="status">
+            <span className={pro.workplaceWarningIcon} aria-hidden="true">🔧</span>
+            <div className={pro.workplaceWarningBody}>
+              <p className={pro.workplaceWarningTitle}>Moduł w budowie</p>
+              <p className={pro.workplaceWarningText}>
+                Sekcja Miejsce pracy będzie dostępna wkrótce.
+              </p>
+            </div>
+          </div>
+
+          <div className={sec.emptyState}>
+            <div className={sec.emptyIcon} aria-hidden="true">🧰</div>
+            <p className={sec.emptyTitle}>Brak działań zawodowych</p>
+            <p className={sec.emptyText}>
+              {isOwner
+                ? "Dodaj projekt, usługę lub case study aby pokazać swoją pracę."
+                : "Ten użytkownik nie dodał jeszcze żadnych działań zawodowych."}
+            </p>
+            {isOwner ? (
+              <button
+                type="button"
+                className={pro.addButton}
+                aria-expanded={sheetOpen}
+                onClick={() => setSheetOpen(true)}
+              >
+                Dodaj działanie zawodowe
+              </button>
+            ) : null}
+          </div>
+        </>
       ) : (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon} aria-hidden="true">🕸️</div>
-          <p className={styles.emptyTitle}>Widok sieci</p>
-          <p className={styles.emptyText}>Dodaj działania aby zobaczyć widok sieci</p>
+        <div className={sec.emptyState}>
+          <div className={sec.emptyIcon} aria-hidden="true">🕸️</div>
+          <p className={sec.emptyTitle}>Widok sieci</p>
+          <p className={sec.emptyText}>Dodaj działania aby zobaczyć widok sieci</p>
         </div>
       )}
 
       {sheetOpen ? (
-        <div className={styles.sheet} role="dialog" aria-label="Co chcesz dodać?">
-          <div className={styles.sheetHeader}>
-            <p className={styles.previewMenuTitle}>Co chcesz dodać?</p>
+        <div className={pro.sheet} role="dialog" aria-label="Co chcesz dodać?">
+          <div className={pro.sheetHeader}>
+            <p className={pro.sheetTitle}>Co chcesz dodać?</p>
             <button
               type="button"
-              className={styles.iconButton}
+              className={pro.sheetClose}
               aria-label="Zamknij"
               onClick={() => setSheetOpen(false)}
             >
@@ -100,12 +126,12 @@ export function ProfileProfessionalActivities({ isOwner }: ProfileProfessionalAc
             <button
               key={type.id}
               type="button"
-              className={styles.sheetOption}
+              className={pro.sheetOption}
               title={`${type.label} — edytor wkrótce`}
               disabled
             >
-              <span className={styles.sheetOptionLabel}>{type.label}</span>
-              <span className={styles.sheetOptionDesc}>{type.desc}</span>
+              <span className={pro.sheetOptionLabel}>{type.label}</span>
+              <span className={pro.sheetOptionDesc}>{type.desc}</span>
             </button>
           ))}
         </div>

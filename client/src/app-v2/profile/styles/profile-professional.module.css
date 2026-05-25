@@ -1,0 +1,308 @@
+/* Professional layer styles. Imported by ProfessionBlock, ProfileSpecialists,
+   ProfileProfessionalActivities (alongside the shared section atoms).
+   Sizes/colors mirror legacy ProfessionBlock + ProfileSpecialists +
+   ProfileProfessionalSection 1:1. */
+
+.professionEmpty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px dashed var(--color-primary);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
+}
+
+.professionEmptyIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+
+.professionEmptyBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.addButton {
+  margin-top: 12px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.addButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Specialists section header — orange briefcase icon + visibility switch. */
+.specialistsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.specialistsIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ea580c;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.specialistsTitleBox {
+  display: flex;
+  flex-direction: column;
+}
+
+.specialistsTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.specialistsSubtitle {
+  margin: 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.specialistsVisibility {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.specialistsVisibilityLabel {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.specialistsToggle {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  border: none;
+  background: #cbd5e1;
+  cursor: pointer;
+  padding: 0;
+  transition: background 200ms ease;
+}
+
+.specialistsToggleOn {
+  background: #ea580c;
+}
+
+.specialistsToggleKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: left 200ms ease;
+}
+
+.specialistsToggleOn .specialistsToggleKnob {
+  left: 21px;
+}
+
+.specialistsToggle:focus-visible {
+  outline: 2px solid #ea580c;
+  outline-offset: 2px;
+}
+
+/* Activity tabs (Klasyczny / Sieć). */
+.activityTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.activityTab {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.activityTabActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.activityTab:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* "Moja praca" anchor (owner placeholder, legacy ProfileProfessionalSection). */
+.workplaceAnchor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius-md);
+  background: #f1f5f9;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: not-allowed;
+}
+
+.workplaceAnchor:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* "Moduł w budowie" warning card. */
+.workplaceWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+}
+
+.workplaceWarningIcon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.workplaceWarningBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workplaceWarningTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.workplaceWarningText {
+  font-size: 12px;
+  color: #b45309;
+  line-height: 1.4;
+}
+
+.sheet {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.sheetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sheetClose {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.sheetTitle {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sheetOption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.sheetOption:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sheetOption:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.sheetOptionLabel {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sheetOptionDesc {
+  font-size: 12px;
+  color: var(--color-text-soft);
+}
+
+@media (hover: hover) {
+  .activityTab:hover,
+  .addButton:not(:disabled):hover,
+  .sheetOption:not(:disabled):hover {
+    filter: brightness(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .specialistsToggle,
+  .specialistsToggleKnob {
+    transition: none !important;
+  }
+}

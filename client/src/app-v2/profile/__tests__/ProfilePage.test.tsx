@@ -98,6 +98,60 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
   });
 
+  test("quick feed tile click opens a local post-detail sheet (visual shell)", async () => {
+    renderProfile();
+    const toggle = screen.getByRole("button", { name: /ostatnie posty/i });
+    fireEvent.click(toggle);
+    // skeleton runs for ~350ms on first open; tile accessible name = author + body,
+    // so we match on the body text to disambiguate from contacts-carousel buttons.
+    const tile = await screen.findByRole(
+      "button",
+      { name: /marek dodał/i },
+      { timeout: 2000 },
+    );
+    fireEvent.click(tile);
+    const dialog = await screen.findByRole("dialog", { name: /podgląd posta/i });
+    expect(dialog).toBeDefined();
+    // visual shell — reactions/comments are honest disabled placeholders
+    expect(screen.getByText(/podgląd posta jest wizualnym szkieletem/i)).toBeDefined();
+  });
+
+  test("no undefined classname leaks through the split CSS modules", () => {
+    const { container } = renderProfile();
+    // switching to the professional tab activates the second module set
+    fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
+    // any `class="undefined"` or "_undefined_" means a section is importing a
+    // class from a module that does not export it (cross-module bug)
+    expect(container.querySelectorAll('[class*="undefined"]').length).toBe(0);
+    expect(container.querySelectorAll('[class*="_undefined_"]').length).toBe(0);
+  });
+
+  test("specialists toggle (visibility switch) flips local state", () => {
+    renderProfile();
+    fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
+    const toggle = screen.getByRole("button", { name: /ukryj sekcję specjalistów/i });
+    expect(toggle.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(toggle);
+    expect(
+      screen.getByRole("button", { name: /pokaż sekcję specjalistów/i }).getAttribute("aria-pressed"),
+    ).toBe("false");
+  });
+
+  test("professional Klasyczny tab renders 'Moja praca' disabled anchor + 'Moduł w budowie'", () => {
+    renderProfile();
+    fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
+    const mojaPraca = screen.getByRole("button", { name: /moja praca/i });
+    expect((mojaPraca as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(/moduł w budowie/i)).toBeDefined();
+    expect(screen.getByText(/sekcja miejsce pracy będzie dostępna wkrótce/i)).toBeDefined();
+  });
+
+  test("floating navigation is mounted on /profile with profil as active", () => {
+    renderProfile();
+    const profil = screen.getByRole("button", { name: /^profil$/i });
+    expect(profil.getAttribute("aria-current")).toBe("page");
+  });
+
   test("contacts tabs filter the carousel via local state", () => {
     renderProfile();
     expect(screen.getByText(/Wójcik/)).toBeDefined(); // family_extended visible under "Wszyscy"

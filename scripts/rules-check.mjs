@@ -17,6 +17,7 @@ const GUARDS = [
   "check-media-base64.mjs",
   "check-pagination.mjs",
   "check-file-complexity.mjs",
+  "check-file-size-limits.mjs",
   "check-build-artifacts.mjs",
   "check-supabase-migrations-safety.mjs",
   "check-domain-registry.mjs",

@@ -1,4 +1,4 @@
-import styles from "../profile.module.css";
+import styles from "../styles/profile-header.module.css";
 
 type ProfileBioProps = {
   bio: string | null;

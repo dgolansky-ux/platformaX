@@ -1,0 +1,253 @@
+/* Status bar + mode switcher. Imported by ProfileStatusBar and ProfileModeSwitcher.
+   Sizes/colors mirror legacy ProfileHeaderStatusBar + ProfileModeSwitcher 1:1. */
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 12px 4px;
+}
+
+.statusPill {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 260px;
+  padding: 4.5px 9px;
+  border-radius: 999px;
+  border: 1.5px solid #bfdbfe;
+  background: #eff6ff;
+  cursor: pointer;
+  text-align: left;
+  transition: filter 150ms ease;
+}
+
+.statusPill:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.statusPillEmpty {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  flex-shrink: 0;
+  animation: ph-dot 2s ease-in-out infinite;
+}
+
+.statusEmoji {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.statusTexts {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.statusState {
+  font-size: 11.3px;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusDesc {
+  font-size: 10.4px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusMeta {
+  font-size: 10px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.statusSparkle {
+  font-size: 14px;
+  color: #94a3b8;
+  display: inline-block;
+  animation: ph-sparkle 2.2s ease-in-out infinite;
+}
+
+.statusEmptyLabel {
+  font-size: 11.3px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+/* 67x67 violet status-photo button. Empty = dashed border + gradient bg with
+   idle pulse. When filled would gain a glow ring (set via a wrapper class). */
+.statusPhoto {
+  width: 67px;
+  height: 67px;
+  border-radius: 999px;
+  border: 2px dashed #c4b5fd;
+  background: linear-gradient(135deg, #ede9fe, #e0e7ff);
+  color: #7c3aed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: not-allowed;
+  flex-shrink: 0;
+  overflow: hidden;
+  animation: status-photo-idle 3s ease-in-out infinite;
+}
+
+.statusPhoto:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+}
+
+.statusPhotoIcon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* Mode switcher: 200px wide pill at the right edge, two flex-1 buttons. */
+.switcherRow {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 12px 0;
+}
+
+.switcher {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 46px;
+  background: #f1f5f9;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  width: 200px;
+}
+
+.switcherButton {
+  flex: 1;
+  padding: 9px 14px;
+  border: none;
+  border-radius: 46px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  background: transparent;
+  cursor: pointer;
+  transition: all 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.switcherButtonActive {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(15, 60, 201, 0.32);
+  transform: scale(1.02);
+}
+
+.switcherButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.switcherButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.swipeHint {
+  margin: 8px 12px 0;
+  font-size: 11px;
+  color: var(--color-text-soft);
+  text-align: center;
+  animation: px-hint-fade 4s ease-in-out infinite;
+}
+
+@media (min-width: 1024px) {
+  .statusBar,
+  .switcherRow,
+  .swipeHint {
+    padding-inline: 24px;
+  }
+}
+
+@media (hover: hover) {
+  .switcherButton:not(:disabled):hover {
+    filter: brightness(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switcherButton,
+  .statusDot,
+  .statusSparkle,
+  .statusPhoto,
+  .swipeHint {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+@keyframes ph-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.45);
+  }
+}
+
+@keyframes ph-sparkle {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5) rotate(20deg);
+  }
+}
+
+@keyframes status-photo-idle {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes px-hint-fade {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}

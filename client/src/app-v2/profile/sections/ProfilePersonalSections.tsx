@@ -1,4 +1,4 @@
-import styles from "../profile.module.css";
+import styles from "../styles/profile-sections.module.css";
 
 type ProfilePersonalSectionsProps = {
   presentationPostCount: number;

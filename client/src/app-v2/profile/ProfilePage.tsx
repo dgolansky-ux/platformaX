@@ -13,7 +13,9 @@ import { ProfileContacts } from "./sections/ProfileContacts";
 import { ProfileQuickFeed } from "./sections/ProfileQuickFeed";
 import { ProfilePersonalSections } from "./sections/ProfilePersonalSections";
 import { ProfileProfessionalLayer } from "./sections/ProfileProfessionalLayer";
-import styles from "./profile.module.css";
+import { FloatingNav } from "../navigation/FloatingNav";
+import layout from "./styles/profile-layout.module.css";
+import header from "./styles/profile-header.module.css";
 
 type ProfilePageProps = {
   profile?: PersonalProfileView;
@@ -64,17 +66,17 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
   const activePreview = previewKind !== "none" ? PREVIEW_COPY[previewKind] : null;
 
   return (
-    <div className={styles.page}>
-      <div className={styles.shell}>
-        <div className={styles.topbar}>
-          <span className={styles.topbarBrand}>PlatformaX</span>
-          <div className={styles.topbarActions}>
-            <Link to="/" className={styles.iconButton} aria-label="Strona główna">
+    <div className={layout.page}>
+      <div className={layout.shell}>
+        <div className={layout.topbar}>
+          <span className={layout.topbarBrand}>PlatformaX</span>
+          <div className={layout.topbarActions}>
+            <Link to="/" className={layout.iconButton} aria-label="Strona główna">
               ←
             </Link>
             <button
               type="button"
-              className={styles.iconButton}
+              className={layout.iconButton}
               aria-label="Edytuj profil — wkrótce"
               title="Edycja profilu będzie dostępna po podłączeniu backendu identity"
               disabled
@@ -97,12 +99,12 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
           />
 
           {activePreview ? (
-            <div className={styles.previewMenu} role="status">
-              <p className={styles.previewMenuTitle}>{activePreview.title}</p>
-              <p className={styles.sectionSubtitle}>{activePreview.body}</p>
+            <div className={header.previewMenu} role="status">
+              <p className={header.previewMenuTitle}>{activePreview.title}</p>
+              <p className={header.previewBody}>{activePreview.body}</p>
               <button
                 type="button"
-                className={styles.previewOption}
+                className={header.previewOption}
                 onClick={() => setPreviewKind("none")}
               >
                 Zamknij podgląd
@@ -117,7 +119,7 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
             <>
               <ProfileContacts contacts={profile.contacts} />
               <ProfileQuickFeed items={profile.quickFeed} />
-              <div className={styles.personalGrid}>
+              <div className={layout.personalGrid}>
                 <ProfilePersonalSections
                   presentationPostCount={profile.presentationPostCount}
                   milestoneCount={profile.milestoneCount}
@@ -126,12 +128,14 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
               </div>
             </>
           ) : (
-            <div className={styles.professionalGrid}>
+            <div className={layout.professionalGrid}>
               <ProfileProfessionalLayer isOwner={profile.isOwner} />
             </div>
           )}
         </main>
       </div>
+
+      <FloatingNav active="profil" />
     </div>
   );
 }

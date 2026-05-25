@@ -1,5 +1,5 @@
 import type { ProfileViewMode } from "../types";
-import styles from "../profile.module.css";
+import styles from "../styles/profile-status.module.css";
 
 type ProfileModeSwitcherProps = {
   mode: ProfileViewMode;
