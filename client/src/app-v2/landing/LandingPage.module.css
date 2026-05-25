@@ -38,10 +38,10 @@
   --radius-lg: 20px;
   --radius-xl: 28px;
 
-  --space-section: clamp(40px, 6vw, 72px);
-  --space-section-sm: clamp(28px, 4vw, 48px);
+  --space-section: clamp(24px, 4vw, 48px);
+  --space-section-sm: clamp(16px, 2.5vw, 32px);
   --container-max: 1180px;
-  --container-pad: clamp(16px, 3.5vw, 32px);
+  --container-pad: clamp(14px, 3vw, 28px);
 
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;

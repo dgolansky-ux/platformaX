@@ -10,24 +10,24 @@
 }
 
 .title {
-  font-size: clamp(24px, 3.4vw, 38px);
+  font-size: clamp(22px, 2.8vw, 32px);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--color-text);
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   line-height: 1.15;
 }
 
 .lead {
-  font-size: clamp(14.5px, 1.3vw, 16.5px);
+  font-size: clamp(14px, 1.2vw, 16px);
   color: var(--color-text-muted);
-  margin: 0 0 8px;
+  margin: 0 0 4px;
 }
 
 .fineprint {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--color-text-soft);
-  margin: 0 0 22px;
+  margin: 0 0 14px;
 }
 
 .ctaRow {
@@ -48,10 +48,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 48px;
-  padding: 0 24px;
-  border-radius: 12px;
-  font-size: 15px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 11px;
+  font-size: 14.5px;
   font-weight: 600;
   color: #ffffff;
   text-decoration: none;
@@ -74,10 +74,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 48px;
-  padding: 0 24px;
-  border-radius: 12px;
-  font-size: 15px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 11px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--color-text);
   text-decoration: none;
