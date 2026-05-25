@@ -1,6 +1,6 @@
 # Review Reports Index
 
-Last updated: 2026-05-25 (Step 23)
+Last updated: 2026-05-25 (Step 24)
 
 ## Allowed statuses
 
@@ -38,3 +38,4 @@ Last updated: 2026-05-25 (Step 23)
 | step-21-supabase-auth-identity-adapter | Supabase Auth adapter + identity auth integration | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_21_REPORT.md |
 | step-22-personal-profile-mobile-shell | Personal profile mobile UI shell (app-v2) | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_22_REPORT.md (visual parity manual review) |
 | step-23-personal-profile-desktop-adaptation | Personal profile desktop/tablet adaptation (app-v2) | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_23_REPORT.md (desktop visual parity manual review) |
+| step-24-professional-profile-mobile-layer | Professional profile mobile layer — mode of personal profile (app-v2) | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_24_REPORT.md (mobile UI shell, data pending) |
