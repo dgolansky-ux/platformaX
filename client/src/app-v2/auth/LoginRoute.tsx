@@ -1,15 +1,21 @@
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { FormField } from "./forms/FormField";
 import { PasswordField } from "./forms/PasswordField";
 import { SubmitButton, FormNotice } from "./forms/SubmitButton";
 import { validateEmail, validateNonEmpty } from "./forms/validation";
+import { identityAuthAdapter } from "../../features-v2/identity";
+import type { IdentityAuthAdapter } from "../../features-v2/identity";
 import stackStyles from "./forms/FormStack.module.css";
 
 type Errors = {
   email?: string;
   password?: string;
+};
+
+type LoginRouteProps = {
+  authAdapter?: IdentityAuthAdapter;
 };
 
 const BRAND = {
@@ -23,13 +29,17 @@ const BRAND = {
   ],
 };
 
-export function LoginRoute() {
+export function LoginRoute({
+  authAdapter = identityAuthAdapter,
+}: LoginRouteProps = {}) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<Errors>({});
-  const [showBackendNotice, setShowBackendNotice] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const next: Errors = {};
     const emailCheck = validateEmail(email);
@@ -39,11 +49,19 @@ export function LoginRoute() {
 
     if (Object.keys(next).length > 0) {
       setErrors(next);
-      setShowBackendNotice(false);
+      setFormError(null);
       return;
     }
     setErrors({});
-    setShowBackendNotice(true);
+    setFormError(null);
+    setSubmitting(true);
+    const result = await authAdapter.signIn(email.trim(), password);
+    setSubmitting(false);
+    if (!result.ok) {
+      setFormError(result.error.message);
+      return;
+    }
+    navigate("/onboarding");
   }
 
   return (
@@ -87,14 +105,12 @@ export function LoginRoute() {
           </Link>
         </div>
 
-        <SubmitButton>Zaloguj się</SubmitButton>
+        <SubmitButton disabled={submitting}>
+          {submitting ? "Logowanie…" : "Zaloguj się"}
+        </SubmitButton>
 
-        {showBackendNotice ? (
-          <FormNotice title="Logowanie nie jest jeszcze dostępne">
-            To wersja UI shell — backend tożsamości jeszcze nie istnieje, więc
-            celowo nie udajemy zalogowanej sesji. Wrócimy do tego po wdrożeniu
-            domeny identity.
-          </FormNotice>
+        {formError ? (
+          <FormNotice title="Nie udało się zalogować">{formError}</FormNotice>
         ) : null}
       </form>
     </AuthLayout>

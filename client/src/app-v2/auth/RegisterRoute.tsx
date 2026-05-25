@@ -3,13 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "./AuthLayout";
 import { FormField } from "./forms/FormField";
 import { PasswordField } from "./forms/PasswordField";
-import { SubmitButton } from "./forms/SubmitButton";
+import { SubmitButton, FormNotice } from "./forms/SubmitButton";
 import {
   validateEmail,
   validatePassword,
   validatePasswordMatch,
   MIN_PASSWORD_LENGTH_HINT,
 } from "./forms/validation";
+import { identityAuthAdapter } from "../../features-v2/identity";
+import type { IdentityAuthAdapter } from "../../features-v2/identity";
 import stackStyles from "./forms/FormStack.module.css";
 
 type Errors = {
@@ -17,6 +19,10 @@ type Errors = {
   password?: string;
   passwordConfirm?: string;
   terms?: string;
+};
+
+type RegisterRouteProps = {
+  authAdapter?: IdentityAuthAdapter;
 };
 
 const BRAND = {
@@ -30,15 +36,19 @@ const BRAND = {
   ],
 };
 
-export function RegisterRoute() {
+export function RegisterRoute({
+  authAdapter = identityAuthAdapter,
+}: RegisterRouteProps = {}) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [terms, setTerms] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const next: Errors = {};
     const emailCheck = validateEmail(email);
@@ -54,6 +64,14 @@ export function RegisterRoute() {
       return;
     }
     setErrors({});
+    setFormError(null);
+    setSubmitting(true);
+    const result = await authAdapter.signUp(email.trim(), password);
+    setSubmitting(false);
+    if (!result.ok) {
+      setFormError(result.error.message);
+      return;
+    }
     navigate("/check-email");
   }
 
@@ -118,7 +136,13 @@ export function RegisterRoute() {
           <p className={stackStyles.inlineError}>{errors.terms}</p>
         ) : null}
 
-        <SubmitButton>Załóż konto</SubmitButton>
+        <SubmitButton disabled={submitting}>
+          {submitting ? "Zakładanie konta…" : "Załóż konto"}
+        </SubmitButton>
+
+        {formError ? (
+          <FormNotice title="Nie udało się założyć konta">{formError}</FormNotice>
+        ) : null}
       </form>
     </AuthLayout>
   );
