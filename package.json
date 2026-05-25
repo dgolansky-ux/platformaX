@@ -1,0 +1,52 @@
+{
+  "name": "platformax-v2",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "lint:v2": "eslint client/src/app-v2 client/src/features-v2 server/domains-v2 --max-warnings=0 --no-error-on-unmatched-pattern",
+    "test": "vitest run",
+    "rules:check": "node scripts/rules-check.mjs",
+    "arch:check:v2": "node scripts/arch-check-v2.mjs",
+    "guards:diff": "node scripts/check-diff-safety.mjs",
+    "guards:commit": "node scripts/no-commit-if-dirty-gates.mjs",
+    "guards:bundle": "node scripts/validate-bundle.mjs --smoke",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --max-warnings=0 --no-warn-ignored"
+    ],
+    "*.{js,mjs}": [
+      "eslint --max-warnings=0 --no-warn-ignored"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.0.1",
+    "@commitlint/config-conventional": "^21.0.1",
+    "@eslint/js": "^9.27.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.0",
+    "eslint": "^9.27.0",
+    "globals": "^16.1.0",
+    "husky": "^9.1.7",
+    "jsdom": "^26.1.0",
+    "lint-staged": "^17.0.5",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.32.0",
+    "vite": "^6.3.0",
+    "vitest": "^3.2.0"
+  }
+}

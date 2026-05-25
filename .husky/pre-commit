@@ -1,0 +1,8 @@
+node scripts/check-diff-safety.mjs
+node scripts/check-fake-done.mjs
+node scripts/check-removed-product-areas.mjs
+node scripts/check-env-safety.mjs
+node scripts/check-test-env-safety.mjs
+pnpm check
+pnpm lint:v2
+pnpm exec lint-staged
