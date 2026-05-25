@@ -25,6 +25,7 @@ const GUARDS = [
   "check-secret-scan.mjs",
   "check-review-reports-index.mjs",
   "check-pre-commit-decision.mjs",
+  "check-self-audit-evidence.mjs",
   "validate-bundle.mjs --smoke",
 ];
 

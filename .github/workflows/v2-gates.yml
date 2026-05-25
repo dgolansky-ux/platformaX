@@ -53,7 +53,7 @@ jobs:
       - name: Secret scan
         run: pnpm guards:secrets
 
-      - name: Review reports index
+      - name: Review reports & self-audit
         run: pnpm guards:review
 
       - name: Bundle validation (smoke)
