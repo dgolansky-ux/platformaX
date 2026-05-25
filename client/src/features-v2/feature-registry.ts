@@ -22,7 +22,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
   { name: "modules", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "public-hub", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "notifications", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
-  { name: "media", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
+  { name: "media", status: "PARTIAL", hasDomainLogic: true },
   { name: "search", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "moderation", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "audit", status: "SCAFFOLD_ONLY", hasDomainLogic: false },

@@ -70,7 +70,7 @@ This table must be updated by code changes. Empty or planned domains must not be
 | `events` | owner domain | `PLANNED` | events, registration, participants |
 | `modules` | owner domain | `PLANNED` | module definitions/enablement |
 | `public-hub` | composition domain | `PLANNED` | composition/read view, not source of truth |
-| `media` | owner domain | `PLANNED` | presigned upload/media refs/provider abstraction |
+| `media` | owner domain | `PARTIAL` | avatar/banner upload-intent runtime (in-memory repo, env-required storage), DTOs/policy/mapper/validation, migration as code; live storage + presigned upload pending (STEP_32) |
 | `notifications` | operational domain | `PLANNED` | outbox/fanout/badges |
 | `search` | operational domain | `PLANNED` | projections/search contracts |
 | `moderation` | operational domain | `PLANNED` | report/block/mute moderation states |
