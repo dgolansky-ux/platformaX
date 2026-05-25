@@ -87,6 +87,66 @@ function getImportedDomainAndModule(resolvedPath) {
 
 let violations = 0;
 
+function checkPublicApiExportsInternals(fp, rel, content) {
+  if (!rel.endsWith("public-api.ts")) return;
+  const blockedExports = ["repository", "router", "mapper", "cache-keys", "cacheKeys", "schema"];
+  for (const blocked of blockedExports) {
+    const pat = new RegExp(`export.*from\\s+["'].*${blocked}`, "i");
+    if (pat.test(content)) {
+      console.error(`BOUNDARY_VIOLATION: public-api.ts exports internal "${blocked}" in ${rel}`);
+      violations++;
+    }
+  }
+}
+
+function checkSharedUiDomainImports(fp, rel, content) {
+  if (!rel.startsWith("client/src/features-v2/shared-ui/")) return;
+  const domainPatterns = [
+    /import.*from.*domains-v2/,
+    /import.*from.*features-v2\/(?!shared-ui)/,
+    /import.*from.*\/identity\//,
+    /import.*from.*\/social\//,
+    /import.*from.*\/content/,
+    /import.*from.*\/communities/,
+  ];
+  for (const pat of domainPatterns) {
+    if (pat.test(content)) {
+      console.error(`BOUNDARY_VIOLATION: shared-ui imports business domain in ${rel}`);
+      violations++;
+      break;
+    }
+  }
+}
+
+function checkAppV2BackendInternals(fp, rel, content) {
+  if (!rel.startsWith("client/src/app-v2/")) return;
+  const backendPatterns = [
+    /import.*from.*server\//,
+    /import.*from.*domains-v2.*\/(repository|service|policy|router|mapper|cache-keys)/,
+  ];
+  for (const pat of backendPatterns) {
+    if (pat.test(content)) {
+      console.error(`BOUNDARY_VIOLATION: app-v2 imports backend internals in ${rel}`);
+      violations++;
+    }
+  }
+}
+
+function checkFeatureCrossDomainInternals(fp, rel, content) {
+  if (!rel.startsWith("client/src/features-v2/")) return;
+  if (rel.startsWith("client/src/features-v2/shared-ui/")) return;
+  const currentFeature = rel.split("/")[3];
+  if (!currentFeature) return;
+  const crossFeatureInternal = new RegExp(`from\\s+["'].*features-v2/(?!${currentFeature}/)(?!shared-ui/)[^"']+["']`);
+  if (crossFeatureInternal.test(content)) {
+    const match = content.match(crossFeatureInternal);
+    if (match && !match[0].includes("/public-api") && !match[0].includes("/contracts") && !match[0].includes("/events")) {
+      console.error(`BOUNDARY_VIOLATION: feature "${currentFeature}" imports internals of another feature in ${rel}`);
+      violations++;
+    }
+  }
+}
+
 for (const scanDir of SCAN_DIRS) {
   const absDir = join(ROOT, scanDir);
   const files = walk(absDir);
@@ -97,6 +157,11 @@ for (const scanDir of SCAN_DIRS) {
     const rel = relative(ROOT, fp).replace(/\\/g, "/");
     const currentDomain = getDomainName(rel);
     const importPaths = extractImportPaths(content);
+
+    checkPublicApiExportsInternals(fp, rel, content);
+    checkSharedUiDomainImports(fp, rel, content);
+    checkAppV2BackendInternals(fp, rel, content);
+    checkFeatureCrossDomainInternals(fp, rel, content);
 
     for (const imp of importPaths) {
       if (rel.startsWith("client/src/app-v2/")) {

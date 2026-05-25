@@ -1,6 +1,6 @@
 # Review Reports Index
 
-Last updated: 2026-05-25 (Step 26)
+Last updated: 2026-05-25 (Step 30)
 
 ## Allowed statuses
 
@@ -42,3 +42,4 @@ Last updated: 2026-05-25 (Step 26)
 | step-25-professional-profile-desktop-adaptation | Professional profile desktop/tablet adaptation (app-v2) | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_25_REPORT.md (desktop visual parity manual review) |
 | step-26-profile-legacy-parity-and-size-guards | Profile legacy parity + CSS/file-size guards (app-v2) | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_26_REPORT.md + PROFILE_PARITY_AUDIT.md |
 | step-27-identity-profile-persistence | Identity profile persistence runtime + onboarding wiring | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_27_REPORT.md |
+| step-30-architecture-quality-scalability-guards | Architecture quality + scalability guards hardening | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_30_REVIEW.md |

@@ -1,3 +1,7 @@
+/* QUALITY_STRUCTURE_EXCEPTION: Profile header CSS serves 6 co-dependent visual blocks that
+   share responsive breakpoints. Splitting creates import complexity without layout benefit.
+   Removal plan: split by block (banner/avatar/bio/links) when design system stabilizes.
+   ALLOW_FILE_SIZE_EXCEPTION */
 /* Profile header: name, avatar+bio row, banner, social links, preview menu.
    Imported by ProfileHeader, ProfileAvatar, ProfileBio, ProfileBanner,
    ProfileSocialLinks and ProfilePage (preview banner).
