@@ -30,6 +30,15 @@ function classifyEntry(entryName: string) {
   return { entryName, issues };
 }
 
+function checkRequiredReports(entries: string[]) {
+  return {
+    hasReviewDocs: entries.some((e) => e.includes("docs/review/")),
+    hasStep11Report: entries.some((e) => e.endsWith("STEP_11_REPORT.md")),
+    hasZipManifest: entries.some((e) => e.endsWith("ZIP_MANIFEST.md")),
+    hasFileManifest: entries.some((e) => e.endsWith("FILE_MANIFEST.md")),
+  };
+}
+
 describe("validate-bundle: entry path validation", () => {
   it("rejects backslash paths", () => {
     expect(validateEntryPath("a\\b.txt").valid).toBe(false);
@@ -49,13 +58,11 @@ describe("validate-bundle: entry path validation", () => {
 
 describe("validate-bundle: classifyEntry", () => {
   it("detects backslash paths", () => {
-    const r = classifyEntry("a\\b.txt");
-    expect(r.issues).toContain("backslash_path");
+    expect(classifyEntry("a\\b.txt").issues).toContain("backslash_path");
   });
 
   it("detects nested zip", () => {
-    const r = classifyEntry("nested/archive.zip");
-    expect(r.issues).toContain("nested_zip");
+    expect(classifyEntry("nested/archive.zip").issues).toContain("nested_zip");
   });
 
   it("detects .env files", () => {
@@ -65,33 +72,52 @@ describe("validate-bundle: classifyEntry", () => {
   });
 
   it("detects node_modules", () => {
-    const r = classifyEntry("node_modules/foo/bar.js");
-    expect(r.issues).toContain("node_modules");
+    expect(classifyEntry("node_modules/foo.js").issues).toContain(
+      "node_modules"
+    );
   });
 
   it("detects dist", () => {
-    const r = classifyEntry("dist/index.js");
-    expect(r.issues).toContain("dist");
+    expect(classifyEntry("dist/app.js").issues).toContain("dist");
   });
 
   it("detects build", () => {
-    const r = classifyEntry("build/output.js");
-    expect(r.issues).toContain("build");
+    expect(classifyEntry("build/output.js").issues).toContain("build");
   });
 
   it("detects coverage", () => {
-    const r = classifyEntry("coverage/lcov.info");
-    expect(r.issues).toContain("coverage");
+    expect(classifyEntry("coverage/lcov.info").issues).toContain("coverage");
   });
 
   it("detects .git", () => {
-    const r = classifyEntry(".git/HEAD");
-    expect(r.issues).toContain("dot_git");
+    expect(classifyEntry(".git/config").issues).toContain("dot_git");
   });
 
   it("passes clean paths", () => {
     expect(classifyEntry("client/src/App.tsx").issues).toEqual([]);
     expect(classifyEntry("README.md").issues).toEqual([]);
     expect(classifyEntry("docs/review/report.md").issues).toEqual([]);
+  });
+});
+
+describe("validate-bundle: required reports check", () => {
+  it("FAILS when Step 11 reports are missing", () => {
+    const r = checkRequiredReports(["README.md", "package.json"]);
+    expect(r.hasStep11Report).toBe(false);
+    expect(r.hasZipManifest).toBe(false);
+    expect(r.hasFileManifest).toBe(false);
+  });
+
+  it("PASSES when all required reports are present", () => {
+    const r = checkRequiredReports([
+      "docs/review/step-11-final-local-bramka-audit/STEP_11_REPORT.md",
+      "docs/review/step-11-final-local-bramka-audit/ZIP_MANIFEST.md",
+      "docs/review/step-11-final-local-bramka-audit/FILE_MANIFEST.md",
+      "README.md",
+    ]);
+    expect(r.hasReviewDocs).toBe(true);
+    expect(r.hasStep11Report).toBe(true);
+    expect(r.hasZipManifest).toBe(true);
+    expect(r.hasFileManifest).toBe(true);
   });
 });

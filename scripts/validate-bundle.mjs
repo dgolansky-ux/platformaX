@@ -1,6 +1,7 @@
-import { readFileSync } from "fs";
-import { execSync } from "child_process";
 import { resolve } from "path";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 
 const SMOKE = process.argv.includes("--smoke");
 const zipArg = process.argv.find(
@@ -38,42 +39,47 @@ export function classifyEntry(entryName) {
   if (lower.endsWith(".sha256") || lower.endsWith(".sha256.txt"))
     issues.push("sha_file");
 
-  const SECRET_PATTERNS = [
-    /sk_live_/i,
-    /sk_test_/i,
-    /ghp_[A-Za-z0-9]{36}/,
-    /AKIA[0-9A-Z]{16}/,
-    /sk-[A-Za-z0-9]{20,}/,
-    /eyJ[A-Za-z0-9+/=]{40,}/,
-  ];
-
   return { entryName, issues };
 }
 
+const REQUIRED_REPORT_PATTERNS = [
+  "docs/review/",
+  "STEP_11_REPORT.md",
+  "ZIP_MANIFEST.md",
+  "FILE_MANIFEST.md",
+];
+
 function validateZip(zipPath) {
   const absPath = resolve(zipPath);
-  let raw;
+  let AdmZip;
   try {
-    raw = execSync(
-      `powershell -NoProfile -Command "Add-Type -AssemblyName System.IO.Compression; Add-Type -AssemblyName System.IO.Compression.FileSystem; $z = [System.IO.Compression.ZipFile]::OpenRead('${absPath}'); $z.Entries | ForEach-Object { $_.FullName }; $z.Dispose()"`,
-      { encoding: "utf-8", maxBuffer: 10 * 1024 * 1024 }
+    AdmZip = require("adm-zip");
+  } catch {
+    console.error(
+      "VALIDATE_BUNDLE_FAIL: adm-zip not installed. Run: pnpm add -D adm-zip"
     );
+    process.exit(1);
+  }
+
+  let zip;
+  try {
+    zip = new AdmZip(absPath);
   } catch (e) {
     console.error(`VALIDATE_BUNDLE_FAIL: cannot open ZIP: ${e.message}`);
     process.exit(1);
   }
 
-  const entries = raw
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
+  const zipEntries = zip.getEntries();
+  const entryNames = zipEntries
+    .map((e) => e.entryName)
+    .filter((n) => n && !n.endsWith("/"));
 
   let backslashCount = 0;
   let nestedZipCount = 0;
   let bannedCount = 0;
   const errors = [];
 
-  for (const entry of entries) {
+  for (const entry of entryNames) {
     const c = classifyEntry(entry);
     for (const issue of c.issues) {
       if (issue === "backslash_path") {
@@ -83,15 +89,17 @@ function validateZip(zipPath) {
         nestedZipCount++;
         errors.push(`NESTED_ZIP: ${entry}`);
       } else if (
-        issue === "node_modules" ||
-        issue === "dist" ||
-        issue === "build" ||
-        issue === "coverage" ||
-        issue === "dot_git" ||
-        issue === "dot_cache" ||
-        issue === "dot_turbo" ||
-        issue === "env_file" ||
-        issue === "sha_file"
+        [
+          "node_modules",
+          "dist",
+          "build",
+          "coverage",
+          "dot_git",
+          "dot_cache",
+          "dot_turbo",
+          "env_file",
+          "sha_file",
+        ].includes(issue)
       ) {
         bannedCount++;
         errors.push(`BANNED(${issue}): ${entry}`);
@@ -99,15 +107,25 @@ function validateZip(zipPath) {
     }
   }
 
-  const hasReports =
-    entries.some((e) => e.includes("docs/review/")) &&
-    entries.some((e) => e.endsWith(".md"));
+  const hasReviewDocs = entryNames.some((e) => e.includes("docs/review/"));
+  const hasStep11Report = entryNames.some((e) =>
+    e.endsWith("STEP_11_REPORT.md")
+  );
+  const hasZipManifest = entryNames.some((e) =>
+    e.endsWith("ZIP_MANIFEST.md")
+  );
+  const hasFileManifest = entryNames.some((e) =>
+    e.endsWith("FILE_MANIFEST.md")
+  );
 
-  console.log(`ZIP entries: ${entries.length}`);
+  console.log(`ZIP entries: ${entryNames.length}`);
   console.log(`Backslash paths: ${backslashCount}`);
   console.log(`Nested ZIPs: ${nestedZipCount}`);
   console.log(`Banned files: ${bannedCount}`);
-  console.log(`Has reports: ${hasReports ? "YES" : "NO"}`);
+  console.log(`Has review docs: ${hasReviewDocs ? "YES" : "NO"}`);
+  console.log(`Has STEP_11_REPORT: ${hasStep11Report ? "YES" : "NO"}`);
+  console.log(`Has ZIP_MANIFEST: ${hasZipManifest ? "YES" : "NO"}`);
+  console.log(`Has FILE_MANIFEST: ${hasFileManifest ? "YES" : "NO"}`);
 
   if (errors.length > 0) {
     console.error(`\nErrors (${errors.length}):`);
@@ -116,12 +134,20 @@ function validateZip(zipPath) {
       console.error(`  ... and ${errors.length - 20} more`);
   }
 
-  if (!hasReports) {
-    console.error("VALIDATE_BUNDLE_FAIL: no report/manifest files found");
-    process.exit(1);
+  let hasFail = false;
+
+  if (!hasReviewDocs || !hasStep11Report || !hasZipManifest || !hasFileManifest) {
+    console.error(
+      "VALIDATE_BUNDLE_FAIL: missing required report files (STEP_11_REPORT, ZIP_MANIFEST, FILE_MANIFEST)"
+    );
+    hasFail = true;
   }
 
   if (backslashCount > 0 || nestedZipCount > 0 || bannedCount > 0) {
+    hasFail = true;
+  }
+
+  if (hasFail) {
     console.error("VALIDATE_BUNDLE_FAIL");
     process.exit(1);
   }
@@ -144,6 +170,7 @@ function selfTest() {
     { input: "dist/index.js", expect: ["dist"] },
     { input: ".env", expect: ["env_file"] },
     { input: ".env.local", expect: ["env_file"] },
+    { input: ".env.production", expect: ["env_file"] },
     { input: "nested/archive.zip", expect: ["nested_zip"] },
     { input: "a\\b.txt", expect: ["backslash_path"] },
     { input: "client/src/App.tsx", expect: [] },
