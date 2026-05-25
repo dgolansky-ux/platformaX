@@ -724,10 +724,122 @@
   background: var(--color-primary-soft);
 }
 
-/* ---- Light desktop adaptation: only widen, do not change mobile flow ---- */
-@media (min-width: 768px) {
+/* Wrapper for the personal content sections. On mobile it is transparent
+   (display: contents) so the sections stack exactly as before — zero mobile
+   change. On desktop it becomes a two-column grid. */
+.personalGrid {
+  display: contents;
+}
+
+/* Keyboard accessibility — applies on all viewports, no layout/flow change. */
+.iconButton:focus-visible,
+.eyeButton:focus-visible,
+.switcherButton:focus-visible,
+.statusPill:focus-visible,
+.bannerShare:focus-visible,
+.socialLink:focus-visible,
+.portalCard:focus-visible,
+.contactTab:focus-visible,
+.contactCard:focus-visible,
+.quickFeedToggle:focus-visible,
+.addButton:focus-visible,
+.previewOption:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ===========================================================================
+   Desktop / tablet adaptation.
+   Mobile (base styles above) is the source of truth. Everything below is an
+   additive @media override that widens layout and improves use of width — it
+   does NOT change the mobile flow, section order, CTAs, copy or states.
+   =========================================================================== */
+
+/* Tablet: simply widen the single-column shell. */
+@media (min-width: 640px) {
   .shell {
-    max-width: 600px;
+    max-width: 640px;
     padding-top: 8px;
+  }
+}
+
+/* Desktop: centered page-card, wider content, multi-column sections. */
+@media (min-width: 1024px) {
+  .page {
+    background: #eaecf0;
+  }
+
+  .shell {
+    max-width: 920px;
+    margin-top: 16px;
+    margin-bottom: 24px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
+
+  .topbar {
+    border-top-left-radius: var(--radius-xl);
+    border-top-right-radius: var(--radius-xl);
+  }
+
+  .name {
+    font-size: 26px;
+    padding-inline: 24px;
+  }
+
+  .avatarBioRow {
+    padding-inline: 24px;
+  }
+
+  /* Banner uses the desktop crop ratio (10:3) per blueprint §11.1. */
+  .banner {
+    aspect-ratio: 10 / 3;
+    margin-inline: 24px;
+  }
+
+  /* Portal cards: three across instead of stacked. */
+  .portalCards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding-inline: 24px;
+  }
+
+  /* Personal content sections: two columns side by side. */
+  .personalGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding-inline: 8px;
+    align-items: start;
+  }
+
+  .socialLinks,
+  .statusBar,
+  .switcherRow,
+  .contactsHeader,
+  .contactsTabs,
+  .carousel {
+    padding-inline: 24px;
+  }
+}
+
+/* Hover affordances only on devices that actually hover (not touch). */
+@media (hover: hover) {
+  .portalCard:not(:disabled):hover,
+  .contactCard:hover,
+  .socialLink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1);
+  }
+
+  .iconButton:not(:disabled):hover,
+  .switcherButton:not(:disabled):hover,
+  .contactTab:hover,
+  .addButton:not(:disabled):hover {
+    filter: brightness(0.97);
   }
 }
