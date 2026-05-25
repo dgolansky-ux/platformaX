@@ -89,6 +89,40 @@ Added Domain Impact section with 6 domain-specific questions
 | pnpm guards:bundle | SMOKE_PASS |
 | pnpm guards:all-local | PASS |
 
+## Post-CI-repair verification (2026-05-25T09:18Z)
+
+After CI repair (pnpm-workspace.yaml fix + shared-ui scaffold):
+
+| Check | Result |
+|---|---|
+| GitHub CI after repair | GREEN (commit `b9a135b`) |
+| shared-ui scaffold repair | DONE (README.md + index.ts added) |
+| pnpm-workspace.yaml fix | DONE (added `packages: ["."]`) |
+| pnpm version alignment | DONE (workflow v9 -> v11) |
+| All 15 backend domains exist | YES (120 files verified) |
+| All 7 content-v2 submodules exist | YES |
+| All 3 application layers exist | YES |
+| All 16 frontend features exist | YES (including shared-ui) |
+| All registries consistent | YES |
+| All domain guards pass | YES |
+| Full domain baseline verification | PASS |
+| Branch protection enforcement | PLAN_LIMITATION |
+
+### Post-repair gate results (all PASS)
+
+| Gate | Result |
+|---|---|
+| pnpm check | PASS |
+| pnpm lint | PASS |
+| pnpm test | PASS (158 tests, 27 files) |
+| pnpm build | PASS |
+| pnpm rules:check | PASS (17/17 guards) |
+| pnpm arch:check:v2 | PASS (9/9 checks) |
+| pnpm guards:domains | PASS (registry + scaffold + feature) |
+| pnpm guards:commit | COMMIT_ALLOWED |
+| pnpm guards:bundle | SMOKE_PASS |
+| pnpm guards:all-local | PASS |
+
 ## Final status
 
 ```
