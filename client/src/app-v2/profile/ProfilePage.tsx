@@ -13,9 +13,14 @@ import { ProfileContacts } from "./sections/ProfileContacts";
 import { ProfileQuickFeed } from "./sections/ProfileQuickFeed";
 import { ProfilePersonalSections } from "./sections/ProfilePersonalSections";
 import { ProfileProfessionalLayer } from "./sections/ProfileProfessionalLayer";
+import { ProfileMediaSheet } from "./sections/ProfileMediaSheet";
+import type { MediaPurpose } from "../../features-v2/media";
 import { FloatingNav } from "../navigation/FloatingNav";
 import layout from "./styles/profile-layout.module.css";
 import header from "./styles/profile-header.module.css";
+
+/** Placeholder owner id until profile session wiring (step-33). */
+const LOCAL_OWNER_ID = "me";
 
 type ProfilePageProps = {
   profile?: PersonalProfileView;
@@ -57,6 +62,7 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
   const [mode, setMode] = useState<ProfileViewMode>("personal");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewKind, setPreviewKind] = useState<ProfilePreviewKind>("none");
+  const [mediaTarget, setMediaTarget] = useState<MediaPurpose | null>(null);
 
   function handleSelectPreview(kind: ProfilePreviewKind) {
     setPreviewKind(kind);
@@ -96,6 +102,8 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
             onSelectPersonal={() => setMode("personal")}
             onSelectProfessional={() => setMode("professional")}
             onShare={shareProfile}
+            onEditAvatar={profile.isOwner ? () => setMediaTarget("avatar") : undefined}
+            onEditBanner={profile.isOwner ? () => setMediaTarget("banner") : undefined}
           />
 
           {activePreview ? (
@@ -136,6 +144,14 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
       </div>
 
       <FloatingNav active="profil" />
+
+      {mediaTarget ? (
+        <ProfileMediaSheet
+          purpose={mediaTarget}
+          userId={LOCAL_OWNER_ID}
+          onClose={() => setMediaTarget(null)}
+        />
+      ) : null}
     </div>
   );
 }

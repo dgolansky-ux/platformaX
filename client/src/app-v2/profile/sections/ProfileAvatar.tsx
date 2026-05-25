@@ -1,10 +1,12 @@
 import styles from "../styles/profile-header.module.css";
+import media from "../styles/profile-media.module.css";
 
 type ProfileAvatarProps = {
   initial: string;
   isOwner: boolean;
   previewOpen: boolean;
   onTogglePreview: () => void;
+  onEdit?: () => void;
 };
 
 /**
@@ -17,6 +19,7 @@ export function ProfileAvatar({
   isOwner,
   previewOpen,
   onTogglePreview,
+  onEdit,
 }: ProfileAvatarProps) {
   return (
     <div className={styles.avatarWrap}>
@@ -24,6 +27,16 @@ export function ProfileAvatar({
         <div className={styles.avatarRing} aria-hidden="true">
           <div className={styles.avatarInner}>{initial}</div>
         </div>
+        {isOwner && onEdit ? (
+          <button
+            type="button"
+            className={media.avatarEditButton}
+            aria-label="Zmień zdjęcie profilowe"
+            onClick={onEdit}
+          >
+            📷
+          </button>
+        ) : null}
       </div>
       {isOwner ? (
         <button

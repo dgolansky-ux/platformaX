@@ -1,9 +1,7 @@
-﻿/**
+/**
  * media — barrel export
- * Status: SCAFFOLD_ONLY
  *
- * Re-exports public surface only.
+ * Re-exports the public-api surface only (which already re-exports the public
+ * contract and event types). Internal modules are never reachable from here.
  */
 export * from "./public-api";
-export * from "./contracts";
-export * from "./events";

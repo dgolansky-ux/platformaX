@@ -1,13 +1,26 @@
 import styles from "../styles/profile-header.module.css";
+import media from "../styles/profile-media.module.css";
 
 type ProfileBannerProps = {
   onShare: () => void;
+  isOwner?: boolean;
+  onEditImage?: () => void;
 };
 
-/** Empty gradient banner (no image upload in this shell). Share is a real action. */
-export function ProfileBanner({ onShare }: ProfileBannerProps) {
+/** Gradient banner. Share is a real action; owners get a local upload sheet. */
+export function ProfileBanner({ onShare, isOwner, onEditImage }: ProfileBannerProps) {
   return (
     <div className={styles.banner} aria-label="Baner profilu">
+      {isOwner && onEditImage ? (
+        <button
+          type="button"
+          className={media.bannerEdit}
+          aria-label="Zmień baner"
+          onClick={onEditImage}
+        >
+          📷
+        </button>
+      ) : null}
       <button
         type="button"
         className={styles.bannerShare}

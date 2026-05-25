@@ -15,6 +15,8 @@ type ProfileHeaderProps = {
   onSelectPersonal: () => void;
   onSelectProfessional: () => void;
   onShare: () => void;
+  onEditAvatar?: () => void;
+  onEditBanner?: () => void;
 };
 
 /**
@@ -30,6 +32,8 @@ export function ProfileHeader({
   onSelectPersonal,
   onSelectProfessional,
   onShare,
+  onEditAvatar,
+  onEditBanner,
 }: ProfileHeaderProps) {
   return (
     <header className={styles.header}>
@@ -42,6 +46,7 @@ export function ProfileHeader({
             isOwner={profile.isOwner}
             previewOpen={previewOpen}
             onTogglePreview={onTogglePreview}
+            onEdit={onEditAvatar}
           />
         </div>
         <div className={styles.separator} aria-hidden="true" />
@@ -92,7 +97,11 @@ export function ProfileHeader({
         onSelectProfessional={onSelectProfessional}
       />
 
-      <ProfileBanner onShare={onShare} />
+      <ProfileBanner
+        onShare={onShare}
+        isOwner={profile.isOwner}
+        onEditImage={onEditBanner}
+      />
     </header>
   );
 }
