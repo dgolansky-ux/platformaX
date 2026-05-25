@@ -12,26 +12,31 @@ Ostatnia aktualizacja: 2026-05-25.
 
 ## Stan main (punkt odniesienia)
 
-- `origin/main` HEAD: `91ca595 feat(identity): add profile persistence runtime and wire onboarding (#17)`
+- `origin/main` HEAD: `9f64ec2 feat(media): add avatar and banner upload runtime (#20)`
 - Na main są: Supabase Auth adapter (#11), auth/register/onboarding shell (#9/#10), `/onboarding`, `/profile` (#12–#16),
   guard hardening (#18 `06b0afb`), identity profile persistence + onboarding runtime (#17 `91ca595`),
+  media avatar/banner upload-intent runtime (#20 `9f64ec2`, env-required storage),
   `docs/profile/PROFILE_RUNTIME_LOGIC_BLUEPRINT_FROM_LEGACY.md`.
 
 ## Kolejka (PENDING)
 
 | # | Zadanie | Handoff | Pre-flight zależności | Status |
 |---|---|---|---|---|
-| 1 | `MEDIA_AVATAR_BANNER_UPLOAD_RUNTIME` (step-32) | [HAND005](HAND005.md) | identity persistence na main = **OK (PR #17)** → **ODBLOKOWANE** | PENDING |
-| 2 | `PROFILE_RUNTIME_WIRING_IDENTITY_AND_MEDIA_REFS` (step-33) | [HAND006](HAND006.md) | identity = OK; **media runtime = wymaga step-32** → **BLOCKED do czasu merge step-32** | PENDING (blocked by #1) |
-| 3 | `PROFILE_FULL_PARITY_AND_CODE_QUALITY_FIXES` (step-29) | [HAND004](HAND004.md) | guard hardening na main = **OK (PR #18)** → **ODBLOKOWANE** | PENDING |
+| 1 | `PROFILE_RUNTIME_WIRING_IDENTITY_AND_MEDIA_REFS` (step-33) | [HAND006](HAND006.md) | identity = OK (#17); media runtime = **OK (#20)** → **ODBLOKOWANE** | PENDING |
+| 2 | `PROFILE_FULL_PARITY_AND_CODE_QUALITY_FIXES` (step-29) | [HAND004](HAND004.md) | guard hardening na main = **OK (PR #18)** → **ODBLOKOWANE** | PENDING |
 
 ### Rekomendowana kolejność
-`step-32 (media)` → `step-33 (profile wiring)` → `step-29 (profile parity)`.
-- step-32 i step-29 są niezależnie odblokowane; step-33 wymaga merge step-32.
+`step-33 (profile wiring)` → `step-29 (profile parity)`.
+- Oba są odblokowane.
 - step-29 i step-33 mocno dotykają tego samego obszaru `client/src/app-v2/profile` — rób je po kolei, nie równolegle, żeby uniknąć konfliktów.
 
 ## DONE (log, nie ruszać)
 
+- **step-32 / `MEDIA_AVATAR_BANNER_UPLOAD_RUNTIME`** — zmergowane jako **PR #20** (`9f64ec2`).
+  Domena `media` SCAFFOLD_ONLY→PARTIAL (DTO/policy/service/repository in-memory + env-required storage port),
+  `features-v2/media` adapter, profile avatar/banner upload sheet (walidacja + object-URL preview + disabled-policy save).
+  Migracja `0002_media_assets.sql` jako kod. Status: `STORAGE_ADAPTER_ENV_REQUIRED`, `LIVE_UPLOAD_NOT_STARTED`,
+  media ref NIE jest jeszcze zapisywany na profilu identity (to step-33). Raport: `docs/review/step-32-media-avatar-banner-runtime/STEP_32_REPORT.md`.
 - **step-31 / `IDENTITY_PROFILE_PERSISTENCE_AND_ONBOARDING_RUNTIME`** — zmergowane jako **PR #17** (`91ca595`).
   Uwaga: w repo udokumentowane jako `docs/review/step-27-identity-profile-persistence/STEP_27_REPORT.md` (nie powstał osobny step-31 report, bo deliverable był już w PR #17).
   Status truth: persistence in-memory (`isPersistent:false`), migracja `supabase/migrations/0001_identity_private_profiles.sql` jako kod, **brak live db push**.
