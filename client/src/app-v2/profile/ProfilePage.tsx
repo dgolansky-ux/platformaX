@@ -112,11 +112,13 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
           <ProfilePortalCards />
           <ProfileContacts contacts={profile.contacts} />
           <ProfileQuickFeed items={profile.quickFeed} />
-          <ProfilePersonalSections
-            presentationPostCount={profile.presentationPostCount}
-            milestoneCount={profile.milestoneCount}
-            isOwner={profile.isOwner}
-          />
+          <div className={styles.personalGrid}>
+            <ProfilePersonalSections
+              presentationPostCount={profile.presentationPostCount}
+              milestoneCount={profile.milestoneCount}
+              isOwner={profile.isOwner}
+            />
+          </div>
         </main>
       </div>
     </div>

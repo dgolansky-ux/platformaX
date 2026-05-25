@@ -62,6 +62,27 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.getByText(/Brak ważnych wydarzeń/)).toBeDefined();
   });
 
+  test("desktop adaptation: personal content sections share one responsive grid wrapper", () => {
+    renderProfile();
+    const presentation = screen.getByRole("region", { name: /Prezentacja profilu/ });
+    const milestones = screen.getByRole("region", { name: /Ważne wydarzenia/ });
+    // both sections live under the same wrapper div (desktop turns it into a grid;
+    // on mobile the wrapper is display:contents, so the mobile flow is unchanged)
+    expect(presentation.parentElement).not.toBeNull();
+    expect(presentation.parentElement).toBe(milestones.parentElement);
+    expect(presentation.parentElement?.tagName).toBe("DIV");
+  });
+
+  test("desktop-critical regions and the mobile header order both remain present", () => {
+    renderProfile();
+    // same content the desktop layout re-flows — must keep existing on all widths
+    expect(screen.getByRole("heading", { level: 1, name: /anna kowalska/i })).toBeDefined();
+    expect(screen.getByRole("region", { name: /Kontakty/ })).toBeDefined();
+    expect(screen.getByText(/^Społeczności$/)).toBeDefined();
+    expect(screen.getByRole("region", { name: /Prezentacja profilu/ })).toBeDefined();
+    expect(screen.getByRole("region", { name: /Ważne wydarzenia/ })).toBeDefined();
+  });
+
   test("preview eye CTA toggles local preview state (not a no-op)", () => {
     renderProfile();
     fireEvent.click(screen.getByRole("button", { name: /podgląd profilu/i }));
