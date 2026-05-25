@@ -126,7 +126,9 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
               </div>
             </>
           ) : (
-            <ProfileProfessionalLayer isOwner={profile.isOwner} />
+            <div className={styles.professionalGrid}>
+              <ProfileProfessionalLayer isOwner={profile.isOwner} />
+            </div>
           )}
         </main>
       </div>
