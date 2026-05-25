@@ -203,6 +203,23 @@
   outline-offset: 2px;
 }
 
+.nextBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+}
+
+.errorNotice {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: var(--color-danger);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .privacyHint {
   display: flex;
   align-items: flex-start;

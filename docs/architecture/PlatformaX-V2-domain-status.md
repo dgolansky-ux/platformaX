@@ -61,7 +61,7 @@ This table must be updated by code changes. Empty or planned domains must not be
 
 | Domain / Area | Owner type | Initial status | Notes |
 |---|---|---|---|
-| `identity` | owner domain | `PLANNED` | auth/profile/visibility/public-private DTOs |
+| `identity` | owner domain | `PARTIAL` | profile persistence runtime (in-memory adapter), public/private DTOs, policy, mapper, validation, events; Supabase repository pending (STEP_27) |
 | `social` | owner domain | `PLANNED` | relationship graph/contact access |
 | `communities-v2` | owner domain | `PLANNED` | communities, members, roles, settings |
 | `content-v2` | owner domain | `PLANNED` | posts, feeds, comments, reactions, topics |
