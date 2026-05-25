@@ -243,3 +243,106 @@ A code change is not commit-ready until:
 - no forbidden action was used.
 
 If any required gate fails, the correct status is `IN_PROGRESS` or `BLOCKED`.
+
+## 12. AI-assisted coding rules
+
+When an AI agent writes code in this repository:
+
+1. The agent must read relevant architecture docs before touching files.
+2. The agent must not optimize for speed at the cost of correctness.
+3. The agent must run all gates before proposing a commit.
+4. The agent must perform an independent self-review pass after coding and before reporting results.
+5. The agent must never trust its own prior output without verifying against actual code and gate logs.
+6. The agent must not weaken any guard, test, or enforcement mechanism to make its changes pass.
+7. The agent must not introduce any import that violates domain boundary rules.
+8. Every AI-generated commit must go through a PR with Architecture Impact Statement.
+
+## 13. Independent self-review pass
+
+After completing changes, the agent (or human) must perform a second pass as an independent reviewer:
+
+1. Re-read all changed files looking for regressions.
+2. Verify no cross-domain imports were introduced.
+3. Verify no legacy runtime was imported.
+4. Verify no PII leaks in public DTOs.
+5. Verify no secrets, base64, or dataUrl patterns.
+6. Verify no fake DONE/status strings.
+7. Verify no guards were weakened or removed.
+8. Verify all gates pass with real logs (not invented).
+9. Document findings in the SELF-AUDIT / INDEPENDENT REVIEW PASS section.
+
+## 14. Guard modification policy
+
+Guards may only be modified when:
+
+1. A new domain or feature legitimately requires updating an allowlist.
+2. The modification is accompanied by a red-team test proving the guard still catches violations.
+3. The change is documented in the step report with explicit justification.
+4. The modification does not weaken existing checks — it must be additive or neutral.
+5. A guard must never be bypassed, removed, or softened to make a task pass.
+
+## 15. Public repo / PR workflow rules
+
+1. All changes must go through a branch and PR — no direct pushes to `main`.
+2. Every PR must include an Architecture Impact Statement.
+3. GitHub CI must pass before merge is allowed.
+4. CODEOWNERS review is required.
+5. Force push to `main` is forbidden.
+6. `--no-verify` is forbidden unless explicitly approved by repo owner.
+
+## 16. Accessibility baseline
+
+All UI components must meet:
+
+1. Semantic HTML elements (`button`, `nav`, `main`, `header`, etc.).
+2. ARIA labels on interactive elements without visible text.
+3. Keyboard navigability for all interactive flows.
+4. Sufficient color contrast (WCAG AA minimum).
+5. No information conveyed by color alone.
+
+## 17. Logging / no PII in logs
+
+1. Structured logging is required for all backend services.
+2. Logs must never contain: passwords, tokens, session IDs, email addresses, phone numbers, full names linked to IDs, or any PII.
+3. Request bodies must be sanitized before logging.
+4. Error messages exposed to users must not reveal internal state or DB structure.
+
+## 18. Error boundaries baseline
+
+1. Every major UI region must have an error boundary.
+2. Error boundaries must render a user-friendly fallback, not a blank screen.
+3. Caught errors must be logged to structured logging.
+4. Error boundaries must not swallow errors silently.
+
+## 19. Test builders / no `as any` policy
+
+1. Test fixtures must use typed builder functions, not raw object literals with `as any`.
+2. `as any` is forbidden in test code — use proper typing or `as unknown as Type` with a justification comment.
+3. Test builders must live close to the domain they serve.
+4. Builders must produce valid, deterministic data by default.
+
+## 20. Generated / scaffold code rules
+
+1. Scaffold generators (`scaffold:domain`, `scaffold:ui-shell`, `scaffold:route`) must produce code that passes all gates without modification.
+2. Generated files must be immediately lint-clean and type-safe.
+3. Generated code must include a `README.md` explaining the domain/feature.
+4. Scaffolds must register the domain/feature in the appropriate registry.
+
+## 21. Review checklist before commit
+
+Before every commit, verify:
+
+- [ ] Changed files are listed in the report.
+- [ ] Domains touched are identified.
+- [ ] Cross-domain imports: none or explicitly justified.
+- [ ] Legacy runtime imports: none.
+- [ ] Public DTO PII: none.
+- [ ] Fake DONE / status truth: none.
+- [ ] Env safety: no .env changes or secrets.
+- [ ] `pnpm check` PASS.
+- [ ] `pnpm lint` PASS.
+- [ ] `pnpm test` PASS.
+- [ ] `pnpm build` PASS.
+- [ ] `pnpm rules:check` PASS.
+- [ ] PRE-COMMIT DECISION is COMMIT_ALLOWED.
+- [ ] SELF-AUDIT / INDEPENDENT REVIEW PASS section is complete.

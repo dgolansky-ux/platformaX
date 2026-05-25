@@ -42,6 +42,23 @@ Each qualifying report must contain:
 - Integrated into `rules:check`, `guards:all-local`, and CI workflow
 - Violation blocks commit and merge
 
+## Second-pass reviewer mindset
+
+The self-audit is not a formality. The agent must switch mental mode from "implementer" to "independent reviewer" and actively look for:
+
+1. **Own mistakes** — typos, wrong file paths, incorrect imports, missing exports.
+2. **Logic contradictions** — report says "no domains touched" but code modifies domain files.
+3. **Domain boundary leaks** — internal types imported from another domain.
+4. **Fake DONE signals** — status set to DONE/COMPLETE/PASS without evidence.
+5. **Guard weakening** — allowlist expanded, regex loosened, threshold raised.
+6. **PII exposure** — user data in public DTOs, logs, or error messages.
+7. **Secret leaks** — API keys, connection strings, tokens in committed files.
+8. **Base64/dataUrl payloads** — inline media that should use presigned URLs.
+9. **Removed routes** — features silently removed from navigation or build graph.
+10. **Missing evidence** — claims of "all tests pass" without actual test output.
+
+If the agent finds any issue during self-audit, it must either fix it before commit or change the status to BLOCKED with a clear description of the problem.
+
 ## Rationale
 
 A public repository with automated governance requires the AI agent to demonstrate awareness of what it changed and what could go wrong. This is not a rubber stamp — it is a structured forcing function for careful, honest self-assessment.
