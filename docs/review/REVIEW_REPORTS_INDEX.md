@@ -1,6 +1,6 @@
 # Review Reports Index
 
-Last updated: 2026-05-25 (Step 18)
+Last updated: 2026-05-25 (Step 17a)
 
 ## Allowed statuses
 
@@ -31,4 +31,5 @@ Last updated: 2026-05-25 (Step 18)
 | step-14-domain-boundary-red-team | Domain boundary red-team | `bc40358` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_14_REPORT.md |
 | step-16-secret-scanner | Secret scanner gate | `983255f` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_16_REPORT.md |
 | step-17-documentation-freshness | Documentation freshness gate | `9842b0e` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_17_REPORT.md |
-| step-18-final-bramka-acceptance | Final BRAMKA acceptance 25/25 | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_18_REPORT.md |
+| step-17a-coding-standards-hardening | Coding standards + agent self-audit hardening | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_17A_REPORT.md |
+| step-18-final-bramka-acceptance | Final BRAMKA acceptance 25/25 | `22654b8` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_18_REPORT.md |

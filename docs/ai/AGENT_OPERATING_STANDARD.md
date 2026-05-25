@@ -124,6 +124,34 @@ Status: IN_PROGRESS | BLOCKED | REPAIR_DONE | UI_SHELL_ONLY | PARTIAL | IMPLEMEN
 ...
 ```
 
-## 8. Acceptance
+## 8. SELF-AUDIT / INDEPENDENT REVIEW PASS
+
+After coding and before reporting results, the agent must perform a second pass as an independent reviewer. The agent must answer each question honestly and include the answers in the step report:
+
+| # | Question | What to check |
+|---|---|---|
+| 1 | What I changed | List all files created, modified, or deleted |
+| 2 | What I might have broken | Honest assessment — not "nothing" unless trivially true |
+| 3 | Domain boundaries affected | Which V2 domains were touched or imported |
+| 4 | Cross-domain imports check | Verified no illegal cross-domain imports exist |
+| 5 | Legacy/runtime check | Verified no V1/legacy runtime was imported |
+| 6 | Fake DONE/status truth check | No banned status strings introduced |
+| 7 | PII/base64/secrets check | No PII in public DTOs, no base64 uploads, no secrets |
+| 8 | Routes/nav/build graph check | No forbidden routes or nav/build graph changes |
+| 9 | Guard weakening check | No guards removed, weakened, bypassed, or softened |
+| 10 | Evidence reviewed | Which evidence files were verified (real paths, not invented) |
+| 11 | Gates run | Full list of gates executed and their actual exit codes |
+| 12 | Remaining risks | Known risks or items requiring human review |
+
+The self-audit is not optional. Reports without this section are blocked by `check-self-audit-evidence.mjs`.
+
+## 9. Acceptance
 
 Agent output is acceptable only when it is verifiable from code and logs.
+
+The agent must never:
+
+- Trust its own prior output without re-checking the actual code.
+- Report PASS without a real gate log or command output.
+- Skip the self-audit section to save time.
+- Mark work as complete when any gate is still failing.

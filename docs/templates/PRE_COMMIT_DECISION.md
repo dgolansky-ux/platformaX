@@ -37,3 +37,20 @@ Commit decision: `COMMIT_ALLOWED` / `COMMIT_BLOCKED`
 - Blocking gates:
 - Required next action:
 - Final task status: `IN_PROGRESS` / `BLOCKED`
+
+## SELF-AUDIT / INDEPENDENT REVIEW PASS
+
+After completing the PRE-COMMIT DECISION checks above, perform an independent second pass:
+
+- What I changed:
+- What I might have broken:
+- Domain boundaries affected:
+- Cross-domain imports check:
+- Legacy/runtime check:
+- Fake DONE/status truth check:
+- PII/base64/secrets check:
+- Routes/nav/build graph check:
+- Guard weakening check:
+- Evidence reviewed:
+- Gates run:
+- Remaining risks:

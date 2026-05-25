@@ -38,7 +38,21 @@ The agent must not:
 - run destructive DB changes without explicit approval,
 - deploy production without explicit approval.
 
-## 3. Forbidden report language without evidence
+## 3. Audit and verification prohibitions
+
+The agent must not:
+
+- trust its own report without verifying the actual code matches the claims,
+- mark PASS without a real gate log (exit code 0 from an actual command execution),
+- modify any guard script without first writing a red-team test proving the guard still catches violations,
+- skip the SELF-AUDIT / INDEPENDENT REVIEW PASS section in any Step 17+ report,
+- push directly to `main` — all changes must go through a branch and PR,
+- create a PR without an Architecture Impact Statement,
+- claim "all gates pass" without actually running every gate and recording the output,
+- weaken a guard's regex, allowlist, or threshold to make its own task pass,
+- remove a test that was passing before its changes.
+
+## 4. Forbidden report language without evidence
 
 - DONE
 - final
@@ -50,7 +64,7 @@ The agent must not:
 - full done
 - all green
 
-## 4. Required alternative
+## 5. Required alternative
 
 If the agent is blocked, it must write:
 
