@@ -23,6 +23,8 @@ const GUARDS = [
   "check-domain-scaffold.mjs",
   "check-feature-registry.mjs",
   "check-secret-scan.mjs",
+  "check-review-reports-index.mjs",
+  "check-pre-commit-decision.mjs",
   "validate-bundle.mjs --smoke",
 ];
 

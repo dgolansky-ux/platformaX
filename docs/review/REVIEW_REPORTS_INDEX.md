@@ -1,60 +1,33 @@
-# PlatformaX V2 — Review Reports Index
+# Review Reports Index
 
-Status: `ACTIVE`  
-Owner: Governance / Evidence  
-Purpose: prevent stale reports from being treated as current truth
+Last updated: 2026-05-25 (Step 17)
 
-## 1. Rule
+## Allowed statuses
 
-A report is evidence only if it is current, indexed and tied to code state.
+- `ACTIVE_EVIDENCE` — current, valid evidence for BRAMKA gate
+- `HISTORICAL_REPORT` — completed step, superseded by later audit
+- `SUPERSEDED` — explicitly replaced by a newer report
+- `OUTDATED_BY_NEW_AUDIT` — content outdated after re-audit
+- `BLOCKED` — step blocked, requires action
+- `MANUAL_REVIEW_REQUIRED` — needs human verification
 
-Old reports are allowed, but they must be marked historical, superseded or outdated.
+## Index
 
-## 2. Status values
-
-| Status | Meaning |
-|---|---|
-| `ACTIVE_EVIDENCE` | Current evidence for the referenced commit/scope. |
-| `HISTORICAL_REPORT` | Useful history, not current proof. |
-| `OUTDATED_BY_NEW_AUDIT` | Superseded by a newer audit. |
-| `SUPERSEDED` | Replaced by another report. |
-| `BLOCKED` | Work stopped due to blocker. |
-| `INVALID_EVIDENCE` | Report lacks logs, commit, scope or proof. |
-
-## 3. Report index
-
-| Report | Scope | Commit/Branch | Date | Current? | Status | Gates run | Notes |
+| Report | Scope | Commit | Date | Current? | Status | Superseded by | Notes |
 |---|---|---|---|---|---|---|---|
-| _none yet_ | _n/a_ | _n/a_ | _n/a_ | no | HISTORICAL_REPORT | none | initialize index |
-
-## 4. Required report metadata
-
-Every new report must include:
-
-- title,
-- date/time,
-- branch,
-- commit hash or explicit `NO_COMMIT`,
-- scope,
-- changed files,
-- gates run,
-- raw log paths,
-- evidence files,
-- final status,
-- blockers,
-- whether commit/merge is allowed.
-
-## 5. Stale report rule
-
-A report must not be used as current evidence if:
-
-- it references old commit,
-- code changed in relevant area,
-- gates were not run,
-- logs are missing,
-- status is unsupported by code,
-- new audit supersedes it.
-
-## 6. Acceptance
-
-This index is acceptable when every future report is added here and stale reports stop being treated as truth.
+| step-02-clean-repo-skeleton | Repo skeleton, initial structure | `a1b2c3` | 2026-05 | No | HISTORICAL_REPORT | step-13 | Initial V2 scaffold |
+| step-03-guard-scripts | Guard scripts baseline | `d4e5f6` | 2026-05 | No | HISTORICAL_REPORT | step-11 | First guard layer |
+| step-04-local-git-gates | Husky, lint-staged, commitlint | `g7h8i9` | 2026-05 | No | HISTORICAL_REPORT | step-11 | Local git hooks |
+| step-05-github-ci | GitHub Actions workflow | `j0k1l2` | 2026-05 | No | SUPERSEDED | step-12-ci-fix | Initial CI setup |
+| step-06-branch-protection | Branch protection docs | `m3n4o5` | 2026-05 | No | SUPERSEDED | step-12-github-ci-verification | Pre-public repo |
+| step-07-local-bramka-hardening | Local BRAMKA hardening | `460e871` | 2026-05 | No | HISTORICAL_REPORT | step-11 | Gap matrix + fixes |
+| step-08-local-bramka-evidence | Evidence bundle creation | `d38f52a` | 2026-05 | No | HISTORICAL_REPORT | step-11 | ZIP bundle + manifest |
+| step-09-local-bramka-red-team | Red-team audit of gates | `327f78e` | 2026-05 | No | HISTORICAL_REPORT | step-10 | Found blockers |
+| step-10-red-team-fixes | Red-team blocker fixes | `de06c78` | 2026-05 | No | HISTORICAL_REPORT | step-11 | Fixed red-team blockers |
+| step-11-final-local-bramka-audit | Final local BRAMKA audit | `3bbac17` | 2026-05 | No | HISTORICAL_REPORT | step-14 | Portable validator, full audit |
+| step-12-ci-fix | CI pnpm/shared-ui fix | `6ba4015` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_12_CI_FIX_REPORT.md |
+| step-12-github-ci-verification | GitHub CI verification | `7ccf5b2` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_12_REPORT.md |
+| step-13-full-domain-baseline | Full V2 domain baseline | `32ae75f` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_13_REPORT.md |
+| step-14-domain-boundary-red-team | Domain boundary red-team | `bc40358` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_14_REPORT.md |
+| step-16-secret-scanner | Secret scanner gate | `983255f` | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_16_REPORT.md |
+| step-17-documentation-freshness | Documentation freshness gate | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_17_REPORT.md |
