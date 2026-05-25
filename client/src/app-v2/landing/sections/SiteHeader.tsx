@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import pageStyles from "../LandingPage.module.css";
 import styles from "./SiteHeader.module.css";
 
@@ -13,14 +14,12 @@ export function SiteHeader() {
         </a>
 
         <nav className={styles.nav} aria-label="Nawigacja konta">
-          {/* Placeholder: identity domain (login) not implemented yet. */}
-          <a href="#" className={styles.linkGhost}>
+          <Link to="/login" className={styles.linkGhost}>
             Zaloguj się
-          </a>
-          {/* Placeholder: identity domain (sign-up) not implemented yet. */}
-          <a href="#" className={styles.linkPrimary}>
+          </Link>
+          <Link to="/register" className={styles.linkPrimary}>
             Załóż konto
-          </a>
+          </Link>
         </nav>
       </div>
     </header>

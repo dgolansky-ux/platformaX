@@ -3,12 +3,21 @@
 // the pagination guard's safe-marker escape (see scripts/check-pagination.mjs)
 // applies here.
 import { render, screen, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, test } from "vitest";
 import { LandingPage } from "../LandingPage";
 
+function renderLanding() {
+  return render(
+    <MemoryRouter>
+      <LandingPage />
+    </MemoryRouter>,
+  );
+}
+
 describe("LandingPage", () => {
   test("renders sticky header brand and account links", () => {
-    render(<LandingPage />);
+    renderLanding();
     const header = screen.getByRole("banner");
     const nav = within(header).getByRole("navigation", { name: /nawigacja konta/i });
     expect(within(nav).getByRole("link", { name: "Zaloguj się" })).toBeDefined();
@@ -16,7 +25,7 @@ describe("LandingPage", () => {
   });
 
   test("renders the hero with primary headline and CTAs", () => {
-    render(<LandingPage />);
+    renderLanding();
     expect(
       screen.getByRole("heading", {
         level: 1,
@@ -31,7 +40,7 @@ describe("LandingPage", () => {
   });
 
   test("renders all four value cards", () => {
-    render(<LandingPage />);
+    renderLanding();
     const valuesHeading = screen.getByRole("heading", {
       level: 2,
       name: /zbudowana z myślą o ludziach/i,
@@ -48,7 +57,7 @@ describe("LandingPage", () => {
   });
 
   test("does not render the Features section", () => {
-    render(<LandingPage />);
+    renderLanding();
     expect(
       screen.queryByRole("heading", {
         name: /wszystko, czego potrzebujesz do działania/i,
@@ -68,7 +77,7 @@ describe("LandingPage", () => {
   });
 
   test("does not render the Zapisy section", () => {
-    render(<LandingPage />);
+    renderLanding();
     expect(
       screen.queryByRole("heading", { name: /zapisy na wydarzenia/i }),
     ).toBeNull();
@@ -79,14 +88,14 @@ describe("LandingPage", () => {
   });
 
   test("renders final CTA section", () => {
-    render(<LandingPage />);
+    renderLanding();
     expect(
       screen.getByRole("heading", { level: 2, name: /dołącz do platformax/i }),
     ).toBeDefined();
   });
 
   test("renders footer with copyright", () => {
-    render(<LandingPage />);
+    renderLanding();
     const footer = screen.getByRole("contentinfo");
     expect(within(footer).getByText(/© 2026 platformax/i)).toBeDefined();
     expect(
@@ -96,14 +105,17 @@ describe("LandingPage", () => {
     ).toBeDefined();
   });
 
-  test("placeholder CTAs use href='#' (auth not implemented yet)", () => {
-    render(<LandingPage />);
-    const placeholders = screen
-      .getAllByRole("link")
-      .filter((a) => /załóż konto|zaloguj się/i.test(a.textContent ?? ""));
-    expect(placeholders.length).toBeGreaterThan(0);
-    for (const a of placeholders) {
-      expect(a.getAttribute("href")).toBe("#");
+  test("auth CTAs link to /login and /register (no placeholder #)", () => {
+    renderLanding();
+    const registerLinks = screen.getAllByRole("link", { name: /załóż konto/i });
+    const loginLinks = screen.getAllByRole("link", { name: /zaloguj się/i });
+    expect(registerLinks.length).toBeGreaterThanOrEqual(2);
+    expect(loginLinks.length).toBeGreaterThanOrEqual(2);
+    for (const a of registerLinks) {
+      expect(a.getAttribute("href")).toBe("/register");
+    }
+    for (const a of loginLinks) {
+      expect(a.getAttribute("href")).toBe("/login");
     }
   });
 });

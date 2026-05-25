@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import pageStyles from "../LandingPage.module.css";
 import styles from "./FinalCtaSection.module.css";
 
@@ -22,14 +23,12 @@ export function FinalCtaSection() {
           </p>
 
           <div className={styles.ctaRow}>
-            {/* Placeholder: identity domain (sign-up) not implemented yet. */}
-            <a href="#" className={styles.ctaPrimary}>
+            <Link to="/register" className={styles.ctaPrimary}>
               Załóż konto
-            </a>
-            {/* Placeholder: identity domain (login) not implemented yet. */}
-            <a href="#" className={styles.ctaSecondary}>
+            </Link>
+            <Link to="/login" className={styles.ctaSecondary}>
               Zaloguj się
-            </a>
+            </Link>
           </div>
         </div>
       </div>
