@@ -856,6 +856,12 @@
   display: contents;
 }
 
+/* Wrapper for the professional-layer sections. Transparent on mobile
+   (display: contents), a grid on desktop — same pattern as .personalGrid. */
+.professionalGrid {
+  display: contents;
+}
+
 /* Keyboard accessibility — applies on all viewports, no layout/flow change. */
 .iconButton:focus-visible,
 .eyeButton:focus-visible,
@@ -868,7 +874,11 @@
 .contactCard:focus-visible,
 .quickFeedToggle:focus-visible,
 .addButton:focus-visible,
-.previewOption:focus-visible {
+.previewOption:focus-visible,
+.specialistsToggle:focus-visible,
+.activityTab:focus-visible,
+.professionAddButton:focus-visible,
+.sheetOption:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
@@ -950,6 +960,20 @@
   .carousel {
     padding-inline: 24px;
   }
+
+  /* Professional layer: profession block full-width on top, then specialists +
+     activities side by side. DOM order preserved (mobile reading order intact). */
+  .professionalGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding-inline: 8px;
+    align-items: start;
+  }
+
+  .professionalGrid > section:first-child {
+    grid-column: 1 / -1;
+  }
 }
 
 /* Hover affordances only on devices that actually hover (not touch). */
@@ -964,7 +988,11 @@
   .iconButton:not(:disabled):hover,
   .switcherButton:not(:disabled):hover,
   .contactTab:hover,
-  .addButton:not(:disabled):hover {
+  .addButton:not(:disabled):hover,
+  .specialistsToggle:hover,
+  .activityTab:hover,
+  .professionAddButton:not(:disabled):hover,
+  .sheetOption:not(:disabled):hover {
     filter: brightness(0.97);
   }
 }

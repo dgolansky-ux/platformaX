@@ -149,6 +149,19 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.getByRole("dialog", { name: /Co chcesz dodać/ })).toBeDefined();
   });
 
+  test("desktop adaptation: professional sections share one responsive grid wrapper", () => {
+    renderProfile();
+    fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
+    const zawod = screen.getByRole("region", { name: /^Zawód$/ });
+    const specialists = screen.getByRole("region", { name: /Specjaliści/ });
+    const activities = screen.getByRole("region", { name: /Działania zawodowe/ });
+    // all professional sections live under one wrapper div (desktop = grid;
+    // mobile wrapper is display:contents, so the mobile flow is unchanged)
+    expect(zawod.parentElement).toBe(specialists.parentElement);
+    expect(specialists.parentElement).toBe(activities.parentElement);
+    expect(zawod.parentElement?.tagName).toBe("DIV");
+  });
+
   test("public render contains no private PII (phone / dateOfBirth / private email)", () => {
     const { container } = renderProfile();
     const text = container.textContent ?? "";
