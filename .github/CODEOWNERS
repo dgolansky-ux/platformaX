@@ -1,13 +1,13 @@
 # PlatformaX V2 — CODEOWNERS
-# Replace @REPLACE_WITH_OWNER with the actual GitHub username or team.
+# Replace @dgolansky-ux with the actual GitHub username or team.
 
-/server/domains-v2/**            @REPLACE_WITH_OWNER
-/client/src/app-v2/**            @REPLACE_WITH_OWNER
-/client/src/features-v2/**       @REPLACE_WITH_OWNER
-/client/src/App.tsx              @REPLACE_WITH_OWNER
-/scripts/check-*                 @REPLACE_WITH_OWNER
-/scripts/validate-*              @REPLACE_WITH_OWNER
-/scripts/*.mjs                   @REPLACE_WITH_OWNER
-/docs/architecture/**            @REPLACE_WITH_OWNER
-/.github/workflows/**            @REPLACE_WITH_OWNER
-/package.json                    @REPLACE_WITH_OWNER
+/server/domains-v2/**            @dgolansky-ux
+/client/src/app-v2/**            @dgolansky-ux
+/client/src/features-v2/**       @dgolansky-ux
+/client/src/App.tsx              @dgolansky-ux
+/scripts/check-*                 @dgolansky-ux
+/scripts/validate-*              @dgolansky-ux
+/scripts/*.mjs                   @dgolansky-ux
+/docs/architecture/**            @dgolansky-ux
+/.github/workflows/**            @dgolansky-ux
+/package.json                    @dgolansky-ux
