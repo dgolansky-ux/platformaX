@@ -154,7 +154,7 @@
   color: #64748b;
   background: transparent;
   cursor: pointer;
-  transition: all 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: background 220ms cubic-bezier(0.34, 1.56, 0.64, 1), color 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .switcherButtonActive {

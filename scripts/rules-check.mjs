@@ -28,6 +28,12 @@ const GUARDS = [
   "check-pre-commit-decision.mjs",
   "check-self-audit-evidence.mjs",
   "validate-bundle.mjs --smoke",
+  "check-code-quality-structure.mjs",
+  "check-scalability-patterns.mjs",
+  "check-frontend-performance-patterns.mjs",
+  "check-status-truth-consistency.mjs",
+  "check-dependency-discipline.mjs",
+  "check-logging-pii-security.mjs",
 ];
 
 let failed = 0;

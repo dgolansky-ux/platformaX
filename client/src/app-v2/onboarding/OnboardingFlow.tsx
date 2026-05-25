@@ -1,3 +1,6 @@
+// QUALITY_STRUCTURE_EXCEPTION: Multi-step onboarding flow with form state — splitting step logic
+// into separate files scheduled for next iteration. Scope: file+component level.
+// Removal plan: refactor steps into subcomponents when step count stabilizes.
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./OnboardingFlow.module.css";

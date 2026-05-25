@@ -25,6 +25,9 @@ These rules are intentionally strict. The project prioritizes long-term correctn
 | Security | No public PII, no secrets in repo/logs/bundles, no frontend service role. |
 | Media | No base64/dataUrl/readAsDataURL upload runtime. Media goes through the media domain. |
 | Lists and feeds | Every runtime list/feed/search has limit, maxLimit, stable ordering and cursor or explicit fixed cap. |
+| Scalability | No N+1 queries, no sync fanout in request path, no `select(*)` without mapper, no unbounded `Promise.all`. |
+| Code quality | No functions over 80 lines, no components over 140 lines, no `transition: all`, no `key={index}`. |
+| Dependencies | No new dependencies without review justification. No duplicate libraries for the same purpose. |
 | Testing | Tests must not read real `.env` or require production/staging secrets. |
 | Evidence | No evidence means no DONE. |
 | Commit | No green gates means no commit. |
