@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./OnboardingFlow.module.css";
 import { OnboardingProgress } from "./OnboardingProgress";
+import { OnboardingFinished } from "./OnboardingFinished";
+import { useOnboardingSubmit } from "./useOnboardingSubmit";
 import { Step1Name } from "./steps/Step1Name";
 import { Step2Birthday } from "./steps/Step2Birthday";
 import { Step3Phone } from "./steps/Step3Phone";
@@ -12,6 +14,12 @@ import {
   validateNonEmpty,
   validatePhone,
 } from "../auth/forms/validation";
+import {
+  profileAdapter as defaultProfileAdapter,
+  type OnboardingProfileAdapter,
+  identityAuthAdapter as defaultAuthAdapter,
+  type IdentityAuthAdapter,
+} from "../../features-v2/identity";
 
 type StepId = 1 | 2 | 3 | 4 | 5;
 
@@ -103,12 +111,24 @@ function validateStep(step: StepId, state: OnboardingState): FieldErrors {
   return errors;
 }
 
-export function OnboardingFlow() {
+export type OnboardingFlowProps = {
+  profileAdapter?: OnboardingProfileAdapter;
+  authAdapter?: IdentityAuthAdapter;
+};
+
+export function OnboardingFlow({
+  profileAdapter = defaultProfileAdapter,
+  authAdapter = defaultAuthAdapter,
+}: OnboardingFlowProps = {}) {
   const navigate = useNavigate();
   const [step, setStep] = useState<StepId>(1);
   const [state, setState] = useState<OnboardingState>(INITIAL_STATE);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [finished, setFinished] = useState(false);
+  const { submit, submitting, submitError } = useOnboardingSubmit(
+    profileAdapter,
+    authAdapter,
+  );
 
   const meta = STEPS[step - 1];
   const isLastStep = step === STEPS.length;
@@ -117,7 +137,7 @@ export function OnboardingFlow() {
     setState((prev) => ({ ...prev, [key]: value }));
   }
 
-  function handleNext() {
+  async function handleNext() {
     const stepErrors = validateStep(step, state);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -125,7 +145,13 @@ export function OnboardingFlow() {
     }
     setErrors({});
     if (isLastStep) {
-      setFinished(true);
+      const ok = await submit({
+        firstName: state.firstName,
+        lastName: state.lastName,
+        uiBirthDate: state.birthDate,
+        phone: state.phone,
+      });
+      if (ok) setFinished(true);
       return;
     }
     setStep((prev) => (prev + 1) as StepId);
@@ -143,19 +169,22 @@ export function OnboardingFlow() {
     setStep(5);
   }
 
-  function handleFinish() {
-    navigate("/");
-  }
-
   if (finished) {
     return (
-      <FinishedView
+      <OnboardingFinished
         firstName={state.firstName}
         selectedProfile={state.selectedProfile}
-        onFinish={handleFinish}
+        isPersistent={profileAdapter.isPersistent()}
+        onFinish={() => navigate("/profile")}
       />
     );
   }
+
+  const nextLabel = isLastStep
+    ? submitting
+      ? "Zapisywanie…"
+      : "Zakończ"
+    : "Dalej";
 
   return (
     <div className={styles.shell}>
@@ -231,9 +260,16 @@ export function OnboardingFlow() {
 
           {step === 2 || step === 3 ? (
             <p className={styles.privacyHint}>
-              🔒 Dane prywatne — przechowywane wyłącznie w stanie tego widoku
-              (UI shell). Nie są wysyłane do backendu, nie są zapisywane w
-              storage i nie pojawią się w publicznym profilu.
+              🔒 Dane prywatne — zapisywane wyłącznie po zalogowanym kanale
+              identity. Nie trafiają do public DTO, ani do trwałej pamięci
+              przeglądarki. Avatar i banner przejdą później przez media domain
+              (presigned upload).
+            </p>
+          ) : null}
+
+          {submitError ? (
+            <p role="alert" className={styles.errorNotice}>
+              {submitError}
             </p>
           ) : null}
 
@@ -242,68 +278,17 @@ export function OnboardingFlow() {
               type="button"
               className={styles.backBtn}
               onClick={handleBack}
-              disabled={step === 1}
+              disabled={step === 1 || submitting}
             >
               Wstecz
             </button>
-            <button type="button" className={styles.nextBtn} onClick={handleNext}>
-              {isLastStep ? "Zakończ" : "Dalej"}
-            </button>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
-}
-
-type FinishedViewProps = {
-  firstName: string;
-  selectedProfile: string | null;
-  onFinish: () => void;
-};
-
-function FinishedView({ firstName, selectedProfile, onFinish }: FinishedViewProps) {
-  return (
-    <div className={styles.shell}>
-      <div className={styles.container}>
-        <div className={styles.topRow}>
-          <Link to="/" className={styles.brand} aria-label="PlatformaX — strona główna">
-            <span className={styles.brandMark} aria-hidden="true">
-              P
-            </span>
-            PlatformaX
-          </Link>
-        </div>
-
-        <section className={styles.card} aria-labelledby="onboarding-done-title">
-          <span className={styles.stepEyebrow}>Onboarding ukończony</span>
-          <h1 id="onboarding-done-title" className={styles.stepTitle}>
-            Wszystko gotowe{firstName ? `, ${firstName}` : ""}!
-          </h1>
-          <p className={styles.stepLead}>
-            To była wersja UI shell — Twoje odpowiedzi nie zostały zapisane w
-            backendzie ani w żadnym storage. Po wdrożeniu domeny identity
-            wrócimy do tego flow i podłączymy zapis danych.
-          </p>
-
-          <div className={styles.summaryCard}>
-            <p className={styles.summaryTitle}>Podsumowanie (tylko podgląd)</p>
-            <div className={styles.summaryRow}>
-              <span className={styles.summaryKey}>Imię</span>
-              <span className={styles.summaryValue}>{firstName || "—"}</span>
-            </div>
-            <div className={styles.summaryRow}>
-              <span className={styles.summaryKey}>Kierunek profilu</span>
-              <span className={styles.summaryValue}>
-                {selectedProfile ?? "—"}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles.actions}>
-            <span />
-            <button type="button" className={styles.nextBtn} onClick={onFinish}>
-              Przejdź na stronę główną
+            <button
+              type="button"
+              className={styles.nextBtn}
+              onClick={handleNext}
+              disabled={submitting}
+            >
+              {nextLabel}
             </button>
           </div>
         </section>
