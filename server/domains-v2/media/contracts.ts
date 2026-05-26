@@ -34,6 +34,7 @@ export type MediaErrorCode =
   | "TOO_LARGE"
   | "FORBIDDEN"
   | "NOT_FOUND"
+  | "NOT_READY"
   | "STORAGE_UNAVAILABLE";
 
 export type MediaError = {

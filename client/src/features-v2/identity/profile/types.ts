@@ -2,25 +2,30 @@
  * features-v2/identity/profile — typed boundary for app-v2 onboarding/profile.
  *
  * app-v2 must never import the identity backend domain directly. It depends on
- * the typed adapter exposed here, which translates UI-shaped inputs into the
- * identity service's `IdentityResult` and back into UI-friendly outcomes.
+ * the typed adapter exposed here, which delegates to the
+ * `ProfileApplicationService` (server/application-v2/profile). The adapter
+ * always returns composed view DTOs (`OwnerProfileView` / `PublicProfileView`);
+ * raw `PrivateProfileDTO` / `PublicProfileDTO` from the identity domain are
+ * intentionally NOT re-exposed here.
  *
- * The backend types are imported via `@server/domains-v2/identity/public-api`
- * (the only entry point identity exposes cross-domain). Both ends share the
- * same domain name ("identity"), so this stays within domain boundaries.
+ * Identity backend types (`CompleteOnboardingInput`, `UpdatePrivateProfileInput`)
+ * are re-used as request shapes since the application service forwards them.
  */
 import type {
   CompleteOnboardingInput,
-  IdentityResult,
-  PrivateProfileDTO,
-  PublicProfileDTO,
   UpdatePrivateProfileInput,
 } from "@server/domains-v2/identity/public-api";
+import type {
+  OwnerProfileView,
+  ProfileApplicationResult,
+  PublicProfileView,
+} from "@server/application-v2/profile/public-api";
 
-export type CompleteOnboardingResult = IdentityResult<PrivateProfileDTO>;
-export type GetPublicProfileResult = IdentityResult<PublicProfileDTO>;
-export type GetMyProfileResult = IdentityResult<PrivateProfileDTO>;
-export type UpdateMyProfileResult = IdentityResult<PrivateProfileDTO>;
+export type CompleteOnboardingResult = ProfileApplicationResult<OwnerProfileView>;
+export type GetMyProfileViewResult = ProfileApplicationResult<OwnerProfileView>;
+export type GetPublicProfileViewResult = ProfileApplicationResult<PublicProfileView>;
+export type UpdateMyProfileResult = ProfileApplicationResult<OwnerProfileView>;
+export type AttachProfileMediaRefResult = ProfileApplicationResult<OwnerProfileView>;
 
 export type OnboardingProfileAdapter = {
   /**
@@ -32,15 +37,28 @@ export type OnboardingProfileAdapter = {
     userId: string,
     input: CompleteOnboardingInput,
   ): Promise<CompleteOnboardingResult>;
-  getMyProfile(userId: string): Promise<GetMyProfileResult>;
-  getPublicProfile(
+  getMyProfileView(userId: string): Promise<GetMyProfileViewResult>;
+  getPublicProfileView(
     viewerId: string | null,
     profileUserId: string,
-  ): Promise<GetPublicProfileResult>;
+  ): Promise<GetPublicProfileViewResult>;
   updateMyProfile(
     userId: string,
     input: UpdatePrivateProfileInput,
   ): Promise<UpdateMyProfileResult>;
+  attachProfileAvatarRef(
+    userId: string,
+    assetId: string,
+  ): Promise<AttachProfileMediaRefResult>;
+  attachProfileBannerRef(
+    userId: string,
+    assetId: string,
+  ): Promise<AttachProfileMediaRefResult>;
 };
 
-export type { CompleteOnboardingInput, UpdatePrivateProfileInput };
+export type {
+  CompleteOnboardingInput,
+  UpdatePrivateProfileInput,
+  OwnerProfileView,
+  PublicProfileView,
+};

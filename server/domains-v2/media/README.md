@@ -12,7 +12,9 @@ Identity (and other domains) store a `MediaAssetRef` and never the file payload.
 First runtime slice for avatar/banner uploads:
 - DTOs (`MediaAssetDTO`, `MediaRefDTO`, `UploadIntentDTO`), contracts, policy, mapper.
 - `service.ts` use-cases: `createAvatarUploadIntent`, `createBannerUploadIntent`,
-  `confirmProfileMediaUpload`, `getPublicMediaUrl`.
+  `confirmProfileMediaUpload`, `getPublicMediaUrl`,
+  `verifyProfileAssetForAttach` (owner + purpose + ready check used by the
+  application layer before identity persists a profile media ref).
 - `repository.ts`: in-memory `MediaRepository` (metadata only — never bytes) and an
   env-required `MediaStoragePort`.
 - SQL schema mirror: `supabase/migrations/0002_media_assets.sql` (NOT applied; no live db push).

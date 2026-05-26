@@ -56,7 +56,7 @@ export function useOnboardingSubmit(
       };
       const result = await profileAdapter.completeOnboarding(user.id, payload);
       if (!result.ok) {
-        if (result.error.code === "ALREADY_COMPLETED") return true;
+        if (result.error.code === "ONBOARDING_ALREADY_COMPLETED") return true;
         setSubmitError(result.error.message);
         return false;
       }

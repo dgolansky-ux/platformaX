@@ -1,79 +1,44 @@
 import { describe, expect, it } from "vitest";
 import type {
-  PrivateProfileDTO,
-  PublicProfileDTO,
-} from "@server/domains-v2/identity/public-api";
-import type { MediaUploadAdapter } from "../../../../features-v2/media";
+  OwnerProfileView,
+  PublicProfileView,
+} from "../../../../features-v2/identity";
 import {
-  resolveMediaUrl,
-  resolveProfileMediaUrls,
   toOwnerPersonalProfileView,
   toPublicPersonalProfileView,
 } from "../profile-view-model";
 
-function fakeMediaAdapter(
-  resolve: (id: string) => string | null = () => null,
-): MediaUploadAdapter {
-  return {
-    isStorageConnected: () => false,
-    createAvatarUploadIntent: async () => {
-      throw new Error("not used in tests");
-    },
-    createBannerUploadIntent: async () => {
-      throw new Error("not used in tests");
-    },
-    confirmProfileMediaUpload: async () => {
-      throw new Error("not used in tests");
-    },
-    getPublicMediaUrl: async (ref) => {
-      const url = resolve(ref.assetId);
-      return {
-        ok: true,
-        value: {
-          assetId: ref.assetId,
-          purpose: "avatar",
-          status: url ? "ready" : "pending",
-          url,
-          mimeType: "image/jpeg",
-          width: null,
-          height: null,
-        },
-      };
-    },
-  };
-}
-
-const privateDto: PrivateProfileDTO = {
+const ownerView: OwnerProfileView = {
   userId: "u-1",
   firstName: "Anna",
   lastName: "Kowalska",
+  displayName: "Anna Kowalska",
   dateOfBirth: "1990-03-15",
   phone: "+48600999111",
-  avatarMediaRef: { assetId: "asset-avatar" },
-  bannerMediaRef: { assetId: "asset-banner" },
   bio: "Hello world",
   visibility: "public",
   onboardingCompleted: true,
+  avatar: { assetId: "asset-avatar", url: "https://cdn.example/avatar.jpg" },
+  banner: { assetId: "asset-banner", url: "https://cdn.example/banner.jpg" },
   createdAt: "2026-05-25T12:00:00.000Z",
   updatedAt: "2026-05-25T12:00:00.000Z",
+  isOwner: true,
 };
 
-const publicDto: PublicProfileDTO = {
+const publicView: PublicProfileView = {
   userId: "u-1",
   displayName: "Anna Kowalska",
-  avatarMediaRef: { assetId: "asset-avatar" },
-  bannerMediaRef: { assetId: "asset-banner" },
   bio: "Hello world",
   visibility: "public",
   onboardingCompleted: true,
+  avatar: null,
+  banner: null,
+  isOwner: false,
 };
 
 describe("profile-view-model — owner view", () => {
-  it("maps private DTO + media URLs into the personal profile view", () => {
-    const view = toOwnerPersonalProfileView(privateDto, {
-      avatarUrl: "https://cdn.example/avatar.jpg",
-      bannerUrl: "https://cdn.example/banner.jpg",
-    });
+  it("maps OwnerProfileView into the personal profile view with pre-resolved URLs", () => {
+    const view = toOwnerPersonalProfileView(ownerView);
     expect(view.userId).toBe("u-1");
     expect(view.displayName).toBe("Anna Kowalska");
     expect(view.avatarInitial).toBe("A");
@@ -84,7 +49,11 @@ describe("profile-view-model — owner view", () => {
   });
 
   it("never leaks private fields into the owner view model", () => {
-    const view = toOwnerPersonalProfileView(privateDto, { avatarUrl: null, bannerUrl: null });
+    const view = toOwnerPersonalProfileView({
+      ...ownerView,
+      avatar: null,
+      banner: null,
+    });
     const json = JSON.stringify(view);
     expect(json).not.toContain("+48600999111");
     expect(json).not.toContain("1990-03-15");
@@ -93,56 +62,41 @@ describe("profile-view-model — owner view", () => {
   });
 
   it("falls back to a safe display name when first/last are empty", () => {
-    const empty: PrivateProfileDTO = {
-      ...privateDto,
+    const view = toOwnerPersonalProfileView({
+      ...ownerView,
       firstName: null,
       lastName: null,
-    };
-    const view = toOwnerPersonalProfileView(empty, { avatarUrl: null, bannerUrl: null });
+      displayName: "Użytkownik",
+      avatar: null,
+      banner: null,
+    });
     expect(view.displayName).toBe("Użytkownik");
     expect(view.avatarInitial).toBe("U");
+  });
+
+  it("returns null avatar/banner URL when the application view has no ref", () => {
+    const view = toOwnerPersonalProfileView({
+      ...ownerView,
+      avatar: null,
+      banner: null,
+    });
+    expect(view.avatarUrl).toBeNull();
+    expect(view.bannerUrl).toBeNull();
   });
 });
 
 describe("profile-view-model — public view", () => {
-  it("maps public DTO into a stranger-safe view (empty social/feed)", () => {
-    const view = toPublicPersonalProfileView(publicDto, {
-      avatarUrl: null,
-      bannerUrl: null,
-    });
+  it("maps PublicProfileView into a stranger-safe view (empty social/feed)", () => {
+    const view = toPublicPersonalProfileView(publicView);
     expect(view.isOwner).toBe(false);
     expect(view.contacts.length).toBe(0);
     expect(view.quickFeed.length).toBe(0);
     expect(view.socialLinks.length).toBe(0);
   });
-});
 
-describe("profile-view-model — media url resolution", () => {
-  it("returns null when there is no asset ref", async () => {
-    const url = await resolveMediaUrl(fakeMediaAdapter(), null);
-    expect(url).toBeNull();
-  });
-
-  it("returns null when storage is env-required (no public URL yet)", async () => {
-    const url = await resolveMediaUrl(fakeMediaAdapter(() => null), {
-      assetId: "asset-x",
-    });
-    expect(url).toBeNull();
-  });
-
-  it("resolves both avatar and banner refs in parallel", async () => {
-    const adapter = fakeMediaAdapter((id) =>
-      id === "asset-avatar"
-        ? "https://cdn.example/avatar.jpg"
-        : id === "asset-banner"
-          ? "https://cdn.example/banner.jpg"
-          : null,
-    );
-    const urls = await resolveProfileMediaUrls(adapter, {
-      avatarMediaRef: { assetId: "asset-avatar" },
-      bannerMediaRef: { assetId: "asset-banner" },
-    });
-    expect(urls.avatarUrl).toBe("https://cdn.example/avatar.jpg");
-    expect(urls.bannerUrl).toBe("https://cdn.example/banner.jpg");
+  it("never includes PII fields in the public view model", () => {
+    const view = toPublicPersonalProfileView(publicView);
+    expect(Object.keys(view)).not.toContain("phone");
+    expect(Object.keys(view)).not.toContain("dateOfBirth");
   });
 });
