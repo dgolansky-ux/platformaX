@@ -136,10 +136,10 @@
 }
 
 @media (min-width: 1024px) {
+  /* Stacked column on desktop too — Dawid's parity pass. The cards stay vivid
+     and full-width like on mobile; no 3-column grid that compresses the title
+     row and hides the "0 odkryj!" badge / "open" indicator. */
   .portalCards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
     padding-inline: 24px;
   }
 }
