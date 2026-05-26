@@ -142,3 +142,71 @@ describe("media service — confirm + read", () => {
     if (!res.ok) expect(res.error.code).toBe("NOT_FOUND");
   });
 });
+
+describe("media service — verifyProfileAssetForAttach", () => {
+  async function readyAvatar(svc: ReturnType<typeof createMediaService>) {
+    const intent = await svc.createAvatarUploadIntent("user-1", goodAvatar);
+    if (!intent.ok) throw new Error("intent failed");
+    const confirmed = await svc.confirmProfileMediaUpload("user-1", intent.value.assetId);
+    if (!confirmed.ok) throw new Error("confirm failed");
+    return intent.value.assetId;
+  }
+
+  it("returns the public DTO when owner, purpose and ready status match", async () => {
+    const svc = createMediaService(deps(connectedStorage()));
+    const assetId = await readyAvatar(svc);
+    const res = await svc.verifyProfileAssetForAttach("user-1", assetId, "avatar");
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      expect(res.value.assetId).toBe(assetId);
+      expect(res.value.purpose).toBe("avatar");
+      expect(res.value.status).toBe("ready");
+      // Public DTO never leaks ownerId/storageKey
+      expect(Object.keys(res.value)).not.toContain("ownerId");
+      expect(Object.keys(res.value)).not.toContain("storageKey");
+    }
+  });
+
+  it("rejects a foreign asset as FORBIDDEN", async () => {
+    const svc = createMediaService(deps(connectedStorage()));
+    const assetId = await readyAvatar(svc);
+    const res = await svc.verifyProfileAssetForAttach("intruder", assetId, "avatar");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("FORBIDDEN");
+  });
+
+  it("rejects a mismatched purpose (avatar asset used as banner ref) as INVALID_INPUT", async () => {
+    const svc = createMediaService(deps(connectedStorage()));
+    const assetId = await readyAvatar(svc);
+    const res = await svc.verifyProfileAssetForAttach("user-1", assetId, "banner");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("INVALID_INPUT");
+  });
+
+  it("rejects a pending (not-yet-uploaded) asset as NOT_READY", async () => {
+    const svc = createMediaService(deps(connectedStorage()));
+    const intent = await svc.createAvatarUploadIntent("user-1", goodAvatar);
+    if (!intent.ok) throw new Error("intent failed");
+    const res = await svc.verifyProfileAssetForAttach(
+      "user-1",
+      intent.value.assetId,
+      "avatar",
+    );
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("NOT_READY");
+  });
+
+  it("rejects an unknown assetId as NOT_FOUND", async () => {
+    const svc = createMediaService(deps(connectedStorage()));
+    const res = await svc.verifyProfileAssetForAttach("user-1", "missing", "avatar");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("NOT_FOUND");
+  });
+
+  it("rejects an empty userId as FORBIDDEN", async () => {
+    const svc = createMediaService(deps(connectedStorage()));
+    const res = await svc.verifyProfileAssetForAttach("", "some-id", "avatar");
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("FORBIDDEN");
+  });
+});

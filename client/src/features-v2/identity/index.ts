@@ -35,8 +35,11 @@ export type {
   OnboardingProfileAdapter,
   CompleteOnboardingInput,
   CompleteOnboardingResult,
-  GetMyProfileResult,
-  GetPublicProfileResult,
+  GetMyProfileViewResult,
+  GetPublicProfileViewResult,
   UpdateMyProfileResult,
+  AttachProfileMediaRefResult,
   UpdatePrivateProfileInput,
+  OwnerProfileView,
+  PublicProfileView,
 } from "./profile";

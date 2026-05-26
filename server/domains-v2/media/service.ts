@@ -51,6 +51,16 @@ export interface MediaService {
     assetId: string,
   ): Promise<MediaResult<MediaAssetDTO>>;
   getPublicMediaUrl(ref: MediaRefDTO): Promise<MediaResult<MediaAssetDTO>>;
+  /**
+   * Verify that `assetId` belongs to `userId`, has the expected `purpose` and is
+   * `ready`, before another domain attaches it as a profile ref. Returns the
+   * public-safe DTO. Never leaks `ownerId`/`storageKey` to non-owners.
+   */
+  verifyProfileAssetForAttach(
+    userId: string,
+    assetId: string,
+    purpose: MediaPurpose,
+  ): Promise<MediaResult<MediaAssetDTO>>;
 }
 
 type ServiceContext = {
@@ -166,6 +176,30 @@ export function createMediaService(deps: MediaServiceDeps): MediaService {
     async getPublicMediaUrl(ref) {
       const record = await ctx.repo.findById(ref.assetId);
       if (!record) return { ok: false, error: fail("NOT_FOUND", "Zasób nie istnieje") };
+      return { ok: true, value: toMediaAssetDTO(record) };
+    },
+
+    async verifyProfileAssetForAttach(userId, assetId, purpose) {
+      if (!userId) {
+        return { ok: false, error: fail("FORBIDDEN", "Wymagane zalogowanie") };
+      }
+      const record = await ctx.repo.findById(assetId);
+      if (!record) return { ok: false, error: fail("NOT_FOUND", "Zasób nie istnieje") };
+      if (record.ownerId !== userId) {
+        return { ok: false, error: fail("FORBIDDEN", "Brak uprawnień do zasobu") };
+      }
+      if (record.purpose !== purpose) {
+        return {
+          ok: false,
+          error: fail("INVALID_INPUT", "Typ zasobu nie pasuje do żądanej referencji"),
+        };
+      }
+      if (record.status !== "ready") {
+        return {
+          ok: false,
+          error: fail("NOT_READY", "Zasób nie jest jeszcze gotowy do podpięcia"),
+        };
+      }
       return { ok: true, value: toMediaAssetDTO(record) };
     },
   };

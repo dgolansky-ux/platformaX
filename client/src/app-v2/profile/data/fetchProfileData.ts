@@ -1,15 +1,14 @@
 /**
- * Pure async orchestration used by `useProfileData`. Splitting this out keeps
- * the hook surface tiny and lets tests exercise the full state machine without
- * pulling React, JSX or Supabase SDK into the test runner — addresses the OOM
- * we hit when test-loading the full identity barrel.
+ * Pure async orchestration used by `useProfileData`. The application boundary
+ * already composes identity + media into a single `OwnerProfileView`, so this
+ * layer only handles the auth-gated state machine and translates application
+ * error codes into UI state.
  */
-import type { IdentityAuthAdapter, OnboardingProfileAdapter } from "../../../features-v2/identity";
-import type { MediaUploadAdapter } from "../../../features-v2/media";
-import {
-  resolveProfileMediaUrls,
-  toOwnerPersonalProfileView,
-} from "./profile-view-model";
+import type {
+  IdentityAuthAdapter,
+  OnboardingProfileAdapter,
+} from "../../../features-v2/identity";
+import { toOwnerPersonalProfileView } from "./profile-view-model";
 import type { PersonalProfileView } from "../types";
 
 export type ProfileDataState =
@@ -27,7 +26,6 @@ export type ProfileDataState =
 export type FetchProfileDataDeps = {
   auth: IdentityAuthAdapter;
   profile: OnboardingProfileAdapter;
-  media: MediaUploadAdapter;
 };
 
 const GENERIC_ERROR = "Nie udało się pobrać profilu. Spróbuj ponownie.";
@@ -39,23 +37,18 @@ export async function fetchProfileDataOnce(
     const user = await deps.auth.getCurrentUser();
     if (!user) return { kind: "anonymous" };
 
-    const result = await deps.profile.getMyProfile(user.id);
+    const result = await deps.profile.getMyProfileView(user.id);
     if (!result.ok) {
-      if (result.error.code === "NOT_FOUND") {
+      if (result.error.code === "PROFILE_NOT_FOUND") {
         return { kind: "empty", userId: user.id };
       }
       return { kind: "error", message: result.error.message };
     }
 
-    const urls = await resolveProfileMediaUrls(deps.media, {
-      avatarMediaRef: result.value.avatarMediaRef,
-      bannerMediaRef: result.value.bannerMediaRef,
-    });
-    const view = toOwnerPersonalProfileView(result.value, urls);
     return {
       kind: "ready",
       userId: user.id,
-      view,
+      view: toOwnerPersonalProfileView(result.value),
       isPersistent: deps.profile.isPersistent(),
     };
   } catch (err) {

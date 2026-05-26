@@ -31,32 +31,31 @@ function buildProfileAdapter(
       userId: "user-test",
       firstName: "Anna",
       lastName: "Kowalska",
+      displayName: "Anna Kowalska",
       dateOfBirth: "1990-03-15",
       phone: "+48600999111",
-      avatarMediaRef: null,
-      bannerMediaRef: null,
       bio: null,
       visibility: "public",
       onboardingCompleted: true,
+      avatar: null,
+      banner: null,
       createdAt: "2026-05-25T12:00:00.000Z",
       updatedAt: "2026-05-25T12:00:00.000Z",
+      isOwner: true,
     },
+  };
+  const notFound = {
+    ok: false as const,
+    error: { code: "PROFILE_NOT_FOUND" as const, message: "n/a" },
   };
   return {
     isPersistent: () => false,
     completeOnboarding: vi.fn(async () => successResult),
-    getMyProfile: vi.fn(async () => ({
-      ok: false as const,
-      error: { code: "NOT_FOUND" as const, message: "n/a" },
-    })),
-    getPublicProfile: vi.fn(async () => ({
-      ok: false as const,
-      error: { code: "NOT_FOUND" as const, message: "n/a" },
-    })),
-    updateMyProfile: vi.fn(async () => ({
-      ok: false as const,
-      error: { code: "NOT_FOUND" as const, message: "n/a" },
-    })),
+    getMyProfileView: vi.fn(async () => notFound),
+    getPublicProfileView: vi.fn(async () => notFound),
+    updateMyProfile: vi.fn(async () => notFound),
+    attachProfileAvatarRef: vi.fn(async () => notFound),
+    attachProfileBannerRef: vi.fn(async () => notFound),
     ...overrides,
   };
 }
@@ -214,7 +213,7 @@ describe("OnboardingFlow", () => {
       completeOnboarding: vi.fn(async () => ({
         ok: false as const,
         error: {
-          code: "INVALID_INPUT" as const,
+          code: "PROFILE_VALIDATION_FAILED" as const,
           message: "Niepoprawne dane wejściowe",
         },
       })),

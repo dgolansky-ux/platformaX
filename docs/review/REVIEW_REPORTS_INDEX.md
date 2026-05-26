@@ -55,3 +55,4 @@ Last updated: 2026-05-26 (Step 29)
 | step-43-profile-top-header-premium-polish | Profile top header premium polish — avatar size locked | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_43_SUMMARY.md |
 | step-44-top-profile-composition-rebuild-premium | Top profile hero composition rebuild — avatar size locked | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_44_SUMMARY.md |
 | step-45-profile-legacy-visual-direction-pass | Profile visual direction aligned with legacy mobile reference | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_45_SUMMARY.md |
+| step-46-profile-runtime-identity-media-onboarding | Profile runtime vertical slice — application-v2/profile boundary composing identity + media; media verifyProfileAssetForAttach; frontend adapter migrated to view DTOs | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_46_SUMMARY.md (status: SERVER_READY_NOT_FULLY_HTTP_WIRED) |

@@ -1,21 +1,34 @@
 /**
  * features-v2/identity/profile — runtime adapter.
  *
- * Wires the V2 identity backend domain to the frontend through a thin typed
- * boundary. Persistence is currently an in-memory adapter (no HTTP transport,
- * no Supabase repository yet — see BLOCKER_REQUIRES_PERSISTENCE_ADAPTER), so
- * state is volatile across reloads. The adapter is honest about this via
+ * Thin wrapper over the `ProfileApplicationService`
+ * (`server/application-v2/profile`). The application service is the only place
+ * that composes identity + media; this adapter forwards the typed calls and
+ * exposes view DTOs to the frontend.
+ *
+ * Persistence is currently an in-memory boundary (no HTTP transport, no
+ * Supabase repository yet — see BLOCKER_REQUIRES_PERSISTENCE_ADAPTER), so state
+ * is volatile across reloads. The adapter is honest about this via
  * `isPersistent() === false`.
  *
- * When the Supabase repository (or any other transport) is wired, replace the
- * `createInMemoryIdentityProfileRepository` call below with the real adapter.
- * The frontend contract does not change.
+ * When a real transport or persistence layer is wired, replace the in-memory
+ * factories below with the connected adapters; the frontend contract does not
+ * change.
  */
+import {
+  createProfileApplicationService,
+  type ProfileApplicationService,
+} from "@server/application-v2/profile/public-api";
 import {
   createIdentityService,
   createInMemoryIdentityProfileRepository,
-  type IdentityService,
 } from "@server/domains-v2/identity/public-api";
+import {
+  createEnvRequiredStoragePort,
+  createInMemoryMediaRepository,
+  createMediaService,
+  type MediaStoragePort,
+} from "@server/domains-v2/media/public-api";
 import type {
   CompleteOnboardingInput,
   OnboardingProfileAdapter,
@@ -23,7 +36,7 @@ import type {
 } from "./types";
 
 export type ProfileAdapterDeps = {
-  service: IdentityService;
+  service: ProfileApplicationService;
   isPersistent: boolean;
 };
 
@@ -32,34 +45,42 @@ export function createProfileAdapter(
 ): OnboardingProfileAdapter {
   return {
     isPersistent: () => deps.isPersistent,
-    async completeOnboarding(userId: string, input: CompleteOnboardingInput) {
-      return deps.service.completeOnboarding(userId, input);
-    },
-    async getMyProfile(userId: string) {
-      return deps.service.getMyProfile(userId);
-    },
-    async getPublicProfile(
-      viewerId: string | null,
-      profileUserId: string,
-    ) {
-      return deps.service.getPublicProfile(viewerId, profileUserId);
-    },
-    async updateMyProfile(userId: string, input: UpdatePrivateProfileInput) {
-      return deps.service.updatePrivateProfile(userId, input);
-    },
+    completeOnboarding: (userId: string, input: CompleteOnboardingInput) =>
+      deps.service.completeOnboarding(userId, input),
+    getMyProfileView: (userId: string) => deps.service.getMyProfileView(userId),
+    getPublicProfileView: (viewerId: string | null, profileUserId: string) =>
+      deps.service.getPublicProfileView(viewerId, profileUserId),
+    updateMyProfile: (userId: string, input: UpdatePrivateProfileInput) =>
+      deps.service.updateMyProfile(userId, input),
+    attachProfileAvatarRef: (userId: string, assetId: string) =>
+      deps.service.attachProfileAvatarRef(userId, assetId),
+    attachProfileBannerRef: (userId: string, assetId: string) =>
+      deps.service.attachProfileBannerRef(userId, assetId),
   };
 }
 
 /**
- * Default in-memory adapter shared across the app. Volatile — wipes on reload.
- * This is the explicit boundary the task requires while no transport exists.
- * Onboarding and profile-view code share this default so a completed onboarding
+ * Default in-memory boundary shared across the app. Volatile — wipes on reload.
+ * This is the explicit boundary while no transport/persistence exists.
+ * Onboarding and the profile view share this default so a completed onboarding
  * round-trips into `/profile` within the same session.
  */
-const defaultRepository = createInMemoryIdentityProfileRepository();
-const defaultService = createIdentityService({ repository: defaultRepository });
+const defaultIdentity = createIdentityService({
+  repository: createInMemoryIdentityProfileRepository(),
+});
+
+const defaultStorage: MediaStoragePort = createEnvRequiredStoragePort();
+const defaultMedia = createMediaService({
+  repository: createInMemoryMediaRepository(),
+  storage: defaultStorage,
+});
+
+const defaultApplicationService = createProfileApplicationService({
+  identity: defaultIdentity,
+  media: defaultMedia,
+});
 
 export const profileAdapter: OnboardingProfileAdapter = createProfileAdapter({
-  service: defaultService,
+  service: defaultApplicationService,
   isPersistent: false,
 });

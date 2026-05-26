@@ -1,26 +1,43 @@
+/**
+ * Tests the auth-gated state machine in `fetchProfileDataOnce` against a fully
+ * faked profile adapter that satisfies the application-boundary contract. The
+ * real composition of identity + media (and the cross-domain wiring) is
+ * exercised by `server/application-v2/profile/__tests__/service.test.ts` and
+ * `client/src/features-v2/identity/profile/__tests__/profile-adapter.test.ts`,
+ * so app-v2 tests stay free of backend imports (`PX-ARCH-006`).
+ */
 import { describe, expect, it } from "vitest";
-import {
-  createIdentityService,
-  createInMemoryIdentityProfileRepository,
-} from "@server/domains-v2/identity/public-api";
 import type {
   IdentityAuthAdapter,
   OnboardingProfileAdapter,
+  OwnerProfileView,
 } from "../../../../features-v2/identity";
-import { createProfileAdapter } from "../../../../features-v2/identity/profile/profile-adapter";
-import type { MediaUploadAdapter } from "../../../../features-v2/media";
 import { fetchProfileDataOnce } from "../fetchProfileData";
 
-function buildProfile(): OnboardingProfileAdapter {
-  const repository = createInMemoryIdentityProfileRepository();
-  const service = createIdentityService({
-    repository,
-    clock: () => "2026-05-25T12:00:00.000Z",
-  });
-  return createProfileAdapter({ service, isPersistent: false });
+const NOW = "2026-05-25T12:00:00.000Z";
+
+function ownerViewFor(userId: string): OwnerProfileView {
+  return {
+    userId,
+    firstName: "Anna",
+    lastName: "Kowalska",
+    displayName: "Anna Kowalska",
+    dateOfBirth: "1990-03-15",
+    phone: "+48600999111",
+    bio: null,
+    visibility: "public",
+    onboardingCompleted: true,
+    avatar: { assetId: "asset-avatar", url: "https://cdn.example/avatar.jpg" },
+    banner: null,
+    createdAt: NOW,
+    updatedAt: NOW,
+    isOwner: true,
+  };
 }
 
-function fakeAuth(user: { id: string; email: string | null } | null): IdentityAuthAdapter {
+function fakeAuth(
+  user: { id: string; email: string | null } | null,
+): IdentityAuthAdapter {
   return {
     isConfigured: () => true,
     signUp: async () => ({ ok: true, user }),
@@ -32,30 +49,22 @@ function fakeAuth(user: { id: string; email: string | null } | null): IdentityAu
   };
 }
 
-function fakeMedia(urls: Record<string, string> = {}): MediaUploadAdapter {
+function buildProfileAdapter(
+  overrides: Partial<OnboardingProfileAdapter> = {},
+): OnboardingProfileAdapter {
+  const notFound = {
+    ok: false as const,
+    error: { code: "PROFILE_NOT_FOUND" as const, message: "n/a" },
+  };
   return {
-    isStorageConnected: () => false,
-    createAvatarUploadIntent: async () => {
-      throw new Error("not used");
-    },
-    createBannerUploadIntent: async () => {
-      throw new Error("not used");
-    },
-    confirmProfileMediaUpload: async () => {
-      throw new Error("not used");
-    },
-    getPublicMediaUrl: async (ref) => ({
-      ok: true,
-      value: {
-        assetId: ref.assetId,
-        purpose: "avatar",
-        status: urls[ref.assetId] ? "ready" : "pending",
-        url: urls[ref.assetId] ?? null,
-        mimeType: "image/jpeg",
-        width: null,
-        height: null,
-      },
-    }),
+    isPersistent: () => false,
+    completeOnboarding: async () => notFound,
+    getMyProfileView: async () => notFound,
+    getPublicProfileView: async () => notFound,
+    updateMyProfile: async () => notFound,
+    attachProfileAvatarRef: async () => notFound,
+    attachProfileBannerRef: async () => notFound,
+    ...overrides,
   };
 }
 
@@ -63,38 +72,31 @@ describe("fetchProfileDataOnce", () => {
   it("returns anonymous when there is no authenticated user", async () => {
     const state = await fetchProfileDataOnce({
       auth: fakeAuth(null),
-      profile: buildProfile(),
-      media: fakeMedia(),
+      profile: buildProfileAdapter(),
     });
     expect(state.kind).toBe("anonymous");
   });
 
-  it("returns empty when the user has no profile yet", async () => {
+  it("returns empty when the user has no profile yet (PROFILE_NOT_FOUND)", async () => {
     const state = await fetchProfileDataOnce({
       auth: fakeAuth({ id: "u-1", email: "u@example.com" }),
-      profile: buildProfile(),
-      media: fakeMedia(),
+      profile: buildProfileAdapter(),
     });
     expect(state.kind).toBe("empty");
     if (state.kind !== "empty") return;
     expect(state.userId).toBe("u-1");
   });
 
-  it("returns ready with the owner view after onboarding", async () => {
-    const profile = buildProfile();
-    await profile.completeOnboarding("u-1", {
-      firstName: "Anna",
-      lastName: "Kowalska",
-      dateOfBirth: "1990-03-15",
-      phone: "+48600999111",
-      avatarMediaRef: { assetId: "asset-avatar" },
+  it("returns ready with the composed owner view from the application boundary", async () => {
+    const profile = buildProfileAdapter({
+      getMyProfileView: async (userId: string) => ({
+        ok: true,
+        value: ownerViewFor(userId),
+      }),
     });
-    const media = fakeMedia({ "asset-avatar": "https://cdn.example/avatar.jpg" });
-
     const state = await fetchProfileDataOnce({
       auth: fakeAuth({ id: "u-1", email: "u@example.com" }),
       profile,
-      media,
     });
     expect(state.kind).toBe("ready");
     if (state.kind !== "ready") return;
@@ -102,35 +104,22 @@ describe("fetchProfileDataOnce", () => {
     expect(state.view.displayName).toBe("Anna Kowalska");
     expect(state.view.avatarUrl).toBe("https://cdn.example/avatar.jpg");
     expect(state.isPersistent).toBe(false);
+    // The view-model never carries PII from the underlying owner view.
     const json = JSON.stringify(state.view);
     expect(json).not.toContain("+48600999111");
     expect(json).not.toContain("1990-03-15");
   });
 
-  it("surfaces non-NOT_FOUND identity errors as error state", async () => {
-    const explosive: OnboardingProfileAdapter = {
-      isPersistent: () => false,
-      completeOnboarding: async () => ({
+  it("surfaces non-PROFILE_NOT_FOUND application errors as error state", async () => {
+    const profile = buildProfileAdapter({
+      getMyProfileView: async () => ({
         ok: false,
-        error: { code: "INVALID_INPUT", message: "x" },
+        error: { code: "PROFILE_FORBIDDEN", message: "Brak uprawnień" },
       }),
-      getMyProfile: async () => ({
-        ok: false,
-        error: { code: "FORBIDDEN", message: "Brak uprawnień" },
-      }),
-      getPublicProfile: async () => ({
-        ok: false,
-        error: { code: "FORBIDDEN", message: "x" },
-      }),
-      updateMyProfile: async () => ({
-        ok: false,
-        error: { code: "FORBIDDEN", message: "x" },
-      }),
-    };
+    });
     const state = await fetchProfileDataOnce({
       auth: fakeAuth({ id: "u-1", email: null }),
-      profile: explosive,
-      media: fakeMedia(),
+      profile,
     });
     expect(state.kind).toBe("error");
     if (state.kind !== "error") return;
@@ -146,8 +135,7 @@ describe("fetchProfileDataOnce", () => {
     };
     const state = await fetchProfileDataOnce({
       auth: exploding,
-      profile: buildProfile(),
-      media: fakeMedia(),
+      profile: buildProfileAdapter(),
     });
     expect(state.kind).toBe("error");
     if (state.kind !== "error") return;
