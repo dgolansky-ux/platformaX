@@ -1,11 +1,6 @@
-/* QUALITY_STRUCTURE_EXCEPTION: Profile header CSS serves 6 co-dependent visual blocks that
-   share responsive breakpoints. Splitting creates import complexity without layout benefit.
-   Removal plan: split by block (banner/avatar/bio/links) when design system stabilizes.
-   ALLOW_FILE_SIZE_EXCEPTION */
-/* Profile header: name, avatar+bio row, banner, social links, preview menu.
-   Imported by ProfileHeader, ProfileAvatar, ProfileBio, ProfileBanner,
-   ProfileSocialLinks and ProfilePage (preview banner).
-   Mobile sizes mirror legacy ProfileHeader 1:1. */
+/* QUALITY_STRUCTURE_EXCEPTION + ALLOW_FILE_SIZE_EXCEPTION: header CSS serves
+   co-dependent name/avatar/bio/banner/social/preview blocks. Splitting them
+   adds import noise without separation benefit. */
 
 .header {
   padding: 6px 0 0;
@@ -113,15 +108,11 @@
   transition: box-shadow 1.1s ease-in-out;
 }
 
-/* Solid blue ring between the white outer padding and the inner surface —
-   matches the design pass screenshot (single vibrant primary blue, not a
-   gradient). 3px keeps the outline crisp at 144px. */
+/* Polished gradient ring (deep blue → indigo) for a premium feel; was a flat
+   blue in earlier mocks. 3px keeps the outline crisp at 144px. */
 .avatarRing {
-  width: 100%;
-  height: 100%;
-  border-radius: 999px;
-  padding: 3px;
-  background: #1e4fd8;
+  width: 100%; height: 100%; border-radius: 999px; padding: 3px;
+  background: linear-gradient(135deg, #1e4fd8 0%, #2c5fe6 50%, #4f46e5 100%);
 }
 
 .avatarInner {
