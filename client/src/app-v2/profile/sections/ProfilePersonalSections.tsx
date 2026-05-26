@@ -1,3 +1,4 @@
+import type React from "react";
 import styles from "../styles/profile-sections.module.css";
 
 type ProfilePersonalSectionsProps = {
@@ -11,7 +12,7 @@ type EmptyAccent = "green" | "yellow";
 type EmptyBlockProps = {
   title: string;
   subtitle: string;
-  icon: string;
+  icon: React.ReactNode;
   iconAccent: EmptyAccent;
   ownerText: string;
   isOwner: boolean;
@@ -86,7 +87,7 @@ export function ProfilePersonalSections({
       <SectionBlock
         title="Prezentacja profilu"
         subtitle="postów"
-        icon="📷"
+        icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" /></svg>}
         iconAccent="green"
         emptyTitle="Brak postów"
         ownerText="Dodaj do 12 postów ze zdjęciami i filmami."
@@ -98,7 +99,7 @@ export function ProfilePersonalSections({
       <SectionBlock
         title="Ważne wydarzenia"
         subtitle="wydarzeń"
-        icon="⭐"
+        icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>}
         iconAccent="yellow"
         emptyTitle="Brak ważnych wydarzeń"
         ownerText="Dodaj ważne momenty ze swojego życia na osi czasu."

@@ -4,7 +4,12 @@
 
 .section {
   padding: 16px;
+  animation: px-section-in 0.5s ease-out both;
 }
+
+.section:nth-child(2) { animation-delay: 0.08s; }
+.section:nth-child(3) { animation-delay: 0.16s; }
+.section:nth-child(4) { animation-delay: 0.24s; }
 
 .sectionHeader {
   display: flex;
@@ -32,6 +37,7 @@
   background: #ffffff;
   border: 1px dashed #d8e2f0;
   border-radius: 18px;
+  animation: px-empty-breathe 4s ease-in-out 1s infinite;
 }
 
 .emptyIcon {
@@ -112,5 +118,34 @@
 @media (hover: hover) {
   .addButton:not(:disabled):hover {
     filter: brightness(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section,
+  .emptyState {
+    animation: none !important;
+  }
+}
+
+@keyframes px-section-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes px-empty-breathe {
+  0%, 100% {
+    border-color: #d8e2f0;
+    box-shadow: 0 0 0 0 rgba(30, 79, 216, 0);
+  }
+  50% {
+    border-color: #c7d2fe;
+    box-shadow: 0 0 12px rgba(30, 79, 216, 0.06);
   }
 }

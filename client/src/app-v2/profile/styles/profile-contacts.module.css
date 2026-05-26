@@ -7,6 +7,7 @@
   align-items: center;
   gap: 8px;
   padding: 0 16px 8px;
+  animation: px-fade-in 0.4s ease-out both;
 }
 
 .contactsIcon {
@@ -78,6 +79,7 @@
   overflow-x: auto;
   padding: 0 16px 10px;
   scrollbar-width: none;
+  animation: px-fade-in 0.45s ease-out 0.1s both;
 }
 
 .contactsTabs::-webkit-scrollbar {
@@ -151,7 +153,15 @@
   border: none;
   padding: 0;
   cursor: pointer;
+  animation: px-contact-pop 0.35s ease-out both;
 }
+
+.contactCard:nth-child(1) { animation-delay: 0.15s; }
+.contactCard:nth-child(2) { animation-delay: 0.22s; }
+.contactCard:nth-child(3) { animation-delay: 0.29s; }
+.contactCard:nth-child(4) { animation-delay: 0.36s; }
+.contactCard:nth-child(5) { animation-delay: 0.43s; }
+.contactCard:nth-child(6) { animation-delay: 0.50s; }
 
 .contactCard:focus-visible {
   outline: 2px solid var(--color-primary);
@@ -224,10 +234,28 @@
 
 @media (hover: hover) {
   .contactCard:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px) scale(1.04);
   }
 
   .contactTab:hover {
     border-color: #cbd5e1;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contactsHeader,
+  .contactsTabs,
+  .contactCard {
+    animation: none !important;
+  }
+}
+
+@keyframes px-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes px-contact-pop {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
 }

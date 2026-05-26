@@ -54,3 +54,4 @@ Last updated: 2026-05-26 (Step 29)
 | step-42-profile-premium-visual-maturity | Profile premium visual maturity pass — avatar size locked | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_42_SUMMARY.md |
 | step-43-profile-top-header-premium-polish | Profile top header premium polish — avatar size locked | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_43_SUMMARY.md |
 | step-44-top-profile-composition-rebuild-premium | Top profile hero composition rebuild — avatar size locked | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_44_SUMMARY.md |
+| step-45-profile-legacy-visual-direction-pass | Profile visual direction aligned with legacy mobile reference | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_45_SUMMARY.md |

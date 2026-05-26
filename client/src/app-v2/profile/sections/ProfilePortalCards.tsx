@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import styles from "../styles/profile-portal.module.css";
 
 type PortalCard = {
@@ -17,12 +17,30 @@ type PortalCard = {
 
 // Per-card accent colors mirror legacy ProfileTopRow (Społeczności = blue,
 // Kanały = violet/featured cream, Feed znajomych = pink).
+const ICONS: Record<string, ReactNode> = {
+  communities: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+    </svg>
+  ),
+  channels: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9" /><path d="M7.8 16.2a7 7 0 010-8.4" /><circle cx="12" cy="12" r="2" /><path d="M16.2 7.8a7 7 0 010 8.4" /><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19" />
+    </svg>
+  ),
+  "friends-feed": (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
+    </svg>
+  ),
+};
+
 const CARDS: ReadonlyArray<PortalCard> = [
   {
     id: "communities",
     title: "Społeczności",
     subtitle: "Twoje grupy i dyskusje",
-    icon: "🌐",
+    icon: "",
     accent: "#1E4FD8",
     bg: "#FFFFFF",
     delayMs: 0,
@@ -32,8 +50,8 @@ const CARDS: ReadonlyArray<PortalCard> = [
     id: "channels",
     title: "Kanały",
     subtitle: "Subskrybuj kanały twórców",
-    icon: "📡",
-    accent: "#475569",
+    icon: "",
+    accent: "#7C3AED",
     bg: "#FFFFFF",
     delayMs: 80,
     discoverCount: 0,
@@ -42,8 +60,8 @@ const CARDS: ReadonlyArray<PortalCard> = [
     id: "friends-feed",
     title: "Feed znajomych",
     subtitle: "Posty Twoich znajomych",
-    icon: "👥",
-    accent: "#1E4FD8",
+    icon: "",
+    accent: "#E11D48",
     bg: "#FFFFFF",
     delayMs: 160,
     discoverCount: 0,
@@ -79,7 +97,7 @@ export function ProfilePortalCards() {
             style={cssVars}
           >
             <span className={styles.portalIcon} aria-hidden="true">
-              {card.icon}
+              {ICONS[card.id] ?? card.icon}
             </span>
             <span className={styles.portalBody}>
               <span className={styles.portalTitleRow}>

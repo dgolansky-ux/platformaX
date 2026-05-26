@@ -1,7 +1,7 @@
 import type { PersonalProfileView, ProfilePreviewKind, ProfileViewMode } from "../types";
 import { ProfileAvatar } from "./ProfileAvatar";
 import { ProfileBio } from "./ProfileBio";
-import { ProfileStatusBar } from "./ProfileStatusBar";
+import { ProfileCivilCard, ProfileStatusRow } from "./ProfileStatusBar";
 import { ProfileModeSwitcher } from "./ProfileModeSwitcher";
 import { ProfileBanner } from "./ProfileBanner";
 import styles from "../styles/profile-header.module.css";
@@ -49,9 +49,13 @@ export function ProfileHeader({
             onTogglePreview={onTogglePreview}
             onEdit={onEditAvatar}
           />
+          <ProfileCivilCard isOwner={profile.isOwner} />
         </div>
         <div className={styles.separator} aria-hidden="true" />
-        <ProfileBio bio={profile.bio} isOwner={profile.isOwner} />
+        <div className={styles.rightCol}>
+          <ProfileBio bio={profile.bio} isOwner={profile.isOwner} />
+          <ProfileStatusRow status={profile.status} isOwner={profile.isOwner} />
+        </div>
       </div>
 
       {previewOpen ? (
@@ -83,8 +87,6 @@ export function ProfileHeader({
           </button>
         </div>
       ) : null}
-
-      <ProfileStatusBar status={profile.status} isOwner={profile.isOwner} />
 
       {profile.location ? (
         <p className={styles.locationRow}>

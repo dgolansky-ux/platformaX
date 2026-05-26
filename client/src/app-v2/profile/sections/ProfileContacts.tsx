@@ -36,10 +36,18 @@ export function ProfileContacts({ contacts }: ProfileContactsProps) {
   return (
     <section className={sec.section} aria-label="Kontakty">
       <div className={styles.contactsHeader}>
-        <span className={styles.contactsIcon} aria-hidden="true">👥</span>
+        <span className={styles.contactsIcon} aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
+          </svg>
+        </span>
         <h2 className={styles.contactsTitle}>Kontakty</h2>
         <label className={styles.contactsSearch}>
-          <span aria-hidden="true" className={styles.contactsSearchIcon}>🔍</span>
+          <span aria-hidden="true" className={styles.contactsSearchIcon}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </span>
           <input
             type="search"
             className={styles.contactsSearchInput}
