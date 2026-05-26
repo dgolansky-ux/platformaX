@@ -1,7 +1,6 @@
-/* Shared section atoms + contacts carousel.
-   Imported by ProfileContacts, ProfilePersonalSections, and (for the shared
-   atoms) by professional-layer components. Portal cards live in
-   profile-portal.module.css. Sizes/colors mirror legacy FriendsSection 1:1. */
+/* Shared section atoms (section/header/empty state/add button).
+   Imported by ProfilePersonalSections and the professional layer.
+   Contacts-specific styles live in profile-contacts.module.css. */
 
 .section {
   padding: 16px;
@@ -42,7 +41,20 @@
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  background: var(--color-primary-soft);
+  background: var(--ptEmptyBg, var(--color-primary-soft));
+  color: var(--ptEmptyFg, var(--color-primary));
+}
+
+/* Tinted variants for the per-section empty states (camera = green for
+   "Prezentacja profilu", star = warm yellow for "Ważne wydarzenia"). */
+.emptyIconGreen {
+  --ptEmptyBg: #dcfce7;
+  --ptEmptyFg: #16a34a;
+}
+
+.emptyIconYellow {
+  --ptEmptyBg: #fef3c7;
+  --ptEmptyFg: #f59e0b;
 }
 
 .emptyTitle {
@@ -91,204 +103,7 @@
   outline-offset: 2px;
 }
 
-/* ---- Contacts header + search + tabs ---- */
-.contactsHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 16px 8px;
-}
-
-.contactsIcon {
-  width: 28px;
-  height: 28px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #eff6ff, #dbeafe);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: #2563eb;
-  flex-shrink: 0;
-}
-
-.contactsTitle {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.contactsSearch {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  max-width: 140px;
-  min-width: 90px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #94a3b8;
-  font-size: 11px;
-}
-
-.contactsTabs {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 0 16px 10px;
-  scrollbar-width: none;
-}
-
-.contactsTabs::-webkit-scrollbar {
-  display: none;
-}
-
-.contactTab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1.5px solid #e2e8f0;
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.contactTab:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.contactTabCount {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 0 6px;
-  min-width: 18px;
-  text-align: center;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #94a3b8;
-}
-
-/* Carousel: full-bleed against the section padding, edge fade mask. */
-.carousel {
-  display: flex;
-  gap: 24px;
-  overflow-x: auto;
-  padding: 8px 20px 12px;
-  margin: 0 -16px;
-  background: rgba(248, 250, 252, 0.8);
-  border-top: 1px solid #e2e8f0;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 24px,
-    #000 calc(100% - 24px),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 24px,
-    #000 calc(100% - 24px),
-    transparent 100%
-  );
-}
-
-.contactCard {
-  flex-shrink: 0;
-  width: 67px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.contactCard:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.contactAvatar {
-  position: relative;
-  width: 61px;
-  height: 61px;
-  border-radius: 999px;
-  border: 2px solid #fff;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.contactOnline {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: #22c55e;
-  border: 2px solid #fff;
-}
-
-.contactName {
-  text-align: center;
-  width: 100%;
-  line-height: 1.1;
-  display: flex;
-  flex-direction: column;
-}
-
-.contactFirst {
-  font-size: 10px;
-  font-weight: 700;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.contactLast {
-  font-size: 9px;
-  color: #64748b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-@media (min-width: 1024px) {
-  .contactsHeader,
-  .contactsTabs {
-    padding-inline: 24px;
-  }
-
-  .carousel {
-    margin-inline: -24px;
-    padding-inline: 28px;
-  }
-}
-
 @media (hover: hover) {
-  .contactCard:hover {
-    transform: translateY(-2px);
-  }
-
-  .contactTab:hover,
   .addButton:not(:disabled):hover {
     filter: brightness(0.97);
   }

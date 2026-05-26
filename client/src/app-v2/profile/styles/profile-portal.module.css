@@ -40,9 +40,13 @@
   );
 }
 
+/* Disabled-policy state mirrors legacy ProfileTopRowCards: the card carries the
+   semantic disabled flag (cursor + title + aria) but stays at full opacity so
+   the "0 odkryj!" badge and the soft-pulsing "open" indicator remain readable.
+   Parent opacity is multiplicative and would dim the pulsing dot — keep it 1. */
 .portalCard:disabled {
   cursor: not-allowed;
-  opacity: 0.78;
+  opacity: 1;
 }
 
 .portalCard:focus-visible {
@@ -75,6 +79,14 @@
   gap: 3px;
 }
 
+.portalTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
 .portalTitle {
   font-size: 14px;
   font-weight: 700;
@@ -95,6 +107,36 @@
   background: #f1f5f9;
   color: #64748b;
   white-space: nowrap;
+}
+
+/* Pink "N new" pill with a dismiss X — used on Feed znajomych when new posts
+   from friends are pending. Visual parity with legacy ProfileTopRowCards. */
+.portalBadgeNew {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 4px 2px 10px;
+  border-radius: 999px;
+  background: #ffe4ea;
+  color: #ee1d52;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+}
+
+.portalBadgeClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #fff;
+  color: #ee1d52;
+  font-size: 12px;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgba(238, 29, 82, 0.18);
 }
 
 .portalRight {
@@ -125,10 +167,7 @@
 
 @media (min-width: 1024px) {
   .portalCards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    padding-inline: 24px;
+    padding-inline: 0;
   }
 }
 

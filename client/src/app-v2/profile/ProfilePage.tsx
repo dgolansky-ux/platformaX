@@ -18,6 +18,7 @@ import { ProfileTopBar } from "./sections/ProfileTopBar";
 import { ProfileRuntimeBanner } from "./sections/ProfileRuntimeBanner";
 import type { MediaPurpose } from "../../features-v2/media";
 import { FloatingNav } from "../navigation/FloatingNav";
+import { DesktopSidebar } from "../navigation/DesktopSidebar";
 import { useProfileData } from "./data/useProfileData";
 import layout from "./styles/profile-layout.module.css";
 import header from "./styles/profile-header.module.css";
@@ -91,8 +92,20 @@ export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {})
   const editEnabled = ownerUserId !== null && profile.isOwner;
   const mediaUserId = ownerUserId ?? "me";
 
+  const sidebarName = profile.displayName || "Profil";
+  const sidebarHandle = profile.displayName
+    ? profile.displayName.toLowerCase().replace(/\s+/g, "")
+    : "user";
+
   return (
     <div className={layout.page}>
+      <DesktopSidebar
+        active="profil"
+        displayName={sidebarName}
+        handle={sidebarHandle}
+        avatarInitial={profile.avatarInitial}
+        online
+      />
       <div className={layout.shell}>
         <ProfileTopBar
           editEnabled={editEnabled}

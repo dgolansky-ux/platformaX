@@ -228,6 +228,13 @@
   padding: 10px 28px;
 }
 
+@media (min-width: 1024px) {
+  .nav,
+  .spacer {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nav,
   .navIconWrap,

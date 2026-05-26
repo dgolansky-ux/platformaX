@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
 import type { ContactCategory, ProfileContact } from "../types";
-import styles from "../styles/profile-sections.module.css";
+import sec from "../styles/profile-sections.module.css";
+import styles from "../styles/profile-contacts.module.css";
 
 type ProfileContactsProps = {
   contacts: ReadonlyArray<ProfileContact>;
@@ -33,13 +34,21 @@ export function ProfileContacts({ contacts }: ProfileContactsProps) {
     active === "all" ? contacts : contacts.filter((c) => c.category === active);
 
   return (
-    <section className={styles.section} aria-label="Kontakty">
+    <section className={sec.section} aria-label="Kontakty">
       <div className={styles.contactsHeader}>
         <span className={styles.contactsIcon} aria-hidden="true">👥</span>
         <h2 className={styles.contactsTitle}>Kontakty</h2>
-        <span className={styles.contactsSearch} aria-hidden="true">
-          🔍 Szukaj...
-        </span>
+        <label className={styles.contactsSearch}>
+          <span aria-hidden="true" className={styles.contactsSearchIcon}>🔍</span>
+          <input
+            type="search"
+            className={styles.contactsSearchInput}
+            placeholder="Szukaj..."
+            aria-label="Szukaj kontaktów"
+            disabled
+            title="Wyszukiwarka kontaktów dostępna po podłączeniu domeny social"
+          />
+        </label>
       </div>
 
       <div className={styles.contactsTabs} role="tablist" aria-label="Kategorie kontaktów">
@@ -93,7 +102,7 @@ export function ProfileContacts({ contacts }: ProfileContactsProps) {
           ))}
         </div>
       ) : (
-        <p className={styles.emptyInline}>Brak kontaktów w tej kategorii</p>
+        <p className={sec.emptyInline}>Brak kontaktów w tej kategorii</p>
       )}
     </section>
   );
