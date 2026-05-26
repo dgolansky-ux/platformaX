@@ -235,3 +235,13 @@
     transition: none !important;
   }
 }
+
+/* Mobile-only navigation. Desktop layouts get their own (future) chrome and
+   don't need the floating island, so hide both the bar and its safe-area
+   spacer above the 1024px breakpoint per Dawid's design pass. */
+@media (min-width: 1024px) {
+  .nav,
+  .spacer {
+    display: none !important;
+  }
+}

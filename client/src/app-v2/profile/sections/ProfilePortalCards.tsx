@@ -9,8 +9,10 @@ type PortalCard = {
   accent: string;
   bg: string;
   delayMs: number;
-  /** Small "0 odkryj!" badge — count is 0 until the underlying domain is wired. */
+  /** Discovery badge — small grey "N odkryj!" by default. */
   discoverCount: number;
+  /** Optional pink "N new" badge with a close X (overrides the discovery badge). */
+  newCount?: number;
 };
 
 // Per-card accent colors mirror legacy ProfileTopRow (Społeczności = blue,
@@ -45,6 +47,7 @@ const CARDS: ReadonlyArray<PortalCard> = [
     bg: "#FFFFFF",
     delayMs: 160,
     discoverCount: 0,
+    newCount: 20,
   },
 ];
 
@@ -52,10 +55,9 @@ const CARDS: ReadonlyArray<PortalCard> = [
  * Three portal cards in the fixed blueprint order. Target domains/routes don't
  * exist yet, so each card is a disabled-policy CTA (honest "wkrótce" title),
  * not a no-op and not a fake route. Visual parity with legacy ProfileTopRowCards:
- * "0 odkryj!" discovery badge next to the title and a soft-pulsing green "open"
- * indicator on the right — the dot stays vivid even while the card is disabled,
- * because the legacy design uses it to signal that the surface is live for
- * exploration once enabled.
+ * a discovery badge ("N odkryj!" — grey) next to the title, optionally upgraded
+ * to a pink "N new" pill with a dismiss X (Feed znajomych in the screenshot),
+ * plus a soft-pulsing green "open" indicator on the right.
  */
 export function ProfilePortalCards() {
   return (
@@ -82,12 +84,24 @@ export function ProfilePortalCards() {
             <span className={styles.portalBody}>
               <span className={styles.portalTitleRow}>
                 <span className={styles.portalTitle}>{card.title}</span>
-                <span
-                  className={styles.portalBadge}
-                  aria-label={`${card.discoverCount} nowych do odkrycia`}
-                >
-                  {card.discoverCount} odkryj!
-                </span>
+                {card.newCount && card.newCount > 0 ? (
+                  <span
+                    className={styles.portalBadgeNew}
+                    aria-label={`${card.newCount} nowych postów`}
+                  >
+                    {card.newCount} new
+                    <span className={styles.portalBadgeClose} aria-hidden="true">
+                      ×
+                    </span>
+                  </span>
+                ) : (
+                  <span
+                    className={styles.portalBadge}
+                    aria-label={`${card.discoverCount} nowych do odkrycia`}
+                  >
+                    {card.discoverCount} odkryj!
+                  </span>
+                )}
               </span>
               <span className={styles.portalSubtitle}>{card.subtitle}</span>
             </span>
