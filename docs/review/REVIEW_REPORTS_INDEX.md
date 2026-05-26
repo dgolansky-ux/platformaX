@@ -1,6 +1,6 @@
 # Review Reports Index
 
-Last updated: 2026-05-25 (Step 32)
+Last updated: 2026-05-26 (Step 33)
 
 ## Allowed statuses
 
@@ -44,3 +44,4 @@ Last updated: 2026-05-25 (Step 32)
 | step-27-identity-profile-persistence | Identity profile persistence runtime + onboarding wiring | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_27_REPORT.md |
 | step-30-architecture-quality-scalability-guards | Architecture quality + scalability guards hardening | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_30_REVIEW.md |
 | step-32-media-avatar-banner-runtime | Media avatar/banner upload-intent runtime (in-memory, env-required storage) | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_32_REPORT.md |
+| step-33-profile-runtime-wiring | Profile runtime wiring — identity + media refs composition for `/profile` | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_33_REPORT.md |

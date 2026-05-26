@@ -155,3 +155,37 @@
     filter: brightness(0.97);
   }
 }
+
+/* Runtime status banner — surfaces empty/error states from useProfileData
+   above the main shell. Honest disabled-policy copy, real CTAs only. */
+.runtimeBanner {
+  margin: 12px 16px 0;
+  padding: 12px 14px;
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.runtimeBannerCta {
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.runtimeBannerCta:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import type {
   PersonalProfileView,
   ProfilePreviewKind,
@@ -14,15 +13,20 @@ import { ProfileQuickFeed } from "./sections/ProfileQuickFeed";
 import { ProfilePersonalSections } from "./sections/ProfilePersonalSections";
 import { ProfileProfessionalLayer } from "./sections/ProfileProfessionalLayer";
 import { ProfileMediaSheet } from "./sections/ProfileMediaSheet";
+import { ProfileBioSheet } from "./sections/ProfileBioSheet";
+import { ProfileTopBar } from "./sections/ProfileTopBar";
+import { ProfileRuntimeBanner } from "./sections/ProfileRuntimeBanner";
 import type { MediaPurpose } from "../../features-v2/media";
 import { FloatingNav } from "../navigation/FloatingNav";
+import { useProfileData } from "./data/useProfileData";
 import layout from "./styles/profile-layout.module.css";
 import header from "./styles/profile-header.module.css";
 
-/** Placeholder owner id until profile session wiring (step-33). */
-const LOCAL_OWNER_ID = "me";
-
 type ProfilePageProps = {
+  /**
+   * Override the rendered profile. Tests pass an explicit fixture; default to
+   * the runtime composition (auth + identity + media) defined below.
+   */
   profile?: PersonalProfileView;
 };
 
@@ -58,39 +62,43 @@ function shareProfile(): void {
   }
 }
 
-export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps = {}) {
+export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {}) {
+  const { state, reload } = useProfileData();
   const [mode, setMode] = useState<ProfileViewMode>("personal");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewKind, setPreviewKind] = useState<ProfilePreviewKind>("none");
   const [mediaTarget, setMediaTarget] = useState<MediaPurpose | null>(null);
+  const [bioSheetOpen, setBioSheetOpen] = useState(false);
+  const [localBioOverride, setLocalBioOverride] = useState<
+    string | null | undefined
+  >(undefined);
 
   function handleSelectPreview(kind: ProfilePreviewKind) {
     setPreviewKind(kind);
     setPreviewOpen(false);
   }
 
+  const runtimeProfile =
+    state.kind === "ready" ? state.view : ownerPersonalProfile;
+  const baseProfile = explicitProfile ?? runtimeProfile;
+  const profile: PersonalProfileView =
+    localBioOverride !== undefined
+      ? { ...baseProfile, bio: localBioOverride }
+      : baseProfile;
+
   const activePreview = previewKind !== "none" ? PREVIEW_COPY[previewKind] : null;
+  const ownerUserId = state.kind === "ready" ? state.userId : null;
+  const editEnabled = ownerUserId !== null && profile.isOwner;
+  const mediaUserId = ownerUserId ?? "me";
 
   return (
     <div className={layout.page}>
       <div className={layout.shell}>
-        <div className={layout.topbar}>
-          <span className={layout.topbarBrand}>PlatformaX</span>
-          <div className={layout.topbarActions}>
-            <Link to="/" className={layout.iconButton} aria-label="Strona główna">
-              ←
-            </Link>
-            <button
-              type="button"
-              className={layout.iconButton}
-              aria-label="Edytuj profil — wkrótce"
-              title="Edycja profilu będzie dostępna po podłączeniu backendu identity"
-              disabled
-            >
-              ✎
-            </button>
-          </div>
-        </div>
+        <ProfileTopBar
+          editEnabled={editEnabled}
+          onEditBio={() => setBioSheetOpen(true)}
+        />
+        <ProfileRuntimeBanner state={state} onReload={reload} />
 
         <main>
           <ProfileHeader
@@ -148,8 +156,20 @@ export function ProfilePage({ profile = ownerPersonalProfile }: ProfilePageProps
       {mediaTarget ? (
         <ProfileMediaSheet
           purpose={mediaTarget}
-          userId={LOCAL_OWNER_ID}
+          userId={mediaUserId}
           onClose={() => setMediaTarget(null)}
+        />
+      ) : null}
+
+      {bioSheetOpen && ownerUserId ? (
+        <ProfileBioSheet
+          userId={ownerUserId}
+          currentBio={profile.bio}
+          onClose={() => setBioSheetOpen(false)}
+          onSaved={(bio) => {
+            setLocalBioOverride(bio);
+            reload();
+          }}
         />
       ) : null}
     </div>

@@ -37,4 +37,6 @@ export type {
   CompleteOnboardingResult,
   GetMyProfileResult,
   GetPublicProfileResult,
+  UpdateMyProfileResult,
+  UpdatePrivateProfileInput,
 } from "./profile";

@@ -9,7 +9,7 @@
  *
  * When the Supabase repository (or any other transport) is wired, replace the
  * `createInMemoryIdentityProfileRepository` call below with the real adapter.
- * The frontend contract does not need to change.
+ * The frontend contract does not change.
  */
 import {
   createIdentityService,
@@ -19,6 +19,7 @@ import {
 import type {
   CompleteOnboardingInput,
   OnboardingProfileAdapter,
+  UpdatePrivateProfileInput,
 } from "./types";
 
 export type ProfileAdapterDeps = {
@@ -43,12 +44,17 @@ export function createProfileAdapter(
     ) {
       return deps.service.getPublicProfile(viewerId, profileUserId);
     },
+    async updateMyProfile(userId: string, input: UpdatePrivateProfileInput) {
+      return deps.service.updatePrivateProfile(userId, input);
+    },
   };
 }
 
 /**
  * Default in-memory adapter shared across the app. Volatile — wipes on reload.
  * This is the explicit boundary the task requires while no transport exists.
+ * Onboarding and profile-view code share this default so a completed onboarding
+ * round-trips into `/profile` within the same session.
  */
 const defaultRepository = createInMemoryIdentityProfileRepository();
 const defaultService = createIdentityService({ repository: defaultRepository });

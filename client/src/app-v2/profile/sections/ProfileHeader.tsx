@@ -43,6 +43,7 @@ export function ProfileHeader({
         <div className={styles.avatarCol}>
           <ProfileAvatar
             initial={profile.avatarInitial}
+            avatarUrl={profile.avatarUrl}
             isOwner={profile.isOwner}
             previewOpen={previewOpen}
             onTogglePreview={onTogglePreview}
@@ -101,6 +102,7 @@ export function ProfileHeader({
         onShare={onShare}
         isOwner={profile.isOwner}
         onEditImage={onEditBanner}
+        bannerUrl={profile.bannerUrl}
       />
     </header>
   );

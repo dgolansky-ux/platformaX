@@ -11,5 +11,7 @@ export type {
   CompleteOnboardingResult,
   GetPublicProfileResult,
   GetMyProfileResult,
+  UpdateMyProfileResult,
   CompleteOnboardingInput,
+  UpdatePrivateProfileInput,
 } from "./types";

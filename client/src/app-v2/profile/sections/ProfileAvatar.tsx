@@ -3,6 +3,8 @@ import media from "../styles/profile-media.module.css";
 
 type ProfileAvatarProps = {
   initial: string;
+  /** Optional avatar URL resolved through the media boundary. Falls back to the initial. */
+  avatarUrl?: string | null;
   isOwner: boolean;
   previewOpen: boolean;
   onTogglePreview: () => void;
@@ -12,10 +14,12 @@ type ProfileAvatarProps = {
 /**
  * Mobile avatar. Mirrors legacy ProfileHeaderAvatar 1:1:
  * 144x144 white outer padding 3px → gradient ring 3px → inner #EFF6FF surface
- * with the user's initial. Eye button below toggles preview menu.
+ * with the user's initial (or media URL when present). Eye button below toggles
+ * preview menu.
  */
 export function ProfileAvatar({
   initial,
+  avatarUrl = null,
   isOwner,
   previewOpen,
   onTogglePreview,
@@ -25,7 +29,18 @@ export function ProfileAvatar({
     <div className={styles.avatarWrap}>
       <div className={styles.avatar}>
         <div className={styles.avatarRing} aria-hidden="true">
-          <div className={styles.avatarInner}>{initial}</div>
+          <div className={styles.avatarInner}>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt=""
+                className={media.avatarImage}
+                loading="lazy"
+              />
+            ) : (
+              initial
+            )}
+          </div>
         </div>
         {isOwner && onEdit ? (
           <button
