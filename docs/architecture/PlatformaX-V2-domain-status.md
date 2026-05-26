@@ -2,7 +2,13 @@
 
 Status: `ACTIVE`  
 Owner: Architecture / Status Truth  
-Purpose: single source of truth for domain maturity
+Purpose: single source of truth for domain maturity  
+Governance Index: `docs/governance/GOVERNANCE_INDEX.md`  
+Domain Status Registry: `docs/governance/DOMAIN_STATUS_REGISTRY.yml`
+
+> **Note:** `docs/governance/` is the central governance index and registry.
+> `DOMAIN_STATUS_REGISTRY.yml` is the machine-readable status source.
+> This file remains the authoritative source of status taxonomy and rules.
 
 ## 1. Purpose
 
@@ -62,20 +68,20 @@ This table must be updated by code changes. Empty or planned domains must not be
 | Domain / Area | Owner type | Initial status | Notes |
 |---|---|---|---|
 | `identity` | owner domain | `PARTIAL` | profile persistence runtime (in-memory adapter), public/private DTOs, policy, mapper, validation, events; Supabase repository pending (STEP_27) |
-| `social` | owner domain | `PLANNED` | relationship graph/contact access |
-| `communities-v2` | owner domain | `PLANNED` | communities, members, roles, settings |
-| `content-v2` | owner domain | `PLANNED` | posts, feeds, comments, reactions, topics |
-| `channels` | owner domain | `PLANNED` | channels, follows, discovery |
-| `chat` | owner domain | `PLANNED` | conversations/messages/broadcast inbox |
-| `events` | owner domain | `PLANNED` | events, registration, participants |
-| `modules` | owner domain | `PLANNED` | module definitions/enablement |
-| `public-hub` | composition domain | `PLANNED` | composition/read view, not source of truth |
+| `social` | owner domain | `SCAFFOLD_ONLY` | scaffold files exist (public-api, dto, contracts, policy, events), no service/repository runtime (red-team step-35) |
+| `communities-v2` | owner domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
+| `content-v2` | owner domain | `SCAFFOLD_ONLY` | extensive subdomain scaffold (posts, feeds, comments, reactions, topics, publisher, read-models), no service/repository runtime (red-team step-35) |
+| `channels` | owner domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
+| `chat` | owner domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
+| `events` | owner domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
+| `modules` | owner domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
+| `public-hub` | composition domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
 | `media` | owner domain | `PARTIAL` | avatar/banner upload-intent runtime (in-memory repo, env-required storage), DTOs/policy/mapper/validation, migration as code; live storage + presigned upload pending (STEP_32) |
-| `notifications` | operational domain | `PLANNED` | outbox/fanout/badges |
-| `search` | operational domain | `PLANNED` | projections/search contracts |
-| `moderation` | operational domain | `PLANNED` | report/block/mute moderation states |
-| `audit` | operational domain | `PLANNED` | append-only restricted audit |
-| `system` | operational domain | `PLANNED` | health/env/feature flags/gates |
+| `notifications` | operational domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
+| `search` | operational domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
+| `moderation` | operational domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
+| `audit` | operational domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
+| `system` | operational domain | `SCAFFOLD_ONLY` | scaffold files exist, no service/repository runtime (red-team step-35) |
 | frontend `app-v2` | composition layer | `PARTIAL` | routing/shell/composition; `/profile` composes identity + media public adapters into the personal view (step-33) |
 | frontend `features-v2` | UI features | `PARTIAL` | identity (auth + profile adapter, profile `updateMyProfile` wired in step-33) and media (avatar/banner upload-intent) adapters PARTIAL; other features PLANNED |
 | governance docs | governance | `ACTIVE` | Step 01 output after acceptance |

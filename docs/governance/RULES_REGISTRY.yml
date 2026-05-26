@@ -1,0 +1,1012 @@
+# PlatformaX V2 — Rules Registry
+# Machine-readable canonical registry of all governance rules.
+# Every rule has a unique stable ID.
+
+rules:
+
+  # === P0 GOVERNANCE HARD RULES ===
+
+  - id: PX-GOV-001
+    title: No fake DONE
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-domain-status.md
+    applies_to: [reports, commits, status-docs, agent-output]
+    forbidden_patterns:
+      - "DONE without evidence"
+      - "final without evidence"
+      - "complete without evidence"
+      - "clean without evidence"
+      - "production-ready without evidence"
+    required_patterns:
+      - "Status must match evidence"
+    enforced_by:
+      - scripts/check-fake-done.mjs
+      - scripts/check-status-truth-consistency.mjs
+    evidence_required: gate log or manual evidence
+    status: active
+    owner: governance
+    notes: null
+
+  - id: PX-GOV-002
+    title: No weakened guards
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [scripts, guards, CI, tests]
+    forbidden_patterns:
+      - "weakening guard regex/threshold/allowlist to pass a task"
+      - "deleting tests to get green"
+      - "replacing failures with console.warn"
+    required_patterns:
+      - "guard modification requires red-team test"
+    enforced_by:
+      - manual_gate
+      - scripts/check-script-safety.mjs
+    evidence_required: red-team test + step report justification
+    status: active
+    owner: governance
+    notes: null
+
+  - id: PX-GOV-003
+    title: No --no-verify
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+    applies_to: [git, CI, agent]
+    forbidden_patterns:
+      - "--no-verify"
+      - "git commit --no-verify"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-ai-agent-permissions.mjs
+      - manual_gate
+    evidence_required: null
+    status: active
+    owner: governance
+    notes: Allowed only with explicit owner approval documented in ADR
+
+  - id: PX-GOV-004
+    title: No direct push to main
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [git, CI, branch-protection]
+    forbidden_patterns:
+      - "git push origin main"
+      - "git push --force"
+    required_patterns:
+      - "all changes through branch and PR"
+    enforced_by:
+      - branch-protection
+      - scripts/check-ai-agent-permissions.mjs
+    evidence_required: null
+    status: active
+    owner: governance
+    notes: null
+
+  # === ARCHITECTURE RULES ===
+
+  - id: PX-ARCH-001
+    title: V2-first — no legacy runtime
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-legacy-containment.md
+    applies_to: [server, client, build]
+    forbidden_patterns:
+      - "runtime import from legacy folders"
+      - "active legacy routes"
+      - "legacy build chunks in active V2 graph"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-no-legacy-imports.mjs
+      - scripts/check-removed-product-areas.mjs
+      - scripts/check-build-artifacts.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-ARCH-002
+    title: Legacy is source material only
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-legacy-containment.md
+    applies_to: [server, client, docs]
+    forbidden_patterns:
+      - "importing legacy runtime"
+      - "executing legacy code"
+      - "bundling legacy"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-no-legacy-imports.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-ARCH-003
+    title: Cross-domain only via public-api/contracts/events/outbox
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    applies_to: [server/domains-v2]
+    forbidden_patterns:
+      - "import from ../other-domain/repository"
+      - "import from ../other-domain/service"
+      - "import from ../other-domain/policy"
+      - "import from ../other-domain/router"
+      - "import from ../other-domain/mapper"
+      - "import from ../other-domain/db/schema"
+      - "import from ../other-domain/cache-keys"
+    required_patterns:
+      - "cross-domain via public-api.ts or contracts.ts or events.ts"
+    enforced_by:
+      - scripts/audit-domain-boundaries.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-ARCH-004
+    title: No domain internals imports
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    applies_to: [server/domains-v2, client/src/features-v2]
+    forbidden_patterns:
+      - "deep import to another domain's internals"
+    required_patterns: []
+    enforced_by:
+      - scripts/audit-domain-boundaries.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-ARCH-005
+    title: Domain ownership is source of truth
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/DOMAIN_OWNERSHIP_MATRIX.md
+    applies_to: [server/domains-v2]
+    forbidden_patterns: []
+    required_patterns:
+      - "each domain owns its data exclusively"
+    enforced_by:
+      - scripts/check-domain-registry.mjs
+      - manual_gate
+    evidence_required: domain registry consistency
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-ARCH-006
+    title: app-v2 is composition layer only
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    applies_to: [client/src/app-v2]
+    forbidden_patterns:
+      - "domain logic in app-v2"
+      - "direct DB/Supabase coupling in app-v2"
+    required_patterns: []
+    enforced_by:
+      - scripts/audit-domain-boundaries.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-ARCH-007
+    title: features-v2 isolation — no cross-feature internals
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    applies_to: [client/src/features-v2]
+    forbidden_patterns:
+      - "importing internals of another feature domain"
+    required_patterns: []
+    enforced_by:
+      - scripts/audit-domain-boundaries.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  # === CODING STANDARDS RULES ===
+
+  - id: PX-CODE-001
+    title: No functions over 80 lines
+    severity: P1
+    category: code-quality
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [server, client, scripts]
+    forbidden_patterns:
+      - "function body exceeding 80 lines"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-file-complexity.mjs
+      - scripts/check-code-quality-structure.mjs
+      - scripts/check-file-size-limits.mjs
+    evidence_required: gate log
+    status: active
+    owner: engineering
+    notes: null
+
+  - id: PX-CODE-002
+    title: No components over 140 lines
+    severity: P1
+    category: code-quality
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [client]
+    forbidden_patterns:
+      - "React component exceeding 140 lines"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-file-complexity.mjs
+      - scripts/check-code-quality-structure.mjs
+      - scripts/check-file-size-limits.mjs
+    evidence_required: gate log
+    status: active
+    owner: engineering
+    notes: null
+
+  - id: PX-CODE-003
+    title: No as any without exception block
+    severity: P1
+    category: code-quality
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [server, client]
+    forbidden_patterns:
+      - "as any without PLATFORMAX_EXCEPTION block"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-code-quality-structure.mjs
+    evidence_required: gate log
+    status: active
+    owner: engineering
+    notes: null
+
+  - id: PX-CODE-004
+    title: No transition all in CSS
+    severity: P2
+    category: code-quality
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [client/CSS]
+    forbidden_patterns:
+      - "transition: all"
+    required_patterns:
+      - "specific transition properties"
+    enforced_by:
+      - scripts/check-frontend-performance-patterns.mjs
+    evidence_required: gate log
+    status: active
+    owner: engineering
+    notes: null
+
+  # === STATUS / EVIDENCE RULES ===
+
+  - id: PX-STATUS-001
+    title: Status truth required — status must match evidence
+    severity: P0
+    category: status-truth
+    source_docs:
+      - docs/architecture/PlatformaX-V2-domain-status.md
+    applies_to: [reports, status-docs, domain-status]
+    forbidden_patterns:
+      - "status upgrade without evidence"
+    required_patterns:
+      - "evidence before status upgrade"
+    enforced_by:
+      - scripts/check-domain-status.mjs
+      - scripts/check-fake-done.mjs
+      - scripts/check-status-truth-consistency.mjs
+    evidence_required: gate log or manual evidence
+    status: active
+    owner: governance
+    notes: null
+
+  - id: PX-STATUS-002
+    title: No VISUAL_DONE without screenshots/manual evidence
+    severity: P0
+    category: status-truth
+    source_docs:
+      - docs/architecture/PlatformaX-V2-domain-status.md
+    applies_to: [reports, status-docs]
+    forbidden_patterns:
+      - "VISUAL_DONE without screenshot or manual evidence"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-fake-done.mjs
+      - manual_gate
+    evidence_required: screenshot or manual visual evidence
+    status: active
+    owner: governance
+    notes: null
+
+  - id: PX-STATUS-003
+    title: No BACKEND_DONE without runtime evidence
+    severity: P0
+    category: status-truth
+    source_docs:
+      - docs/architecture/PlatformaX-V2-domain-status.md
+    applies_to: [reports, status-docs]
+    forbidden_patterns:
+      - "BACKEND_DONE without runtime/repository/service/router evidence"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-fake-done.mjs
+      - manual_gate
+    evidence_required: runtime + tests evidence
+    status: active
+    owner: governance
+    notes: null
+
+  # === SECURITY RULES ===
+
+  - id: PX-SEC-001
+    title: No public PII
+    severity: P0
+    category: security
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/security/SECRET_HANDLING_POLICY.md
+    applies_to: [server, client, DTOs, logs]
+    forbidden_patterns:
+      - "email in public DTO"
+      - "phone in public DTO"
+      - "dateOfBirth in public DTO"
+      - "PII in logs"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-public-dto-pii.mjs
+      - scripts/check-logging-pii-security.mjs
+    evidence_required: gate log
+    status: active
+    owner: security
+    notes: null
+
+  - id: PX-SEC-002
+    title: No secrets in repo/logs/ZIP
+    severity: P0
+    category: security
+    source_docs:
+      - docs/security/SECRET_HANDLING_POLICY.md
+    applies_to: [repo, logs, bundles, reports]
+    forbidden_patterns:
+      - "DATABASE_URL in code"
+      - "service_role key in code"
+      - "JWT secret in code"
+      - "real .env committed"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-env-safety.mjs
+      - scripts/check-secret-scan.mjs
+      - scripts/check-local-secret-scan.mjs
+      - scripts/check-diff-safety.mjs
+    evidence_required: gate log
+    status: active
+    owner: security
+    notes: null
+
+  # === MEDIA RULES ===
+
+  - id: PX-MEDIA-001
+    title: No base64/dataUrl/readAsDataURL runtime uploads
+    severity: P0
+    category: media
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    applies_to: [client, server]
+    forbidden_patterns:
+      - "base64 upload runtime"
+      - "readAsDataURL"
+      - "dataUrl upload"
+    required_patterns:
+      - "media uploads via media domain presigned upload"
+    enforced_by:
+      - scripts/check-media-base64.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  # === LIST/FEED RULES ===
+
+  - id: PX-LIST-001
+    title: Runtime lists/feed/search require limit/cursor/fixed cap
+    severity: P0
+    category: scalability
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    applies_to: [server, client runtime lists]
+    forbidden_patterns:
+      - "fetch-all runtime endpoints"
+      - "unbounded list without limit"
+    required_patterns:
+      - "limit + maxLimit + cursor or fixed cap"
+    enforced_by:
+      - scripts/check-pagination.mjs
+      - scripts/check-scalability-patterns.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  # === PROFILE RULES ===
+
+  - id: PX-PROFILE-001
+    title: Profile personal/professional visual parity 1:1
+    severity: P1
+    category: profile
+    source_docs:
+      - docs/profile/PROFILE_BLUEPRINT_MOBILE_FIRST.md
+    applies_to: [client/src/features-v2/identity, client/src/app-v2/profile]
+    forbidden_patterns:
+      - "removing profile sections without VISUAL_DELTA decision"
+    required_patterns: []
+    enforced_by:
+      - manual_gate
+    evidence_required: screenshots or manual visual comparison
+    status: active
+    owner: product
+    notes: null
+
+  - id: PX-PROFILE-002
+    title: Professional profile is layer of personal profile in identity
+    severity: P1
+    category: profile
+    source_docs:
+      - docs/profile/PROFILE_BLUEPRINT_MOBILE_FIRST.md
+      - docs/profile/PROFILE_RUNTIME_LOGIC_BLUEPRINT_FROM_LEGACY.md
+    applies_to: [server/domains-v2/identity, client/src/features-v2/identity]
+    forbidden_patterns:
+      - "professional-profile as separate domain"
+    required_patterns:
+      - "professional layer within identity domain"
+    enforced_by:
+      - manual_gate
+    evidence_required: domain structure review
+    status: active
+    owner: architecture
+    notes: null
+
+  # === INFRASTRUCTURE RULES ===
+
+  - id: PX-INFRA-001
+    title: No Railway without separate decision
+    severity: P0
+    category: infrastructure
+    source_docs:
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+      - docs/ai/RAILWAY_DEPLOY_POLICY.md
+    applies_to: [deployment, CI, agent]
+    forbidden_patterns:
+      - "railway deploy without approval"
+      - "railway up without approval"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-ai-agent-permissions.mjs
+      - manual_gate
+    evidence_required: ADR or owner approval
+    status: active
+    owner: infrastructure
+    notes: null
+
+  - id: PX-INFRA-002
+    title: No live db push/migration without separate decision
+    severity: P0
+    category: infrastructure
+    source_docs:
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+      - docs/ai/SUPABASE_ACCESS_POLICY.md
+    applies_to: [database, migration, agent]
+    forbidden_patterns:
+      - "supabase db push without approval"
+      - "live migration without approval"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-supabase-migrations-safety.mjs
+      - scripts/check-ai-agent-permissions.mjs
+      - manual_gate
+    evidence_required: ADR or owner approval
+    status: active
+    owner: infrastructure
+    notes: null
+
+  # === AI AGENT RULES ===
+
+  - id: PX-AI-001
+    title: Agent must read governance first
+    severity: P0
+    category: ai-agent
+    source_docs:
+      - docs/ai/AGENT_OPERATING_STANDARD.md
+    applies_to: [agent]
+    forbidden_patterns:
+      - "agent starts work without reading governance docs"
+    required_patterns:
+      - "baseline before work includes docs read"
+    enforced_by:
+      - manual_gate
+    evidence_required: baseline section in report
+    status: active
+    owner: governance
+    notes: null
+
+  - id: PX-AI-002
+    title: Agent must self-audit before DONE
+    severity: P0
+    category: ai-agent
+    source_docs:
+      - docs/ai/AGENT_SELF_AUDIT_PROTOCOL.md
+    applies_to: [agent, reports]
+    forbidden_patterns:
+      - "report without SELF-AUDIT section"
+    required_patterns:
+      - "12-field self-audit in every Step 17+ report"
+    enforced_by:
+      - scripts/check-self-audit-evidence.mjs
+    evidence_required: self-audit section in report
+    status: active
+    owner: governance
+    notes: null
+
+  - id: PX-AI-003
+    title: Agent must stop as BLOCKED when rules conflict
+    severity: P0
+    category: ai-agent
+    source_docs:
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+      - docs/ai/AI_ALLOWED_ACTIONS.md
+    applies_to: [agent]
+    forbidden_patterns:
+      - "agent forces completion when blocked"
+      - "agent simulates confidence without evidence"
+    required_patterns:
+      - "BLOCKED status with reason when rules conflict"
+    enforced_by:
+      - manual_gate
+    evidence_required: BLOCKED status in report
+    status: active
+    owner: governance
+    notes: null
+
+  # === ARCHITECTURE IMPORT GRAPH RULES ===
+
+  - id: PX-ARCH-008
+    title: No circular domain dependencies
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/DOMAIN_BOUNDARY_RULES.md
+    applies_to: [server/domains-v2]
+    forbidden_patterns:
+      - "domain A imports domain B which imports domain A"
+      - "circular dependency chain between domains"
+    required_patterns:
+      - "import graph is acyclic between domains"
+    enforced_by:
+      - scripts/check-architecture-import-graph.mjs
+    evidence_required: gate log showing zero cycles
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-ARCH-009
+    title: Import graph must match domain ownership
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/DOMAIN_OWNERSHIP_MATRIX.md
+      - docs/architecture/DOMAIN_BOUNDARY_RULES.md
+    applies_to: [server/domains-v2, client/src/features-v2, client/src/app-v2]
+    forbidden_patterns:
+      - "import from ../other-domain/repository"
+      - "import from ../other-domain/service"
+      - "import from ../other-domain/policy"
+      - "import from ../other-domain/router"
+      - "import from ../other-domain/mapper"
+      - "import from ../other-domain/internal/*"
+      - "import from ../other-domain/cache-keys"
+      - "shared-ui imports product domain"
+    required_patterns:
+      - "cross-domain only via public-api.ts, contracts.ts, events.ts"
+    enforced_by:
+      - scripts/check-architecture-import-graph.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  # === RUNTIME READINESS STATUS RULES ===
+
+  - id: PX-RUNTIME-001
+    title: PARTIAL requires real runtime evidence
+    severity: P0
+    category: status-truth
+    source_docs:
+      - docs/architecture/PlatformaX-V2-domain-status.md
+      - docs/governance/STATUS_TAXONOMY.md
+    applies_to: [server/domains-v2, reports, status-docs]
+    forbidden_patterns:
+      - "PARTIAL without service.ts or adapter runtime"
+      - "PARTIAL without tests"
+      - "PARTIAL without public-api.ts"
+    required_patterns:
+      - "PARTIAL has service.ts or adapter runtime"
+      - "PARTIAL has tests"
+      - "PARTIAL has public-api.ts"
+      - "PARTIAL has README or status evidence"
+    enforced_by:
+      - scripts/check-runtime-readiness-status.mjs
+    evidence_required: file-level evidence of runtime components
+    status: active
+    owner: governance
+    notes: null
+
+  - id: PX-RUNTIME-002
+    title: IMPLEMENTED requires full runtime evidence
+    severity: P0
+    category: status-truth
+    source_docs:
+      - docs/architecture/PlatformaX-V2-domain-status.md
+      - docs/governance/STATUS_TAXONOMY.md
+    applies_to: [server/domains-v2, reports, status-docs]
+    forbidden_patterns:
+      - "IMPLEMENTED without service.ts"
+      - "IMPLEMENTED without repository.ts"
+      - "IMPLEMENTED without policy.ts"
+      - "IMPLEMENTED without dto.ts"
+      - "IMPLEMENTED without public-api.ts"
+      - "IMPLEMENTED without tests"
+    required_patterns:
+      - "IMPLEMENTED has service, repository, policy, dto, mapper, public-api, tests, evidence"
+    enforced_by:
+      - scripts/check-runtime-readiness-status.mjs
+    evidence_required: full domain file inventory + test results
+    status: active
+    owner: governance
+    notes: null
+
+  # === DATABASE / MIGRATION SAFETY RULES ===
+
+  - id: PX-DB-001
+    title: No live db push without separate decision
+    severity: P0
+    category: infrastructure
+    source_docs:
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+      - docs/governance/AI_AGENT_PERMISSIONS_POLICY.md
+    applies_to: [database, migration, agent]
+    forbidden_patterns:
+      - "supabase db push without approval"
+      - "live migration without approval"
+    required_patterns:
+      - "migration as code only, no live push"
+    enforced_by:
+      - scripts/check-migration-safety.mjs
+      - manual_gate
+    evidence_required: no live db push declaration in review report
+    status: active
+    owner: infrastructure
+    notes: null
+
+  - id: PX-DB-002
+    title: Migrations require safety review
+    severity: P0
+    category: infrastructure
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/governance/AI_AGENT_PERMISSIONS_POLICY.md
+    applies_to: [supabase/migrations]
+    forbidden_patterns:
+      - "migration without review report"
+      - "migration without domain owner"
+      - "migration without rollback plan"
+    required_patterns:
+      - "migration has review report"
+      - "migration has domain owner"
+      - "migration has rollback plan or no-rollback reason"
+      - "migration has index/constraint review"
+    enforced_by:
+      - scripts/check-migration-safety.mjs
+    evidence_required: migration review section in step report
+    status: active
+    owner: infrastructure
+    notes: null
+
+  - id: PX-DB-003
+    title: No destructive migration without explicit BLOCKED/manual approval
+    severity: P0
+    category: infrastructure
+    source_docs:
+      - docs/governance/AI_AGENT_PERMISSIONS_POLICY.md
+    applies_to: [supabase/migrations]
+    forbidden_patterns:
+      - "DROP TABLE without manual approval"
+      - "DROP COLUMN without manual approval"
+      - "TRUNCATE without manual approval"
+      - "DELETE FROM without WHERE"
+      - "ALTER COLUMN TYPE without review"
+      - "disabling RLS without manual approval"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-migration-safety.mjs
+    evidence_required: explicit manual approval in review report
+    status: active
+    owner: infrastructure
+    notes: null
+
+  # === DEPENDENCY CHANGE POLICY RULES ===
+
+  - id: PX-DEPS-001
+    title: No dependency changes without dependency decision
+    severity: P1
+    category: governance
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/governance/AI_AGENT_PERMISSIONS_POLICY.md
+    applies_to: [package.json, pnpm-lock.yaml]
+    forbidden_patterns:
+      - "dependency addition without review justification"
+      - "dependency addition without bundle/security risk assessment"
+    required_patterns:
+      - "dependency decision with package, reason, alternative, risk, owner"
+    enforced_by:
+      - scripts/check-dependency-change-policy.mjs
+    evidence_required: dependency decision section in review report
+    status: active
+    owner: governance
+    notes: null
+
+  # === ADR REQUIRED RULES ===
+
+  - id: PX-ADR-001
+    title: Architecture-impacting changes require ADR or ADR update
+    severity: P1
+    category: governance
+    source_docs:
+      - docs/architecture/PlatformaX-V2-execution-map.md
+      - docs/governance/AI_AGENT_PERMISSIONS_POLICY.md
+    applies_to: [governance, architecture, domains, CI, migrations]
+    forbidden_patterns:
+      - "architecture-impacting change without ADR IMPACT DECISION"
+    required_patterns:
+      - "ADR IMPACT DECISION in review report for architecture changes"
+    enforced_by:
+      - scripts/check-adr-required.mjs
+    evidence_required: ADR IMPACT DECISION section in review report
+    status: active
+    owner: governance
+    notes: null
+
+  # === OBSERVABILITY / LOGGING SAFETY RULES ===
+
+  - id: PX-OBS-001
+    title: No unsafe console logging in runtime code
+    severity: P1
+    category: security
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/security/SECRET_HANDLING_POLICY.md
+    applies_to: [server, client]
+    forbidden_patterns:
+      - "console.log in runtime server/client code"
+      - "console.debug in runtime server/client code"
+    required_patterns:
+      - "structured logging or explicitly allowed console usage"
+    enforced_by:
+      - scripts/check-observability-logging.mjs
+    evidence_required: gate log
+    status: active
+    owner: engineering
+    notes: Tests and scripts are excluded from this check
+
+  - id: PX-OBS-002
+    title: No PII in logs/errors/audit output
+    severity: P0
+    category: security
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/security/SECRET_HANDLING_POLICY.md
+    applies_to: [server, client, logs, errors]
+    forbidden_patterns:
+      - "logging email"
+      - "logging phone"
+      - "logging dateOfBirth"
+      - "logging token"
+      - "logging session"
+      - "logging service_role"
+      - "logging DATABASE_URL"
+    required_patterns:
+      - "sanitized log output"
+    enforced_by:
+      - scripts/check-observability-logging.mjs
+      - scripts/check-logging-pii-security.mjs
+    evidence_required: gate log
+    status: active
+    owner: security
+    notes: null
+
+  # === EXCEPTION EXPIRY RULES ===
+
+  - id: PX-EXC-001
+    title: Exceptions require owner, reason, expiry, risk, evidence
+    severity: P1
+    category: governance
+    source_docs:
+      - docs/governance/EXCEPTIONS_REGISTER.md
+    applies_to: [governance, exceptions]
+    forbidden_patterns:
+      - "exception without owner"
+      - "exception without reason"
+      - "exception without expiry"
+      - "exception without risk"
+      - "exception without evidence"
+    required_patterns:
+      - "exception has id, rule_id, owner, reason, expiry, risk, evidence, status"
+    enforced_by:
+      - scripts/check-exception-expiry.mjs
+    evidence_required: valid exceptions register entries
+    status: active
+    owner: governance
+    notes: null
+
+  - id: PX-EXC-002
+    title: Expired exceptions fail gates
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/governance/EXCEPTIONS_REGISTER.md
+    applies_to: [governance, exceptions]
+    forbidden_patterns:
+      - "expired exception with status active"
+    required_patterns:
+      - "expired exceptions are revoked"
+    enforced_by:
+      - scripts/check-exception-expiry.mjs
+    evidence_required: gate log
+    status: active
+    owner: governance
+    notes: null
+
+  # === DTO PRIVACY CLASSIFICATION RULES ===
+
+  - id: PX-DTO-001
+    title: Public DTO fields require privacy classification
+    severity: P1
+    category: security
+    source_docs:
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [server/domains-v2, DTOs]
+    forbidden_patterns:
+      - "email in public DTO"
+      - "phone in public DTO"
+      - "dateOfBirth in public DTO"
+      - "privateContact in public DTO"
+      - "auth metadata in public DTO"
+      - "token in public DTO"
+      - "session in public DTO"
+    required_patterns:
+      - "DTO files have privacy classification comment or Public/Private/Admin type"
+    enforced_by:
+      - scripts/check-dto-privacy-classification.mjs
+    evidence_required: gate log
+    status: active
+    owner: security
+    notes: null
+
+  # === SCALABILITY HOT PATH RULES ===
+
+  - id: PX-SCALE-001
+    title: No sync fanout in request path
+    severity: P0
+    category: scalability
+    source_docs:
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [server/domains-v2, runtime]
+    forbidden_patterns:
+      - "sync fanout loop over recipients/users/members in request path"
+      - "for loop sending notifications synchronously"
+    required_patterns:
+      - "fanout via events/outbox/batch"
+    enforced_by:
+      - scripts/check-scalability-hot-paths.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-SCALE-002
+    title: No unbounded hot-path loops
+    severity: P0
+    category: scalability
+    source_docs:
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [server/domains-v2, runtime]
+    forbidden_patterns:
+      - "unbounded loop over users/members/recipients without cap/batch"
+    required_patterns:
+      - "hot-path loops have cap/batch/outbox pattern"
+    enforced_by:
+      - scripts/check-scalability-hot-paths.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-SCALE-003
+    title: No full scans for runtime list/feed/search
+    severity: P0
+    category: scalability
+    source_docs:
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [server/domains-v2, runtime]
+    forbidden_patterns:
+      - "runtime list/feed/search without limit"
+      - "runtime list/feed/search without maxLimit"
+      - "runtime list/feed/search without cursor or fixed cap"
+      - "runtime list/feed/search without stable order"
+    required_patterns:
+      - "runtime list/feed/search has limit + maxLimit + cursor/fixed cap + stable order"
+    enforced_by:
+      - scripts/check-scalability-hot-paths.mjs
+      - scripts/check-pagination.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  # === GOVERNANCE ANTI-DRIFT RULES ===
+
+  - id: PX-GOV-005
+    title: No governance drift — normative rules require Rule ID or link
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/governance/HIDDEN_RULES_INVENTORY.md
+      - docs/governance/README.md
+    applies_to: [docs, server/domains-v2/**/README.md, client/src/features-v2/**/README.md]
+    forbidden_patterns:
+      - "new global normative rule without Rule ID"
+      - "domain README creating global policy without link to RULES_REGISTRY.yml"
+      - "authority doc without canonical governance link"
+    required_patterns:
+      - "normative text has Rule ID or RULES_REGISTRY link or LOCAL_NOTE or HISTORICAL_REPORT_ONLY"
+    enforced_by:
+      - scripts/check-governance-drift.mjs
+    evidence_required: gate log showing zero drift violations
+    status: active
+    owner: governance
+    notes: null

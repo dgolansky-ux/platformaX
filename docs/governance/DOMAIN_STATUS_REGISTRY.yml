@@ -1,0 +1,292 @@
+# PlatformaX V2 — Domain Status Registry
+# Machine-readable source of truth for domain status.
+# Red-team audit (step-35): all conflicts resolved with file-level evidence.
+
+domains:
+
+  - name: identity
+    type: OWNER_DOMAIN
+    status: PARTIAL
+    conflict: false
+    evidence:
+      - server/domains-v2/identity/service.ts
+      - server/domains-v2/identity/repository.ts
+      - server/domains-v2/identity/mapper.ts
+      - server/domains-v2/identity/public-api.ts
+      - server/domains-v2/identity/contracts.ts
+      - server/domains-v2/identity/dto.ts
+      - server/domains-v2/identity/policy.ts
+      - server/domains-v2/identity/events.ts
+      - server/domains-v2/identity/internal/private-profile-dto.ts
+      - server/domains-v2/identity/internal/record.ts
+      - server/domains-v2/identity/internal/validation.ts
+      - server/domains-v2/identity/__tests__/service.test.ts
+      - server/domains-v2/identity/__tests__/policy.test.ts
+      - server/domains-v2/identity/__tests__/repository.test.ts
+      - server/domains-v2/identity/__tests__/domain-contract.test.ts
+      - server/domains-v2/identity/__tests__/public-mapper-no-pii.test.ts
+    notes: >
+      Real runtime: service, repository (in-memory adapter), mapper, policy,
+      validation, events, internal DTOs. 5 test files. Supabase repository pending.
+      Resolved: domain-registry.ts updated from SCAFFOLD_ONLY to PARTIAL.
+      domain-status.md already said PARTIAL. Evidence confirms PARTIAL.
+
+  - name: media
+    type: OWNER_DOMAIN
+    status: PARTIAL
+    conflict: false
+    evidence:
+      - server/domains-v2/media/service.ts
+      - server/domains-v2/media/repository.ts
+      - server/domains-v2/media/mapper.ts
+      - server/domains-v2/media/public-api.ts
+      - server/domains-v2/media/contracts.ts
+      - server/domains-v2/media/dto.ts
+      - server/domains-v2/media/policy.ts
+      - server/domains-v2/media/events.ts
+      - server/domains-v2/media/internal/record.ts
+      - server/domains-v2/media/internal/validation.ts
+      - server/domains-v2/media/__tests__/service.test.ts
+      - server/domains-v2/media/__tests__/policy.test.ts
+      - server/domains-v2/media/__tests__/domain-contract.test.ts
+      - server/domains-v2/media/__tests__/validation.test.ts
+      - server/domains-v2/media/__tests__/public-mapper-no-leak.test.ts
+    notes: >
+      Real runtime: service, repository (in-memory adapter), mapper, policy,
+      validation, events, internal DTOs. 5 test files. Live storage pending.
+      Both domain-registry.ts and domain-status.md agree on PARTIAL. No conflict.
+
+  - name: social
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/social/README.md
+      - server/domains-v2/social/public-api.ts
+      - server/domains-v2/social/contracts.ts
+      - server/domains-v2/social/dto.ts
+      - server/domains-v2/social/policy.ts
+      - server/domains-v2/social/events.ts
+      - server/domains-v2/social/index.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Actual folder has 7 scaffold files (README, public-api, contracts, dto, policy,
+      events, index) but NO service.ts/repository.ts. SCAFFOLD_ONLY is correct.
+      domain-status.md updated from PLANNED to SCAFFOLD_ONLY.
+
+  - name: content-v2
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/content-v2/README.md
+      - server/domains-v2/content-v2/public-api.ts
+      - server/domains-v2/content-v2/contracts.ts
+      - server/domains-v2/content-v2/dto.ts
+      - server/domains-v2/content-v2/policy.ts
+      - server/domains-v2/content-v2/events.ts
+      - server/domains-v2/content-v2/index.ts
+      - server/domains-v2/content-v2/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Folder has extensive subdomain structure (posts, feeds, comments, reactions,
+      topics, publisher, read-models) with DTOs and contracts, but NO service.ts
+      or repository.ts. SCAFFOLD_ONLY is correct. domain-status.md updated.
+
+  - name: communities-v2
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/communities-v2/README.md
+      - server/domains-v2/communities-v2/public-api.ts
+      - server/domains-v2/communities-v2/contracts.ts
+      - server/domains-v2/communities-v2/dto.ts
+      - server/domains-v2/communities-v2/policy.ts
+      - server/domains-v2/communities-v2/events.ts
+      - server/domains-v2/communities-v2/index.ts
+      - server/domains-v2/communities-v2/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.
+
+  - name: channels
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/channels/README.md
+      - server/domains-v2/channels/public-api.ts
+      - server/domains-v2/channels/contracts.ts
+      - server/domains-v2/channels/dto.ts
+      - server/domains-v2/channels/policy.ts
+      - server/domains-v2/channels/events.ts
+      - server/domains-v2/channels/index.ts
+      - server/domains-v2/channels/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.
+
+  - name: chat
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/chat/README.md
+      - server/domains-v2/chat/public-api.ts
+      - server/domains-v2/chat/contracts.ts
+      - server/domains-v2/chat/dto.ts
+      - server/domains-v2/chat/policy.ts
+      - server/domains-v2/chat/events.ts
+      - server/domains-v2/chat/index.ts
+      - server/domains-v2/chat/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.
+
+  - name: events
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/events/README.md
+      - server/domains-v2/events/public-api.ts
+      - server/domains-v2/events/contracts.ts
+      - server/domains-v2/events/dto.ts
+      - server/domains-v2/events/policy.ts
+      - server/domains-v2/events/events.ts
+      - server/domains-v2/events/index.ts
+      - server/domains-v2/events/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.
+
+  - name: modules
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/modules/README.md
+      - server/domains-v2/modules/public-api.ts
+      - server/domains-v2/modules/contracts.ts
+      - server/domains-v2/modules/dto.ts
+      - server/domains-v2/modules/policy.ts
+      - server/domains-v2/modules/events.ts
+      - server/domains-v2/modules/index.ts
+      - server/domains-v2/modules/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.
+
+  - name: public-hub
+    type: COMPOSITION_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/public-hub/README.md
+      - server/domains-v2/public-hub/public-api.ts
+      - server/domains-v2/public-hub/contracts.ts
+      - server/domains-v2/public-hub/dto.ts
+      - server/domains-v2/public-hub/policy.ts
+      - server/domains-v2/public-hub/events.ts
+      - server/domains-v2/public-hub/index.ts
+      - server/domains-v2/public-hub/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.
+
+  - name: notifications
+    type: OPERATIONAL_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/notifications/README.md
+      - server/domains-v2/notifications/public-api.ts
+      - server/domains-v2/notifications/contracts.ts
+      - server/domains-v2/notifications/dto.ts
+      - server/domains-v2/notifications/policy.ts
+      - server/domains-v2/notifications/events.ts
+      - server/domains-v2/notifications/index.ts
+      - server/domains-v2/notifications/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.
+
+  - name: search
+    type: OPERATIONAL_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/search/README.md
+      - server/domains-v2/search/public-api.ts
+      - server/domains-v2/search/contracts.ts
+      - server/domains-v2/search/dto.ts
+      - server/domains-v2/search/policy.ts
+      - server/domains-v2/search/events.ts
+      - server/domains-v2/search/index.ts
+      - server/domains-v2/search/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.
+
+  - name: moderation
+    type: OPERATIONAL_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/moderation/README.md
+      - server/domains-v2/moderation/public-api.ts
+      - server/domains-v2/moderation/contracts.ts
+      - server/domains-v2/moderation/dto.ts
+      - server/domains-v2/moderation/policy.ts
+      - server/domains-v2/moderation/events.ts
+      - server/domains-v2/moderation/index.ts
+      - server/domains-v2/moderation/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.
+
+  - name: audit
+    type: OPERATIONAL_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/audit/README.md
+      - server/domains-v2/audit/public-api.ts
+      - server/domains-v2/audit/contracts.ts
+      - server/domains-v2/audit/dto.ts
+      - server/domains-v2/audit/policy.ts
+      - server/domains-v2/audit/events.ts
+      - server/domains-v2/audit/index.ts
+      - server/domains-v2/audit/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.
+
+  - name: system
+    type: OPERATIONAL_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: false
+    evidence:
+      - server/domains-v2/system/README.md
+      - server/domains-v2/system/public-api.ts
+      - server/domains-v2/system/contracts.ts
+      - server/domains-v2/system/dto.ts
+      - server/domains-v2/system/policy.ts
+      - server/domains-v2/system/events.ts
+      - server/domains-v2/system/index.ts
+      - server/domains-v2/system/__tests__/domain-contract.test.ts
+    notes: >
+      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
+      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      domain-status.md updated.

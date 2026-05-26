@@ -2,7 +2,13 @@
 
 Status: `ACTIVE`  
 Owner: Governance  
-Applies to: any AI coding/review agent
+Applies to: any AI coding/review agent  
+Governance Index: `docs/governance/GOVERNANCE_INDEX.md`  
+Permissions Policy: `docs/governance/AI_AGENT_PERMISSIONS_POLICY.md`
+
+> **Note:** `docs/governance/` is the central governance index and registry.
+> This file remains the authoritative source of agent operating rules.
+> See `docs/governance/README.md` for how governance files relate.
 
 ## 1. Purpose
 
