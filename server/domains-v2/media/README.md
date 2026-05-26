@@ -5,7 +5,7 @@ Owner: @dgolansky-ux
 Type: OWNER_DOMAIN
 
 ## Purpose
-Owns media assets — upload intents, file validation and stable media references.
+Owns media assets â€” upload intents, file validation and stable media references.
 Identity (and other domains) store a `MediaAssetRef` and never the file payload.
 
 ## Runtime justification (status PARTIAL)
@@ -13,7 +13,7 @@ First runtime slice for avatar/banner uploads:
 - DTOs (`MediaAssetDTO`, `MediaRefDTO`, `UploadIntentDTO`), contracts, policy, mapper.
 - `service.ts` use-cases: `createAvatarUploadIntent`, `createBannerUploadIntent`,
   `confirmProfileMediaUpload`, `getPublicMediaUrl`.
-- `repository.ts`: in-memory `MediaRepository` (metadata only — never bytes) and an
+- `repository.ts`: in-memory `MediaRepository` (metadata only â€” never bytes) and an
   env-required `MediaStoragePort`.
 - SQL schema mirror: `supabase/migrations/0002_media_assets.sql` (NOT applied; no live db push).
 
@@ -27,7 +27,7 @@ image processing/CDN, feed/chat media.
 - Public media refs and URL resolution
 
 ## Does NOT own
-- Inline-encoded payloads (no base64/data-url — see ADR-006)
+- Inline-encoded payloads (no base64/data-url â€” see ADR-006)
 - Profiles (identity owns those; identity stores only a `MediaAssetRef`)
 
 ## Public surface
@@ -39,9 +39,9 @@ image processing/CDN, feed/chat media.
 
 ## Canonical governance
 
-- [Rules Registry](../../docs/governance/RULES_REGISTRY.yml)
-- [Governance Index](../../docs/governance/GOVERNANCE_INDEX.md)
-- [Domain Status Registry](../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
-- [Status Taxonomy](../../docs/governance/STATUS_TAXONOMY.md)
+- [Rules Registry](../../../docs/governance/RULES_REGISTRY.yml)
+- [Governance Index](../../../docs/governance/GOVERNANCE_INDEX.md)
+- [Domain Status Registry](../../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
+- [Status Taxonomy](../../../docs/governance/STATUS_TAXONOMY.md)
 
 Local exceptions: none

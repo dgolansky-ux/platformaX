@@ -49,6 +49,7 @@ const GUARDS = [
   "check-dto-privacy-classification.mjs",
   "check-scalability-hot-paths.mjs",
   "check-governance-drift.mjs",
+  "check-ai-pr-merge-policy.mjs",
 ];
 
 let failed = 0;

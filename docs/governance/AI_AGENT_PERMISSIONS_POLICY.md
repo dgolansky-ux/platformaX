@@ -53,6 +53,25 @@ Defines what AI agents (Opus, Cursor, Claude) may and must not do in this reposi
 - Moving reference material into active workspace
 - `pnpm add` new dependencies (requires review justification)
 
+## Controlled AI PR Merge (PX-GOV-006)
+
+AI agents may execute `gh pr merge` **only** when all of the following are true:
+
+1. The repo owner explicitly instructs merge in the current task command.
+2. The PR targets `main` as base branch.
+3. The PR head branch is not `main` (no direct-push simulation).
+4. All GitHub CI / status checks are green.
+5. No merge conflicts exist.
+6. The PR is not a draft.
+7. The local working tree is clean.
+8. The merge command does not use `--admin` or any bypass flag.
+9. The merge uses `--merge` strategy (no `--squash` or `--rebase` without owner instruction).
+10. After merge, the agent must verify the merge succeeded via `gh pr view`.
+
+If any condition is not met, the agent must report `BLOCKED` with the specific failing condition.
+
+Autonomous AI merge (without explicit owner instruction) is **forbidden**.
+
 ## Forbidden (hard block)
 
 - `--no-verify` (unless explicit owner approval + ADR)
@@ -60,7 +79,8 @@ Defines what AI agents (Opus, Cursor, Claude) may and must not do in this reposi
 - `git push origin main` (direct push to main)
 - `git reset --hard` on shared branches
 - `git merge main` into feature branch without review
-- `gh pr merge` without CI + approval
+- `gh pr merge --admin` (bypass branch protection)
+- `gh pr merge` without explicit owner instruction in current task
 - `rm -rf` on project directories
 - `supabase db push` to production/staging
 - `railway` deployment commands

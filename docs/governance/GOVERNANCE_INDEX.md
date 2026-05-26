@@ -143,6 +143,12 @@ Central map of all governance rules, organized by category. Every rule has a sta
 | PX-SCALE-002 | No unbounded hot-path loops | PlatformaX-V2-coding-standards.md §22 |
 | PX-SCALE-003 | No full scans for runtime list/feed/search | PlatformaX-V2-coding-standards.md §22 |
 
+## AI PR Merge Policy
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-GOV-006 | Controlled AI PR merge — requires explicit owner instruction and green gates | AI_AGENT_PERMISSIONS_POLICY.md |
+
 ## Governance Anti-Drift Rules
 
 | ID | Rule | Source |

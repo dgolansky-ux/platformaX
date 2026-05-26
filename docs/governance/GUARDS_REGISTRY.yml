@@ -431,3 +431,26 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+
+  # === AI PR MERGE POLICY GUARD ===
+
+  - id: GUARD-048
+    command: node scripts/check-ai-pr-merge-policy.mjs
+    file: scripts/check-ai-pr-merge-policy.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-006]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  # === PR MERGE ELIGIBILITY (manual gate — run per-PR, not in CI) ===
+
+  - id: GUARD-049
+    command: node scripts/check-pr-merge-eligibility.mjs <PR_NUMBER>
+    file: scripts/check-pr-merge-eligibility.mjs
+    blocks: merge
+    rules_enforced: [PX-GOV-006]
+    runs_in: [manual_gate]
+    required: false
+    status: active
+    notes: Run manually before merge — requires gh CLI auth and PR number

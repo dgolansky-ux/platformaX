@@ -55,10 +55,11 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-SCALE-002 | No unbounded hot-path loops | coding-standards §22 | check-scalability-hot-paths | NO | — |
 | PX-SCALE-003 | No full scans for runtime lists | coding-standards §22 | check-scalability-hot-paths, check-pagination | NO | — |
 | PX-GOV-005 | No governance drift | HIDDEN_RULES_INVENTORY | check-governance-drift | NO | — |
+| PX-GOV-006 | Controlled AI PR merge | AI_AGENT_PERMISSIONS_POLICY | check-ai-pr-merge-policy, manual_gate | NO | — |
 
 ## Summary
 
-- **Total rules:** 43
+- **Total rules:** 44
 - **Fully automated:** 35
 - **Automated + manual gate:** 4
 - **Manual gate only:** 4

@@ -92,6 +92,34 @@ rules:
     owner: governance
     notes: null
 
+  - id: PX-GOV-006
+    title: Controlled AI PR merge
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/governance/AI_AGENT_PERMISSIONS_POLICY.md
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+    applies_to: [git, CI, agent, PR]
+    forbidden_patterns:
+      - "autonomous AI merge without owner instruction"
+      - "gh pr merge --admin"
+      - "merge without green CI"
+      - "merge draft PR"
+    required_patterns:
+      - "explicit owner instruction in current task"
+      - "all CI checks green"
+      - "no merge conflicts"
+      - "PR base is main"
+      - "working tree clean"
+      - "post-merge verification"
+    enforced_by:
+      - scripts/check-ai-pr-merge-policy.mjs
+      - manual_gate
+    evidence_required: owner instruction + CI logs + post-merge verification
+    status: active
+    owner: governance
+    notes: AI may merge only with explicit owner instruction in the current task command
+
   # === ARCHITECTURE RULES ===
 
   - id: PX-ARCH-001

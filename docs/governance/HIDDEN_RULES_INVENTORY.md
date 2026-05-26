@@ -13,8 +13,8 @@ This document inventories all normative phrases found outside `docs/governance/R
 | Location | Files scanned |
 |---|---|
 | `server/domains-v2/**/README.md` | 17 |
-| `client/src/features-v2/**/README.md` | 0 (none exist yet) |
-| `client/src/app-v2/README.md` | 0 (none exist yet) |
+| `client/src/features-v2/**/README.md` | 16 |
+| `client/src/app-v2/README.md` | 1 |
 | `docs/architecture/` | 14 |
 | `docs/architecture/adr/` | 10 |
 | `docs/ai/` | 6 |

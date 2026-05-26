@@ -5,7 +5,7 @@ Owner: @dgolansky-ux
 Type: OPERATIONAL_DOMAIN
 
 ## Purpose
-Owns system-level concerns — health, config, feature flags, and maintenance mode.
+Owns system-level concerns â€” health, config, feature flags, and maintenance mode.
 
 ## Owns
 - Health
@@ -26,9 +26,9 @@ Owns system-level concerns — health, config, feature flags, and maintenance mo
 
 ## Canonical governance
 
-- [Rules Registry](../../docs/governance/RULES_REGISTRY.yml)
-- [Governance Index](../../docs/governance/GOVERNANCE_INDEX.md)
-- [Domain Status Registry](../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
-- [Status Taxonomy](../../docs/governance/STATUS_TAXONOMY.md)
+- [Rules Registry](../../../docs/governance/RULES_REGISTRY.yml)
+- [Governance Index](../../../docs/governance/GOVERNANCE_INDEX.md)
+- [Domain Status Registry](../../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
+- [Status Taxonomy](../../../docs/governance/STATUS_TAXONOMY.md)
 
 Local exceptions: none
