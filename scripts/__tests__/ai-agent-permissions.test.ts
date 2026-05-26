@@ -16,6 +16,14 @@ const DANGEROUS_PATTERNS = [
   "supabase db push",
 ];
 
+const WILDCARD_DANGEROUS_PREFIXES = [
+  { wildcard: "git push", covers: ["git push --force", "git push origin main"] },
+  { wildcard: "git commit", covers: ["git commit --no-verify"] },
+  { wildcard: "git reset", covers: ["git reset --hard"] },
+  { wildcard: "git merge", covers: ["git merge main"] },
+  { wildcard: "gh pr", covers: ["gh pr merge"] },
+];
+
 function getAllowList(content: string): string[] {
   try {
     const parsed = JSON.parse(content);
@@ -23,6 +31,12 @@ function getAllowList(content: string): string[] {
   } catch {
     return [];
   }
+}
+
+function wildcardCovers(normalized: string, prefix: string): boolean {
+  if (!normalized.includes("*")) return false;
+  const base = normalized.replace(/\s*\*+\s*$/, "").trim();
+  return prefix.startsWith(base);
 }
 
 describe("ai-agent-permissions guard logic", () => {
@@ -55,6 +69,24 @@ describe("ai-agent-permissions guard logic", () => {
     }
   });
 
+  it("PASS: no wildcard permissions that encompass dangerous commands", () => {
+    if (!settingsExist) return;
+
+    const content = readFileSync(SETTINGS_PATH, "utf-8");
+    const allowList = getAllowList(content);
+
+    for (const entry of allowList) {
+      const normalized = entry.replace(/^Bash\(/, "").replace(/\)$/, "");
+      for (const { wildcard, covers } of WILDCARD_DANGEROUS_PREFIXES) {
+        if (wildcardCovers(normalized, wildcard)) {
+          for (const dangerous of covers) {
+            expect(false).toBe(true);
+          }
+        }
+      }
+    }
+  });
+
   it("FAIL: detects --force in allow list", () => {
     const fakeAllowList = [
       "Bash(git push --force)",
@@ -73,5 +105,10 @@ describe("ai-agent-permissions guard logic", () => {
 
     const hasNoVerify = fakeAllowList.some((entry) => entry.includes("--no-verify"));
     expect(hasNoVerify).toBe(true);
+  });
+
+  it("FAIL: detects wildcard 'git push *' as covering --force", () => {
+    const normalized = "git push *".replace(/\s*\*+\s*$/, "").trim();
+    expect(wildcardCovers("git push *", "git push")).toBe(true);
   });
 });

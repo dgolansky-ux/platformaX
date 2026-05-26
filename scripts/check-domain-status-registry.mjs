@@ -87,6 +87,14 @@ for (const tsDomain of tsDomains) {
   }
 }
 
+const tsStatusMap = {};
+for (const line of tsContent.split("\n")) {
+  const statusMatch = line.match(/name:\s*"([^"]+)".*status:\s*"([^"]+)"/);
+  if (statusMatch) {
+    tsStatusMap[statusMatch[1]] = statusMatch[2];
+  }
+}
+
 for (const domain of domains) {
   if (domain.status && !ALLOWED_STATUSES.includes(domain.status)) {
     console.error(`DOMAIN_STATUS_REGISTRY_VIOLATION: domain "${domain.name}" has invalid status "${domain.status}" (not in allowed taxonomy)`);
@@ -94,10 +102,16 @@ for (const domain of domains) {
   }
 
   if (domain.conflict === true) {
-    if (!domain.requires_manual_resolution) {
-      console.error(`DOMAIN_STATUS_REGISTRY_VIOLATION: domain "${domain.name}" has conflict: true but missing requires_manual_resolution`);
+    if (!domain.requires_manual_resolution || domain.requires_manual_resolution.trim().length < 10) {
+      console.error(`DOMAIN_STATUS_REGISTRY_VIOLATION: domain "${domain.name}" has conflict: true but missing or inadequate requires_manual_resolution reason`);
       violations++;
     }
+  }
+
+  const tsStatus = tsStatusMap[domain.name];
+  if (tsStatus && domain.status && tsStatus !== domain.status && domain.conflict !== true) {
+    console.error(`DOMAIN_STATUS_REGISTRY_VIOLATION: domain "${domain.name}" status mismatch — registry says "${domain.status}", domain-registry.ts says "${tsStatus}" but conflict is not flagged`);
+    violations++;
   }
 }
 

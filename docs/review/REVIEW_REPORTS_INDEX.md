@@ -47,3 +47,4 @@ Last updated: 2026-05-26 (Step 29)
 | step-33-profile-runtime-wiring | Profile runtime wiring — identity + media refs composition for `/profile` | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_33_REPORT.md |
 | step-29-profile-full-parity-quality-fixes | Profile parity & code quality hygiene — status truth, no-op CTA, CheckEmail copy | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_29_REPORT.md + PROFILE_PARITY_AUDIT.md |
 | step-34-governance-foundation-pack | Governance foundation: canonical rules registry, guard coverage, status taxonomy | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_34_REPORT.md |
+| step-35-governance-red-team | Red-team audit: permissions hardening, status conflict resolution, guard hardening | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_35_REPORT.md |

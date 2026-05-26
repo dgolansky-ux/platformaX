@@ -63,22 +63,18 @@ for (const entry of allowList) {
 
   for (const { pattern, prefix, label } of DANGEROUS_PATTERNS) {
     if (pattern.test(normalized)) {
-      console.warn(`AI_AGENT_PERMISSIONS_WARNING: explicitly dangerous permission "${label}" in entry: ${entry}`);
-      warnings++;
+      console.error(`AI_AGENT_PERMISSIONS_VIOLATION: explicitly dangerous permission "${label}" in entry: ${entry}`);
+      violations++;
     } else if (wildcardCovers(normalized, prefix)) {
-      console.warn(`AI_AGENT_PERMISSIONS_WARNING: wildcard permission encompasses "${label}" in entry: ${entry}`);
-      warnings++;
+      console.error(`AI_AGENT_PERMISSIONS_VIOLATION: wildcard permission encompasses "${label}" in entry: ${entry}`);
+      violations++;
     }
   }
 }
 
 if (violations > 0) {
-  console.error(`\ncheck-ai-agent-permissions: ${violations} violation(s), ${warnings} warning(s)`);
+  console.error(`\ncheck-ai-agent-permissions: ${violations} violation(s)`);
   process.exit(1);
 }
 
-if (warnings > 0) {
-  console.log(`CHECK_AI_AGENT_PERMISSIONS_PASS with ${warnings} warning(s) — review recommended`);
-} else {
-  console.log("CHECK_AI_AGENT_PERMISSIONS_PASS");
-}
+console.log("CHECK_AI_AGENT_PERMISSIONS_PASS");
