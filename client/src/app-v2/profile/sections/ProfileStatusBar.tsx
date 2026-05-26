@@ -6,10 +6,16 @@ type ProfileStatusBarProps = {
   isOwner: boolean;
 };
 
+const STATUS_PILL_HINT =
+  "Edycja statusu (emoji/dostępność/widoczność) wymaga rozszerzenia DTO identity (blueprint §10) i pojawi się w kolejnym etapie";
+
 /**
  * Status pill + status photo. Pill colors and animations mirror legacy
  * ProfileHeaderStatusBar (sparkle + shake when empty, ph-dot pulse when set).
- * Status photo upload is disabled — media runtime not connected.
+ * The pill itself is a disabled-policy CTA for all viewers — status emoji /
+ * availability / visibility DTO is not wired yet (blueprint §10). The status
+ * photo upload stays disabled until media runtime upgrades from upload-intent
+ * to confirmed assets.
  */
 export function ProfileStatusBar({ status, isOwner }: ProfileStatusBarProps) {
   return (
@@ -18,8 +24,9 @@ export function ProfileStatusBar({ status, isOwner }: ProfileStatusBarProps) {
         <button
           type="button"
           className={styles.statusPill}
-          aria-label="Edytuj status"
-          disabled={!isOwner}
+          aria-label={isOwner ? "Edytuj status — wkrótce" : "Status użytkownika"}
+          title={isOwner ? STATUS_PILL_HINT : undefined}
+          disabled
         >
           <span className={styles.statusDot} aria-hidden="true" />
           <span className={styles.statusEmoji} aria-hidden="true">
@@ -40,8 +47,9 @@ export function ProfileStatusBar({ status, isOwner }: ProfileStatusBarProps) {
         <button
           type="button"
           className={`${styles.statusPill} ${styles.statusPillEmpty}`}
-          aria-label="Ustaw status"
-          disabled={!isOwner}
+          aria-label={isOwner ? "Ustaw status — wkrótce" : "Brak statusu"}
+          title={isOwner ? STATUS_PILL_HINT : undefined}
+          disabled
         >
           <span className={styles.statusSparkle} aria-hidden="true">✶</span>
           <span className={styles.statusEmptyLabel}>Ustaw swój status...</span>

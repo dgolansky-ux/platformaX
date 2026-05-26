@@ -20,15 +20,19 @@ Ostatnia aktualizacja: 2026-05-26.
 
 ## Kolejka (PENDING)
 
-| # | Zadanie | Handoff | Pre-flight zależności | Status |
-|---|---|---|---|---|
-| 1 | `PROFILE_FULL_PARITY_AND_CODE_QUALITY_FIXES` (step-29) | [HAND004](HAND004.md) | guard hardening na main = **OK (PR #18)** → **ODBLOKOWANE** | PENDING |
+_(pusta — wszystkie zadania z handoffów zostały zmergowane)_
 
 ### Rekomendowana kolejność
-`step-29 (profile parity)` — jedyna pozostała pozycja.
+n/a — kolejka pusta.
 
 ## DONE (log, nie ruszać)
 
+- **step-29 / `PROFILE_FULL_PARITY_AND_CODE_QUALITY_FIXES`** — PR na branchu `feat/profile-full-parity-quality-fixes`.
+  Status truth: `identity` w `feature-registry.ts` podniesione z `SCAFFOLD_ONLY` → `PARTIAL` (auth + profile adapter na main).
+  Stale copy fix: `CheckEmailRoute` używa `adapter.isConfigured()` (configured vs not-configured copy); `app-v2/README.md` i `identity/README.md` zaktualizowane po PR #22.
+  No-op fix: `ProfileContacts` contact card i `ProfileStatusBar` owner pill → disabled-policy z honest title.
+  Raport: `docs/review/step-29-profile-full-parity-quality-fixes/STEP_29_REPORT.md` + `PROFILE_PARITY_AUDIT.md`.
+  Legacy parity 1:1 nie re-verifikowane (legacy source `~/Desktop/Starykod-4` niedostępne) — udokumentowane jako limitacja, nie fake DONE.
 - **step-33 / `PROFILE_RUNTIME_WIRING_IDENTITY_AND_MEDIA_REFS`** — PR na branchu `feat/profile-runtime-wiring`.
   Composition layer w `client/src/app-v2/profile/data` (view-model + `fetchProfileData` + `useProfileData` + `useProfileBioEdit`),
   identity adapter rozszerzony o `updateMyProfile`, owner-only `ProfileBioSheet`, `ProfileAvatar`/`ProfileBanner` przyjmują

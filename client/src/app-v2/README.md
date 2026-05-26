@@ -1,6 +1,6 @@
 # app-v2 — Application Shell
 
-Status: `UI_SHELL_ONLY` (+ `PARTIAL` for auth, see below)
+Status: `PARTIAL` — auth + profile + onboarding compose real identity and media adapters (in-memory boundary, env-required storage); landing remains `UI_SHELL_ONLY`.
 
 ## Purpose
 
@@ -22,9 +22,9 @@ Composition layer for the V2 frontend. Owns top-level routing, public marketing 
 |---|---|---|
 | `AppRouter.tsx` | Top-level route composition (react-router-dom) | `UI_SHELL_ONLY` |
 | `landing/` | Public landing page | `UI_SHELL_ONLY` |
-| `auth/` | Public auth UI shell + Supabase Auth adapter integration | `PARTIAL` (UI shell + adapter; backend gating not exposed yet) |
-| `onboarding/` | Registration onboarding flow (multi-step) | `UI_SHELL_ONLY` / `MOCK_LOCAL_ONLY` |
-| `profile/` | Personal profile mobile shell + professional layer + quick feed preview | `UI_SHELL_ONLY` / `MOCK_LOCAL_ONLY` / `MANUAL_REVIEW_REQUIRED` |
+| `auth/` | Public auth UI shell + Supabase Auth adapter integration (`/login` and `/register` submit through the real adapter; `/check-email` shows configured/not-configured copy honestly) | `PARTIAL` |
+| `onboarding/` | Registration onboarding flow (multi-step) — final step writes through the identity `profileAdapter` (in-memory, `isPersistent: false`) | `PARTIAL` |
+| `profile/` | Personal profile mobile shell + professional layer + quick feed preview; runtime composed via `useProfileData` (auth + identity + media URLs) | `PARTIAL` / `MOCK_LOCAL_ONLY` (contacts/feed) / `MANUAL_REVIEW_REQUIRED` (visual parity) |
 | `navigation/` | Floating bottom navigation (glassmorphism pill, central Home + Profil island) | `UI_SHELL_ONLY` |
 
 ## Landing page
@@ -37,16 +37,20 @@ Four screens (`/login`, `/register`, `/reset-password`, `/check-email`) plus a r
 
 - forms keep state with React `useState` only,
 - validation runs in local state (`auth/forms/validation.ts`) without backend round-trip,
-- `/login` submit currently renders a `FormNotice` ("Logowanie nie jest jeszcze dostępne…") — the Supabase Auth adapter exists but the gating UI is not wired yet,
-- `/register` submit navigates to `/check-email` (no email parameter is passed — confirmation copy is route-scoped),
-- `/reset-password` submit renders a UI shell "wiadomość przygotowana" state,
-- `/check-email` shows an honest "UI shell — backend nie jest podłączony" notice and links to `/onboarding`.
+- `/login` submit calls `identityAuthAdapter.signIn` and navigates to `/onboarding` on success (surfaces a safe Polish error message otherwise),
+- `/register` submit calls `identityAuthAdapter.signUp` and navigates to `/check-email` on success (no email parameter is passed — confirmation copy is route-scoped),
+- `/reset-password` submit triggers the Supabase password-reset flow through the adapter and renders the "wiadomość przygotowana" state,
+- `/check-email` reads `adapter.isConfigured()` and renders either "Link aktywacyjny wysłany" (configured) or an explicit `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` not-configured notice — both link to `/onboarding`.
 
 No `localStorage`, no `sessionStorage`, no direct Supabase calls from components — the adapter layer handles that surface.
 
 ## Onboarding shell (`onboarding/`)
 
-Five steps in local React state, no persistence:
+Five steps in local React state. The final step submits through the identity
+`profileAdapter.completeOnboarding` (in-memory boundary, `isPersistent: false`)
+so the entered name lands in the same identity service that `/profile` reads
+from in the current session; reloading wipes state because the Supabase
+repository is not wired yet.
 
 1. Imię + Nazwisko
 2. Data urodzenia (private — explicit privacy hint, not stored anywhere)
@@ -54,11 +58,23 @@ Five steps in local React state, no persistence:
 4. Avatar (UI-only; honest "po podłączeniu modułu mediów" message, "Pomiń" link)
 5. Kierunek profilu (4 radio tiles)
 
-PII (date of birth, phone) lives only in the component's `useState`. The post-flow summary explicitly omits PII fields and shows a note that no data was sent or stored.
+PII (date of birth, phone) lives only in the component's `useState` until
+`completeOnboarding` is called; from there the identity service holds it
+behind its private DTO (never publicly readable). The post-flow summary
+explicitly omits PII fields and shows a note that no data was sent to a
+remote backend (because the adapter remains in-memory).
 
 ## Profile shell (`profile/`)
 
-Personal profile mobile shell with a switchable professional layer (step-22 → step-26). Visual parity with legacy `features/identity/ProfileView*` 1:1 per `docs/profile/PROFILE_BLUEPRINT_MOBILE_FIRST.md`:
+Personal profile mobile shell with a switchable professional layer (step-22 →
+step-26), runtime-wired in step-33. The page reads `useProfileData` which
+composes `identityAuthAdapter` (current user), `profileAdapter.getMyProfile`
+(identity boundary) and `mediaAdapter.getPublicMediaUrl` (avatar/banner)
+into a `PersonalProfileView`. Anonymous viewers render the demo fixture
+(no fake auth); empty/error states surface honestly above the shell.
+
+Visual parity with legacy `features/identity/ProfileView*` 1:1 per
+`docs/profile/PROFILE_BLUEPRINT_MOBILE_FIRST.md`:
 
 - header order: name → avatar/bio row (with animated separator) → status pill + status photo → mode switcher → banner → social links,
 - portal cards (Społeczności / Kanały / Feed znajomych) as disabled-policy CTAs with per-card accent colors,

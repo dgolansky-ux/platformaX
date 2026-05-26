@@ -5,6 +5,7 @@ Status: `PARTIAL`
 - Auth runtime: `AUTH_RUNTIME_PARTIAL` — real Supabase Auth via adapter
 - Profile runtime: `IDENTITY_PROFILE_RUNTIME_PARTIAL` — backend service wired via in-memory boundary; HTTP transport / Supabase repository not started
 - Onboarding profile persistence: `ONBOARDING_RUNTIME_PARTIAL` — onboarding writes to the identity service through `profileAdapter`; state is volatile across reloads
+- Profile owner edit: `BIO_RUNTIME_PARTIAL` — `profileAdapter.updateMyProfile` is wired (step-33). `/profile` owner can update bio through the identity boundary. firstName/lastName/phone/dateOfBirth are accepted by the adapter contract but the editor surface is not built yet.
 
 ## Purpose
 Frontend identity feature. Owns the auth subject on the client. Wraps Supabase
@@ -16,8 +17,8 @@ which app-v2 may reach the identity backend domain.
 - `auth/types.ts` — typed contracts (`IdentityAuthAdapter`, `AuthBackend`, `AuthResult`, …)
 - `auth/auth-adapter.ts` — orchestration + safe error mapping (Polish, no provider internals)
 - `auth/supabase-client.ts` — the ONLY module importing `@supabase/supabase-js`
-- `profile/types.ts` — typed contracts (`OnboardingProfileAdapter`, result types)
-- `profile/profile-adapter.ts` — the ONLY module importing the backend identity domain (`@server/domains-v2/identity/public-api`)
+- `profile/types.ts` — typed contracts (`OnboardingProfileAdapter`, result types incl. `UpdateMyProfileResult`)
+- `profile/profile-adapter.ts` — the ONLY module importing the backend identity domain (`@server/domains-v2/identity/public-api`); exposes `getMyProfile` / `getPublicProfile` / `completeOnboarding` / `updateMyProfile`
 - `profile/index.ts` — feature-scoped barrel
 - `index.ts` — public entrypoint exposing `identityAuthAdapter` and `profileAdapter`
 
