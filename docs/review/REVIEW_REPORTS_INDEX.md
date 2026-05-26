@@ -46,3 +46,8 @@ Last updated: 2026-05-26 (Step 29)
 | step-32-media-avatar-banner-runtime | Media avatar/banner upload-intent runtime (in-memory, env-required storage) | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_32_REPORT.md |
 | step-33-profile-runtime-wiring | Profile runtime wiring — identity + media refs composition for `/profile` | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_33_REPORT.md |
 | step-29-profile-full-parity-quality-fixes | Profile parity & code quality hygiene — status truth, no-op CTA, CheckEmail copy | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_29_REPORT.md + PROFILE_PARITY_AUDIT.md |
+| step-34-governance-foundation-pack | Governance foundation: canonical rules registry, guard coverage, status taxonomy | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_34_REPORT.md |
+| step-35-governance-red-team | Red-team audit: permissions hardening, status conflict resolution, guard hardening | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_35_REPORT.md |
+| step-36-production-grade-governance-hardening | Production-grade governance hardening: 9 new gates, 17 new rules | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_36_REPORT.md |
+| step-37-governance-deduplication-and-anti-drift | Governance deduplication: hidden rules audit, anti-drift guard, README standardization | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_37_REPORT.md |
+| step-38-final-governance-acceptance | Final governance acceptance audit: 20-point matrix, gate results, PR readiness | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_38_REPORT.md |

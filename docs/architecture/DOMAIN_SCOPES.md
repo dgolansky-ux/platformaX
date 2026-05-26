@@ -1,5 +1,8 @@
 # PlatformaX V2 — Domain Scopes
 
+> **Canonical governance entrypoint:** `docs/governance/README.md` · `docs/governance/GOVERNANCE_INDEX.md` · `docs/governance/RULES_REGISTRY.yml`  
+> This document remains the authoritative source of its specific content. The enforceable rule registry is `docs/governance/RULES_REGISTRY.yml`.
+
 Detailed scope definitions for each domain, clarifying what each domain owns and what it explicitly does NOT own.
 
 ## Owner domains

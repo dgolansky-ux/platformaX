@@ -2,7 +2,11 @@
 
 Status: `ACTIVE`  
 Owner: Architecture / Governance  
-Applies to: backend domains, frontend features, app routing, scripts, CI
+Applies to: backend domains, frontend features, app routing, scripts, CI  
+Governance Index: `docs/governance/GOVERNANCE_INDEX.md`
+
+> **Note:** `docs/governance/` is the central governance index and registry.
+> This file remains the authoritative source of architecture enforcement rules.
 
 ## 1. Purpose
 

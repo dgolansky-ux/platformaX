@@ -1,5 +1,8 @@
 # PlatformaX V2 — Execution Map
 
+> **Canonical governance entrypoint:** `docs/governance/README.md` · `docs/governance/GOVERNANCE_INDEX.md` · `docs/governance/RULES_REGISTRY.yml`  
+> This document remains the authoritative source of its specific content. The enforceable rule registry is `docs/governance/RULES_REGISTRY.yml`.
+
 Status: `ACTIVE`  
 Owner: Project Execution / Governance  
 Purpose: sequence work so quality gates are installed before feature work

@@ -1,0 +1,115 @@
+# PlatformaX V2 — Required Docs by Scope
+# Defines which documents must be read before starting a task of each type.
+
+scopes:
+
+  governance:
+    required_reading:
+      - docs/governance/README.md
+      - docs/governance/GOVERNANCE_INDEX.md
+      - docs/governance/RULES_REGISTRY.yml
+      - docs/governance/GUARDS_REGISTRY.yml
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/ai/AGENT_OPERATING_STANDARD.md
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+    notes: Full governance context required
+
+  profile-ui:
+    required_reading:
+      - docs/governance/README.md
+      - docs/governance/GOVERNANCE_INDEX.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/profile/PROFILE_BLUEPRINT_MOBILE_FIRST.md
+      - docs/ai/AGENT_OPERATING_STANDARD.md
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+    notes: Profile visual work requires full mobile-first blueprint
+
+  profile-runtime:
+    required_reading:
+      - docs/governance/README.md
+      - docs/governance/GOVERNANCE_INDEX.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/profile/PROFILE_BLUEPRINT_MOBILE_FIRST.md
+      - docs/profile/PROFILE_RUNTIME_LOGIC_BLUEPRINT_FROM_LEGACY.md
+      - docs/ai/AGENT_OPERATING_STANDARD.md
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+    notes: Profile runtime requires both blueprints
+
+  identity-runtime:
+    required_reading:
+      - docs/governance/README.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/DOMAIN_OWNERSHIP_MATRIX.md
+      - docs/ai/AGENT_OPERATING_STANDARD.md
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+    notes: null
+
+  media-runtime:
+    required_reading:
+      - docs/governance/README.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/adr/ADR-006-media-presigned-no-base64.md
+      - docs/ai/AGENT_OPERATING_STANDARD.md
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+    notes: Media work must read ADR-006
+
+  social-runtime:
+    required_reading:
+      - docs/governance/README.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/DOMAIN_OWNERSHIP_MATRIX.md
+      - docs/ai/AGENT_OPERATING_STANDARD.md
+    notes: null
+
+  content-runtime:
+    required_reading:
+      - docs/governance/README.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/adr/ADR-007-feed-ownership-no-global-social-feed.md
+      - docs/ai/AGENT_OPERATING_STANDARD.md
+    notes: Content work must read feed ownership ADR
+
+  infra:
+    required_reading:
+      - docs/governance/README.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/ai/RAILWAY_DEPLOY_POLICY.md
+      - docs/ai/SUPABASE_ACCESS_POLICY.md
+      - docs/security/SECRET_HANDLING_POLICY.md
+      - docs/ai/AGENT_OPERATING_STANDARD.md
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+    notes: Infrastructure requires security + deploy policies
+
+  db-migration:
+    required_reading:
+      - docs/governance/README.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/ai/SUPABASE_ACCESS_POLICY.md
+      - docs/security/SECRET_HANDLING_POLICY.md
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+    notes: DB migration is high-risk — requires full security context
+
+  railway:
+    required_reading:
+      - docs/governance/README.md
+      - docs/ai/RAILWAY_DEPLOY_POLICY.md
+      - docs/security/SECRET_HANDLING_POLICY.md
+      - docs/ai/AI_FORBIDDEN_ACTIONS.md
+    notes: Railway deploy is forbidden without separate decision
+
+  zip-export:
+    required_reading:
+      - docs/governance/README.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/security/SECRET_HANDLING_POLICY.md
+      - docs/architecture/PlatformaX-V2-legacy-containment.md
+    notes: ZIP export requires secret scan + legacy containment check

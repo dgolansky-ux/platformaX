@@ -1,5 +1,6 @@
 # PlatformaX V2 — CODEOWNERS
 
+# === Domain ownership ===
 /server/domains-v2/identity/**      @dgolansky-ux
 /server/domains-v2/social/**        @dgolansky-ux
 /server/domains-v2/communities-v2/**  @dgolansky-ux
@@ -15,12 +16,38 @@
 /server/domains-v2/moderation/**    @dgolansky-ux
 /server/domains-v2/audit/**         @dgolansky-ux
 /server/domains-v2/system/**        @dgolansky-ux
+/server/domains-v2/*/public-api.ts  @dgolansky-ux
+/server/domains-v2/*/README.md      @dgolansky-ux
 /server/application-v2/**           @dgolansky-ux
+
+# === Frontend ===
 /client/src/features-v2/**          @dgolansky-ux
 /client/src/app-v2/**               @dgolansky-ux
+
+# === Guards and scripts ===
 /scripts/check-*                    @dgolansky-ux
 /scripts/validate-*                 @dgolansky-ux
+/scripts/*guard*.mjs                @dgolansky-ux
+/scripts/*rules*.mjs                @dgolansky-ux
 /scripts/*.mjs                      @dgolansky-ux
+
+# === Governance and docs ===
+/docs/governance/**                 @dgolansky-ux
 /docs/architecture/**               @dgolansky-ux
+/docs/ai/**                         @dgolansky-ux
+/docs/security/**                   @dgolansky-ux
+/docs/profile/**                    @dgolansky-ux
+/docs/templates/**                  @dgolansky-ux
+
+# === CI/CD and Git hooks ===
 /.github/workflows/**               @dgolansky-ux
+/.husky/**                          @dgolansky-ux
+
+# === AI agent config ===
+/.claude/**                         @dgolansky-ux
+
+# === Database migrations ===
+/supabase/migrations/**             @dgolansky-ux
+
+# === Root config ===
 /package.json                       @dgolansky-ux

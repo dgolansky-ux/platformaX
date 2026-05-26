@@ -1,7 +1,12 @@
 # PlatformaX V2 — AI Allowed Actions
 
 Status: `ACTIVE`  
-Owner: Governance
+Owner: Governance  
+Governance Index: `docs/governance/GOVERNANCE_INDEX.md`  
+Permissions Policy: `docs/governance/AI_AGENT_PERMISSIONS_POLICY.md`
+
+> **Note:** `docs/governance/` is the central governance index and registry.
+> This file remains the authoritative source of allowed AI actions.
 
 ## 1. Purpose
 

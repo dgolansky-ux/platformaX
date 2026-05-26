@@ -2,7 +2,11 @@
 
 Status: `ACTIVE`  
 Owner: Engineering Quality / Governance  
-Applies to: all TypeScript, React, Node, scripts and tests
+Applies to: all TypeScript, React, Node, scripts and tests  
+Governance Index: `docs/governance/GOVERNANCE_INDEX.md`
+
+> **Note:** `docs/governance/` is the central governance index and registry.
+> This file remains the authoritative source of coding standard rules.
 
 ## 1. Purpose
 
