@@ -52,3 +52,4 @@ Last updated: 2026-05-26 (Step 29)
 | step-37-governance-deduplication-and-anti-drift | Governance deduplication: hidden rules audit, anti-drift guard, README standardization | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_37_REPORT.md |
 | step-38-final-governance-acceptance | Final governance acceptance audit: 20-point matrix, gate results, PR readiness | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_38_REPORT.md |
 | step-42-profile-premium-visual-maturity | Profile premium visual maturity pass — avatar size locked | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_42_SUMMARY.md |
+| step-43-profile-top-header-premium-polish | Profile top header premium polish — avatar size locked | pending | 2026-05 | Yes | MANUAL_REVIEW_REQUIRED | — | Evidence: STEP_43_SUMMARY.md |

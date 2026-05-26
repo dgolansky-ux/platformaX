@@ -1,12 +1,12 @@
 /* QUALITY_STRUCTURE_EXCEPTION + ALLOW_FILE_SIZE_EXCEPTION */
 
 .header {
-  padding: 6px 0 0;
+  padding: 4px 0 0;
 }
 
 .name {
   margin: 0;
-  padding: 6px 12px 8px;
+  padding: 4px 12px 6px;
   font-family: var(--font-heading);
   font-size: 20px;
   font-weight: 700;
@@ -30,7 +30,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
+  gap: 20px;
   flex-shrink: 0;
   padding-left: 4px;
 }
@@ -39,14 +39,13 @@
   flex-shrink: 0;
   align-self: stretch;
   width: 1px;
-  margin: 0 12px 0 6px;
+  margin: 0 14px 0 8px;
   border-radius: 1px;
-  opacity: 0.35;
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    #94a3b8 15%,
-    #94a3b8 85%,
+    rgba(30, 79, 216, 0.28) 20%,
+    rgba(30, 79, 216, 0.28) 80%,
     transparent 100%
   );
   animation: px-divider-drop 0.6s ease-out both;
@@ -60,20 +59,20 @@
 }
 
 .label {
-  margin: 0 0 4px;
+  margin: 0 0 5px;
   font-family: var(--font-heading);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .bioText {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
-  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1f2937;
   display: -webkit-box;
   -webkit-line-clamp: 6;
   -webkit-box-orient: vertical;
@@ -157,20 +156,20 @@
 .locationRow {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px 0;
+  gap: 5px;
+  padding: 6px 14px 0;
   font-size: 13px;
-  color: var(--color-text-soft);
+  color: #64748b;
 }
 
 .banner {
   position: relative;
-  margin: 12px 4px 0;
+  margin: 10px 4px 0;
   aspect-ratio: 5 / 2;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  background: linear-gradient(135deg, #102a6b 0%, #1e4fd8 55%, #334155 100%);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  background: linear-gradient(135deg, #0f2f7a 0%, #1e4fd8 55%, #334155 100%);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06), 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
 .bannerShare {
@@ -275,43 +274,19 @@
 }
 
 @media (min-width: 1024px) {
-  .name {
-    display: none;
-  }
-
-  .header {
-    padding-top: 12px;
-  }
-
-  .avatarBioRow {
-    padding-inline: 0;
-  }
-
-  .avatar {
-    width: 190px;
-    height: 190px;
-  }
-
-  .avatarInner {
-    font-size: 52px;
-  }
-
-  .avatarCol {
-    gap: 32px;
-  }
-
-  .banner {
-    aspect-ratio: 10 / 3;
-    margin-inline: 0;
-  }
-
-  .socialLinks {
-    padding-inline: 0;
-  }
-
-  .locationRow {
-    padding-inline: 0;
-  }
+  .name { display: none; }
+  .header { padding-top: 8px; }
+  .avatarBioRow { padding-inline: 0; gap: 0; }
+  .avatar { width: 190px; height: 190px; }
+  .avatarInner { font-size: 52px; }
+  .avatarCol { gap: 24px; }
+  .bioCol { padding-top: 4px; }
+  .label { font-size: 12px; margin-bottom: 6px; }
+  .bioText { font-size: 16px; line-height: 1.65; max-width: 620px; }
+  .separator { margin: 0 18px 0 10px; }
+  .banner { aspect-ratio: 10 / 3; margin-inline: 0; margin-top: 8px; }
+  .socialLinks { padding-inline: 0; }
+  .locationRow { padding-inline: 0; font-size: 14px; }
 }
 
 @media (hover: hover) {

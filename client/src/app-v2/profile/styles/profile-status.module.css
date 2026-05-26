@@ -4,8 +4,8 @@
 .statusBar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 14px 4px;
+  gap: 12px;
+  padding: 10px 14px 4px;
 }
 
 .statusPill {
@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 10px 18px;
   border-radius: 999px;
   border: 1px solid #d8e2f0;
   background: #ffffff;
@@ -22,6 +22,7 @@
   text-align: left;
   transition: border-color 150ms ease;
   font-size: 13px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .statusPill:focus-visible {
@@ -56,16 +57,16 @@
 }
 
 .statusState {
-  font-size: 11.3px;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 13px;
+  font-weight: 800;
+  color: #111827;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .statusDesc {
-  font-size: 10.4px;
+  font-size: 12px;
   color: #64748b;
   white-space: nowrap;
   overflow: hidden;
@@ -73,26 +74,26 @@
 }
 
 .statusMeta {
-  font-size: 10px;
+  font-size: 11px;
   color: #94a3b8;
   flex-shrink: 0;
 }
 
 .statusSparkle {
-  font-size: 12px;
+  font-size: 11px;
   color: #94a3b8;
   display: inline-block;
 }
 
 .statusEmptyLabel {
-  font-size: 11.3px;
+  font-size: 13px;
   font-weight: 500;
   color: #94a3b8;
 }
 
 .statusPhoto {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   border-radius: 999px;
   border: 1px solid #d1d5db;
   background: #f8fafc;
@@ -103,12 +104,13 @@
   justify-content: center;
   gap: 2px;
   padding: 0;
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.2px;
   cursor: not-allowed;
   flex-shrink: 0;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .statusPhoto:focus-visible {
@@ -125,7 +127,7 @@
 .switcherRow {
   display: flex;
   justify-content: flex-end;
-  padding: 10px 12px 0;
+  padding: 8px 12px 0;
 }
 
 .switcher {
@@ -152,8 +154,8 @@
 
 .switcherButtonActive {
   background: #ffffff;
-  color: #1e293b;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: #111827;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 
 .switcherButton:disabled {
@@ -167,7 +169,7 @@
 }
 
 .swipeHint {
-  margin: 8px 12px 0;
+  margin: 4px 12px 0;
   font-size: 11px;
   color: var(--color-text-soft);
   text-align: center;
@@ -175,9 +177,26 @@
 }
 
 @media (min-width: 1024px) {
-  .statusBar,
+  .statusBar {
+    padding: 8px 0 4px;
+  }
+
   .switcherRow {
     padding-inline: 0;
+    padding-top: 6px;
+  }
+
+  .statusPill {
+    padding: 12px 18px;
+    min-height: 50px;
+  }
+
+  .statusState {
+    font-size: 14px;
+  }
+
+  .statusDesc {
+    font-size: 13px;
   }
 
   .swipeHint {
