@@ -164,7 +164,7 @@
   width: 30px;
   height: 30px;
   border-radius: 999px;
-  border: 2.5px solid #fff;
+  border: 2px solid #fff;
   background: rgba(30, 79, 216, 0.92);
   color: #fff;
   font-size: 13px;
@@ -172,14 +172,14 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
   z-index: 3;
   transition: background-color 180ms ease;
 }
 
 .avatarEditButton:hover,
 .avatarEditButton:focus-visible {
-  background: #1d4fd8;
+  background: #1e4fd8;
   outline: none;
 }
 

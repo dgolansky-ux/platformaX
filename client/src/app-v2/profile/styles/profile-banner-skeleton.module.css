@@ -1,0 +1,97 @@
+/* Profile banner skeleton overlay — chart-placeholder cells laid out inside
+   the gradient banner per the design pass screenshot. Pure decorative; the
+   share button is rendered separately by ProfileBanner using profile-header's
+   `.bannerShare` so it stays a real CTA in the top-right corner. */
+
+.bannerSkeleton {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  padding: 16px 60px 16px 16px;
+  pointer-events: none;
+}
+
+.bannerCell {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 10px;
+  overflow: hidden;
+  display: flex;
+}
+
+.bannerCellLines {
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+
+.bannerCellLines span {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.bannerCellLines span:nth-child(1) { width: 80%; }
+.bannerCellLines span:nth-child(2) { width: 60%; }
+.bannerCellLines span:nth-child(3) { width: 90%; }
+.bannerCellLines span:nth-child(4) { width: 50%; }
+
+.bannerCellChart {
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 6px 10px;
+}
+
+.bannerChartSvg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.bannerCellBars {
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 4px;
+  padding: 10px;
+}
+
+.bannerCellBars span {
+  width: 14%;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 3px 3px 0 0;
+}
+
+.bannerCellBars span:nth-child(1) { height: 40%; }
+.bannerCellBars span:nth-child(2) { height: 70%; }
+.bannerCellBars span:nth-child(3) { height: 55%; }
+
+.bannerCellList {
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.bannerCellList span {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.bannerCellList span:nth-child(1) { width: 70%; }
+.bannerCellList span:nth-child(2) { width: 45%; }
+
+.bannerShareIcon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.bannerShareCount {
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.1px;
+}

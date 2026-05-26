@@ -1,0 +1,261 @@
+/* Contacts header (icon + title + search input), tier tabs and the carousel.
+   Split out of profile-sections.module.css to keep both under the 320-line
+   CSS module limit. ProfileContacts.tsx imports both modules. */
+
+.contactsHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 8px;
+  animation: px-fade-in 0.4s ease-out both;
+}
+
+.contactsIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: #eef2ff;
+  border: 1px solid #e0e7ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #1e4fd8;
+  flex-shrink: 0;
+}
+
+.contactsTitle {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #111827;
+}
+
+.contactsSearch {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  max-width: 220px;
+  min-width: 120px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.contactsSearchIcon {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.contactsSearchInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.contactsSearchInput:disabled {
+  cursor: not-allowed;
+}
+
+.contactsSearchInput::placeholder {
+  color: #94a3b8;
+  font-style: normal;
+}
+
+.contactsTabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 0 16px 10px;
+  scrollbar-width: none;
+  animation: px-fade-in 0.45s ease-out 0.1s both;
+}
+
+.contactsTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.contactTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.contactTab:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.contactTabCount {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0 6px;
+  min-width: 18px;
+  text-align: center;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+/* Carousel: full-bleed against the section padding, edge fade mask. */
+.carousel {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding: 8px 20px 12px;
+  margin: 0 -16px;
+  background: rgba(248, 250, 252, 0.5);
+  border-top: 1px solid #e5e7eb;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 24px,
+    #000 calc(100% - 24px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 24px,
+    #000 calc(100% - 24px),
+    transparent 100%
+  );
+}
+
+.contactCard {
+  flex-shrink: 0;
+  width: 67px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  animation: px-contact-pop 0.35s ease-out both;
+}
+
+.contactCard:nth-child(1) { animation-delay: 0.15s; }
+.contactCard:nth-child(2) { animation-delay: 0.22s; }
+.contactCard:nth-child(3) { animation-delay: 0.29s; }
+.contactCard:nth-child(4) { animation-delay: 0.36s; }
+.contactCard:nth-child(5) { animation-delay: 0.43s; }
+.contactCard:nth-child(6) { animation-delay: 0.50s; }
+
+.contactCard:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.contactAvatar {
+  position: relative;
+  width: 61px;
+  height: 61px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: #f1f5f9;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.contactOnline {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #22c55e;
+  border: 2px solid #fff;
+}
+
+.contactName {
+  text-align: center;
+  width: 100%;
+  line-height: 1.1;
+  display: flex;
+  flex-direction: column;
+}
+
+.contactFirst {
+  font-size: 10px;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contactLast {
+  font-size: 9px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 1024px) {
+  .contactsHeader,
+  .contactsTabs {
+    padding-inline: 0;
+  }
+
+  .carousel {
+    padding-inline: 4px;
+  }
+}
+
+@media (hover: hover) {
+  .contactCard:hover {
+    transform: translateY(-2px) scale(1.04);
+  }
+
+  .contactTab:hover {
+    border-color: #cbd5e1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contactsHeader,
+  .contactsTabs,
+  .contactCard {
+    animation: none !important;
+  }
+}
+
+@keyframes px-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes px-contact-pop {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}

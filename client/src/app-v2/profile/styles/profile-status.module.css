@@ -3,25 +3,34 @@
 
 .statusBar {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 0;
+  width: 100%;
+}
+
+.statusRow {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 12px 12px 4px;
+  gap: 10px;
+  animation: px-status-slide 0.45s ease-out 0.4s both;
 }
 
 .statusPill {
-  flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 5px;
-  max-width: 260px;
-  padding: 4.5px 9px;
+  gap: 6px;
+  padding: 7px 12px;
   border-radius: 999px;
-  border: 1.5px solid #bfdbfe;
-  background: #eff6ff;
+  border: 1px solid #d8e2f0;
+  background: #ffffff;
   cursor: pointer;
   text-align: left;
-  transition: filter 150ms ease;
+  transition: border-color 150ms ease;
+  font-size: 11px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .statusPill:focus-visible {
@@ -33,20 +42,19 @@
   border-color: #e2e8f0;
   background: #f8fafc;
   color: #94a3b8;
-  font-style: italic;
+  font-style: normal;
 }
 
 .statusDot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: #22c55e;
   flex-shrink: 0;
-  animation: ph-dot 2s ease-in-out infinite;
 }
 
 .statusEmoji {
-  font-size: 16px;
+  font-size: 13px;
   flex-shrink: 0;
 }
 
@@ -57,16 +65,16 @@
 }
 
 .statusState {
-  font-size: 11.3px;
+  font-size: 11px;
   font-weight: 700;
-  color: #1e293b;
+  color: #111827;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .statusDesc {
-  font-size: 10.4px;
+  font-size: 10px;
   color: #64748b;
   white-space: nowrap;
   overflow: hidden;
@@ -74,94 +82,104 @@
 }
 
 .statusMeta {
-  font-size: 10px;
+  font-size: 11px;
   color: #94a3b8;
   flex-shrink: 0;
 }
 
 .statusSparkle {
-  font-size: 14px;
+  font-size: 11px;
   color: #94a3b8;
   display: inline-block;
-  animation: ph-sparkle 2.2s ease-in-out infinite;
 }
 
 .statusEmptyLabel {
-  font-size: 11.3px;
+  font-size: 10px;
   font-weight: 500;
   color: #94a3b8;
 }
 
-/* 67x67 violet status-photo button. Empty = dashed border + gradient bg with
-   idle pulse. When filled would gain a glow ring (set via a wrapper class). */
 .statusPhoto {
-  width: 67px;
-  height: 67px;
+  width: 80px;
+  height: 80px;
   border-radius: 999px;
-  border: 2px dashed #c4b5fd;
-  background: linear-gradient(135deg, #ede9fe, #e0e7ff);
+  border: 1.5px dashed #c4b5fd;
+  background: #faf5ff;
   color: #7c3aed;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   padding: 0;
-  font-size: 8px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.2px;
   cursor: not-allowed;
   flex-shrink: 0;
   overflow: hidden;
-  animation: status-photo-idle 3s ease-in-out infinite;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
 .statusPhoto:focus-visible {
-  outline: 2px solid #7c3aed;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
 .statusPhotoIcon {
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1;
+  color: #7c3aed;
 }
 
-/* Mode switcher: 200px wide pill at the right edge, two flex-1 buttons. */
+.civilCard {
+  min-width: 0; width: 100%; display: flex; align-items: center;
+  gap: 8px; padding: 7px 12px;
+  border: 1.5px dashed #d8e2f0; border-radius: 999px; background: #fafbff;
+  color: #64748b; font-size: 11px; font-weight: 600; cursor: not-allowed;
+  white-space: nowrap;
+  animation: px-status-fade 0.5s ease-out 0.3s both;
+}
+
+.civilIcon {
+  width: 24px; height: 24px; border-radius: 999px; background: #f1f5f9;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: #94a3b8;
+}
+
 .switcherRow {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   padding: 10px 12px 0;
+  animation: px-status-fade 0.5s ease-out 0.5s both;
 }
 
 .switcher {
   display: flex;
-  gap: 2px;
+  gap: 0;
   padding: 4px;
-  border-radius: 46px;
+  border-radius: 999px;
   background: #f1f5f9;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
-  width: 200px;
+  border: 1px solid #e2e8f0;
 }
 
 .switcherButton {
-  flex: 1;
-  padding: 9px 14px;
+  padding: 10px 28px;
   border: none;
-  border-radius: 46px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 700;
-  color: #64748b;
+  border-radius: 999px;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
   background: transparent;
   cursor: pointer;
-  transition: background 220ms cubic-bezier(0.34, 1.56, 0.64, 1), color 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: background 200ms ease, color 200ms ease;
 }
 
 .switcherButtonActive {
   background: var(--color-primary);
-  color: #fff;
-  box-shadow: 0 3px 12px rgba(15, 60, 201, 0.32);
-  transform: scale(1.02);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(30, 79, 216, 0.25);
 }
 
 .switcherButton:disabled {
@@ -175,7 +193,7 @@
 }
 
 .swipeHint {
-  margin: 8px 12px 0;
+  margin: 4px 12px 0;
   font-size: 11px;
   color: var(--color-text-soft);
   text-align: center;
@@ -183,11 +201,36 @@
 }
 
 @media (min-width: 1024px) {
-  .statusBar,
-  .switcherRow,
-  .swipeHint {
-    padding-inline: 24px;
+  .statusBar {
+    gap: 10px;
   }
+
+  .switcherRow {
+    padding: 16px 0 0;
+    justify-content: center;
+  }
+
+  .statusPill {
+    padding: 7px 12px;
+    font-size: 12px;
+    max-width: 260px;
+  }
+
+  .civilCard {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .statusPhoto {
+    width: 96px;
+    height: 96px;
+    font-size: 12px;
+  }
+
+  .statusPhotoIcon { font-size: 26px; }
+  .statusState { font-size: 12px; }
+  .statusDesc { font-size: 11px; }
+  .swipeHint { display: none; }
 }
 
 @media (hover: hover) {
@@ -200,8 +243,10 @@
   .switcherButton,
   .statusDot,
   .statusSparkle,
-  .statusPhoto,
-  .swipeHint {
+  .swipeHint,
+  .civilCard,
+  .statusRow,
+  .switcherRow {
     animation: none !important;
     transition: none !important;
     transform: none !important;
@@ -232,22 +277,17 @@
   }
 }
 
-@keyframes status-photo-idle {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.04);
-  }
+@keyframes px-hint-fade {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
-@keyframes px-hint-fade {
-  0%,
-  100% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
-  }
+@keyframes px-status-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes px-status-slide {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
 }

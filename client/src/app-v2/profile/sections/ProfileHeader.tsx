@@ -1,7 +1,7 @@
 import type { PersonalProfileView, ProfilePreviewKind, ProfileViewMode } from "../types";
 import { ProfileAvatar } from "./ProfileAvatar";
 import { ProfileBio } from "./ProfileBio";
-import { ProfileStatusBar } from "./ProfileStatusBar";
+import { ProfileCivilCard, ProfileStatusRow } from "./ProfileStatusBar";
 import { ProfileModeSwitcher } from "./ProfileModeSwitcher";
 import { ProfileBanner } from "./ProfileBanner";
 import styles from "../styles/profile-header.module.css";
@@ -49,9 +49,13 @@ export function ProfileHeader({
             onTogglePreview={onTogglePreview}
             onEdit={onEditAvatar}
           />
+          <ProfileCivilCard isOwner={profile.isOwner} />
         </div>
         <div className={styles.separator} aria-hidden="true" />
-        <ProfileBio bio={profile.bio} isOwner={profile.isOwner} />
+        <div className={styles.rightCol}>
+          <ProfileBio bio={profile.bio} isOwner={profile.isOwner} />
+          <ProfileStatusRow status={profile.status} isOwner={profile.isOwner} />
+        </div>
       </div>
 
       {previewOpen ? (
@@ -84,11 +88,13 @@ export function ProfileHeader({
         </div>
       ) : null}
 
-      <ProfileStatusBar status={profile.status} isOwner={profile.isOwner} />
-
       {profile.location ? (
         <p className={styles.locationRow}>
-          <span aria-hidden="true">📍</span> {profile.location}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0, opacity: 0.7 }}>
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          {profile.location}
         </p>
       ) : null}
 

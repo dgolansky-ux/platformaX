@@ -8,9 +8,9 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  border: 1px dashed var(--color-primary);
-  border-radius: var(--radius-lg);
-  background: var(--color-primary-soft);
+  border: 1px dashed #d8e2f0;
+  border-radius: 16px;
+  background: #ffffff;
 }
 
 .professionEmptyIcon {
@@ -52,7 +52,6 @@
   outline-offset: 2px;
 }
 
-/* Specialists section header — orange briefcase icon + visibility switch. */
 .specialistsHeader {
   display: flex;
   align-items: center;
@@ -63,12 +62,13 @@
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #ea580c;
-  font-size: 16px;
+  color: #c2410c;
+  font-size: 14px;
   flex-shrink: 0;
 }
 
@@ -79,9 +79,10 @@
 
 .specialistsTitle {
   margin: 0;
+  font-family: var(--font-heading);
   font-size: 14px;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 600;
+  color: #111827;
 }
 
 .specialistsSubtitle {
@@ -114,7 +115,7 @@
 }
 
 .specialistsToggleOn {
-  background: #ea580c;
+  background: #1e4fd8;
 }
 
 .specialistsToggleKnob {
@@ -134,7 +135,7 @@
 }
 
 .specialistsToggle:focus-visible {
-  outline: 2px solid #ea580c;
+  outline: 2px solid #1e4fd8;
   outline-offset: 2px;
 }
 
@@ -168,7 +169,6 @@
   outline-offset: 2px;
 }
 
-/* "Moja praca" anchor (owner placeholder, legacy ProfileProfessionalSection). */
 .workplaceAnchor {
   display: flex;
   align-items: center;
@@ -177,9 +177,9 @@
   width: 100%;
   margin-bottom: 12px;
   padding: 10px 12px;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed #d8e2f0;
   border-radius: var(--radius-md);
-  background: #f1f5f9;
+  background: #f8fafc;
   color: #94a3b8;
   font-size: 13px;
   font-weight: 600;

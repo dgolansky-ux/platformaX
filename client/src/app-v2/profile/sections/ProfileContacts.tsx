@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
 import type { ContactCategory, ProfileContact } from "../types";
-import styles from "../styles/profile-sections.module.css";
+import sec from "../styles/profile-sections.module.css";
+import styles from "../styles/profile-contacts.module.css";
 
 type ProfileContactsProps = {
   contacts: ReadonlyArray<ProfileContact>;
@@ -16,10 +17,10 @@ type Tab = {
 
 // Per-tab color scheme mirrors legacy FriendsSection 1:1.
 const TABS: ReadonlyArray<Tab> = [
-  { id: "all", label: "Wszyscy", color: "#2563EB", bg: "#EFF6FF" },
-  { id: "close", label: "Bliscy", color: "#7C3AED", bg: "#F5F3FF" },
-  { id: "family_close", label: "Rodzina bliska", color: "#EC4899", bg: "#FDF2F8" },
-  { id: "family_extended", label: "Rodzina dalsza", color: "#8B5CF6", bg: "#F5F3FF" },
+  { id: "all", label: "Wszyscy", color: "#1E4FD8", bg: "#EEF2FF" },
+  { id: "close", label: "Bliscy", color: "#1E4FD8", bg: "#EEF2FF" },
+  { id: "family_close", label: "Rodzina bliska", color: "#1E4FD8", bg: "#EEF2FF" },
+  { id: "family_extended", label: "Rodzina dalsza", color: "#1E4FD8", bg: "#EEF2FF" },
 ];
 
 function countFor(contacts: ReadonlyArray<ProfileContact>, id: ContactCategory) {
@@ -33,13 +34,29 @@ export function ProfileContacts({ contacts }: ProfileContactsProps) {
     active === "all" ? contacts : contacts.filter((c) => c.category === active);
 
   return (
-    <section className={styles.section} aria-label="Kontakty">
+    <section className={sec.section} aria-label="Kontakty">
       <div className={styles.contactsHeader}>
-        <span className={styles.contactsIcon} aria-hidden="true">👥</span>
-        <h2 className={styles.contactsTitle}>Kontakty</h2>
-        <span className={styles.contactsSearch} aria-hidden="true">
-          🔍 Szukaj...
+        <span className={styles.contactsIcon} aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
+          </svg>
         </span>
+        <h2 className={styles.contactsTitle}>Kontakty</h2>
+        <label className={styles.contactsSearch}>
+          <span aria-hidden="true" className={styles.contactsSearchIcon}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </span>
+          <input
+            type="search"
+            className={styles.contactsSearchInput}
+            placeholder="Szukaj..."
+            aria-label="Szukaj kontaktów"
+            disabled
+            title="Wyszukiwarka kontaktów dostępna po podłączeniu domeny social"
+          />
+        </label>
       </div>
 
       <div className={styles.contactsTabs} role="tablist" aria-label="Kategorie kontaktów">
@@ -93,7 +110,7 @@ export function ProfileContacts({ contacts }: ProfileContactsProps) {
           ))}
         </div>
       ) : (
-        <p className={styles.emptyInline}>Brak kontaktów w tej kategorii</p>
+        <p className={sec.emptyInline}>Brak kontaktów w tej kategorii</p>
       )}
     </section>
   );

@@ -49,7 +49,10 @@ export function ProfileAvatar({
             aria-label="Zmień zdjęcie profilowe"
             onClick={onEdit}
           >
-            📷
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
           </button>
         ) : null}
       </div>
@@ -61,7 +64,10 @@ export function ProfileAvatar({
           aria-pressed={previewOpen}
           onClick={onTogglePreview}
         >
-          👁
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
         </button>
       ) : null}
     </div>

@@ -1,11 +1,15 @@
-/* Shared section atoms + contacts carousel.
-   Imported by ProfileContacts, ProfilePersonalSections, and (for the shared
-   atoms) by professional-layer components. Portal cards live in
-   profile-portal.module.css. Sizes/colors mirror legacy FriendsSection 1:1. */
+/* Shared section atoms (section/header/empty state/add button).
+   Imported by ProfilePersonalSections and the professional layer.
+   Contacts-specific styles live in profile-contacts.module.css. */
 
 .section {
   padding: 16px;
+  animation: px-section-in 0.5s ease-out both;
 }
+
+.section:nth-child(2) { animation-delay: 0.08s; }
+.section:nth-child(3) { animation-delay: 0.16s; }
+.section:nth-child(4) { animation-delay: 0.24s; }
 
 .sectionHeader {
   display: flex;
@@ -16,8 +20,10 @@
 
 .sectionTitle {
   margin: 0;
+  font-family: var(--font-heading);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
+  color: #111827;
 }
 
 .sectionSubtitle {
@@ -27,34 +33,52 @@
 
 .emptyState {
   text-align: center;
-  padding: 24px 20px;
-  background: #fafbff;
-  border: 1px dashed var(--color-border-strong, #cbd5e1);
-  border-radius: var(--radius-xl);
+  padding: 28px 24px;
+  background: #ffffff;
+  border: 1px dashed #d8e2f0;
+  border-radius: 18px;
+  animation: px-empty-breathe 4s ease-in-out 1s infinite;
 }
 
 .emptyIcon {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-lg);
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   margin: 0 auto 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  background: var(--color-primary-soft);
+  font-size: 20px;
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e5e7eb;
+}
+
+.emptyIconGreen {
+  background: #f0fdf4;
+  color: #16a34a;
+  border-color: #dcfce7;
+}
+
+.emptyIconYellow {
+  background: #fffbeb;
+  color: #d97706;
+  border-color: #fef3c7;
 }
 
 .emptyTitle {
   margin: 0 0 4px;
-  font-size: 15px;
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
 }
 
 .emptyText {
   margin: 0;
   font-size: 13px;
-  color: var(--color-text-soft);
+  color: #94a3b8;
+  line-height: 1.5;
 }
 
 .emptyInline {
@@ -62,8 +86,8 @@
   text-align: center;
   font-size: 13px;
   color: #94a3b8;
-  background: #fafbff;
-  border: 1px dashed #cbd5e1;
+  background: #ffffff;
+  border: 1px dashed #d8e2f0;
   border-radius: 14px;
 }
 
@@ -91,205 +115,37 @@
   outline-offset: 2px;
 }
 
-/* ---- Contacts header + search + tabs ---- */
-.contactsHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 16px 8px;
-}
-
-.contactsIcon {
-  width: 28px;
-  height: 28px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #eff6ff, #dbeafe);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: #2563eb;
-  flex-shrink: 0;
-}
-
-.contactsTitle {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.contactsSearch {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  max-width: 140px;
-  min-width: 90px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #94a3b8;
-  font-size: 11px;
-}
-
-.contactsTabs {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 0 16px 10px;
-  scrollbar-width: none;
-}
-
-.contactsTabs::-webkit-scrollbar {
-  display: none;
-}
-
-.contactTab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1.5px solid #e2e8f0;
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.contactTab:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.contactTabCount {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 0 6px;
-  min-width: 18px;
-  text-align: center;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #94a3b8;
-}
-
-/* Carousel: full-bleed against the section padding, edge fade mask. */
-.carousel {
-  display: flex;
-  gap: 24px;
-  overflow-x: auto;
-  padding: 8px 20px 12px;
-  margin: 0 -16px;
-  background: rgba(248, 250, 252, 0.8);
-  border-top: 1px solid #e2e8f0;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 24px,
-    #000 calc(100% - 24px),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 24px,
-    #000 calc(100% - 24px),
-    transparent 100%
-  );
-}
-
-.contactCard {
-  flex-shrink: 0;
-  width: 67px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.contactCard:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-.contactAvatar {
-  position: relative;
-  width: 61px;
-  height: 61px;
-  border-radius: 999px;
-  border: 2px solid #fff;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.contactOnline {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  background: #22c55e;
-  border: 2px solid #fff;
-}
-
-.contactName {
-  text-align: center;
-  width: 100%;
-  line-height: 1.1;
-  display: flex;
-  flex-direction: column;
-}
-
-.contactFirst {
-  font-size: 10px;
-  font-weight: 700;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.contactLast {
-  font-size: 9px;
-  color: #64748b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-@media (min-width: 1024px) {
-  .contactsHeader,
-  .contactsTabs {
-    padding-inline: 24px;
-  }
-
-  .carousel {
-    margin-inline: -24px;
-    padding-inline: 28px;
-  }
-}
-
 @media (hover: hover) {
-  .contactCard:hover {
-    transform: translateY(-2px);
-  }
-
-  .contactTab:hover,
   .addButton:not(:disabled):hover {
     filter: brightness(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section,
+  .emptyState {
+    animation: none !important;
+  }
+}
+
+@keyframes px-section-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes px-empty-breathe {
+  0%, 100% {
+    border-color: #d8e2f0;
+    box-shadow: 0 0 0 0 rgba(30, 79, 216, 0);
+  }
+  50% {
+    border-color: #c7d2fe;
+    box-shadow: 0 0 12px rgba(30, 79, 216, 0.06);
   }
 }
