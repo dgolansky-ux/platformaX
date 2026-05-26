@@ -1,0 +1,162 @@
+# PlatformaX V2 — Domain Status Registry
+# Machine-readable source of truth for domain status.
+# If conflict detected between documents, conflict: true is set.
+
+domains:
+
+  - name: identity
+    type: OWNER_DOMAIN
+    status: PARTIAL
+    conflict: false
+    evidence:
+      - server/domains-v2/identity/README.md
+      - server/domains-v2/identity/public-api.ts
+      - server/domains-v2/identity/service.ts
+      - server/domains-v2/identity/repository.ts
+    notes: >
+      Profile persistence runtime (in-memory adapter), public/private DTOs,
+      policy, mapper, validation, events. Supabase repository pending.
+      domain-registry.ts says SCAFFOLD_ONLY but domain-status.md says PARTIAL.
+      Using PARTIAL based on actual code evidence from step-27 report.
+
+  - name: media
+    type: OWNER_DOMAIN
+    status: PARTIAL
+    conflict: false
+    evidence:
+      - server/domains-v2/media/README.md
+      - server/domains-v2/media/public-api.ts
+    notes: >
+      Avatar/banner upload-intent runtime (in-memory repo, env-required storage),
+      DTOs/policy/mapper/validation, migration as code.
+      Both domain-registry.ts and domain-status.md agree on PARTIAL.
+
+  - name: social
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Actual folder has README + scaffold files. Using SCAFFOLD_ONLY.
+    evidence:
+      - server/domains-v2/social/README.md
+
+  - name: content-v2
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Actual folder has README + scaffold files. Using SCAFFOLD_ONLY.
+    evidence:
+      - server/domains-v2/content-v2/README.md
+
+  - name: communities-v2
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/communities-v2/README.md
+
+  - name: channels
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/channels/README.md
+
+  - name: chat
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/chat/README.md
+
+  - name: events
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/events/README.md
+
+  - name: modules
+    type: OWNER_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/modules/README.md
+
+  - name: public-hub
+    type: COMPOSITION_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/public-hub/README.md
+
+  - name: notifications
+    type: OPERATIONAL_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/notifications/README.md
+
+  - name: search
+    type: OPERATIONAL_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/search/README.md
+
+  - name: moderation
+    type: OPERATIONAL_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/moderation/README.md
+
+  - name: audit
+    type: OPERATIONAL_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/audit/README.md
+
+  - name: system
+    type: OPERATIONAL_DOMAIN
+    status: SCAFFOLD_ONLY
+    conflict: true
+    requires_manual_resolution: >
+      domain-registry.ts says SCAFFOLD_ONLY, domain-status.md says PLANNED.
+      Using SCAFFOLD_ONLY since scaffold files exist.
+    evidence:
+      - server/domains-v2/system/README.md

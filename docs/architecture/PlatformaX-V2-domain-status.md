@@ -2,7 +2,13 @@
 
 Status: `ACTIVE`  
 Owner: Architecture / Status Truth  
-Purpose: single source of truth for domain maturity
+Purpose: single source of truth for domain maturity  
+Governance Index: `docs/governance/GOVERNANCE_INDEX.md`  
+Domain Status Registry: `docs/governance/DOMAIN_STATUS_REGISTRY.yml`
+
+> **Note:** `docs/governance/` is the central governance index and registry.
+> `DOMAIN_STATUS_REGISTRY.yml` is the machine-readable status source.
+> This file remains the authoritative source of status taxonomy and rules.
 
 ## 1. Purpose
 

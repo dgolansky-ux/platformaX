@@ -3,7 +3,13 @@
 Status: `ACTIVE`  
 Owner: Architecture / Governance  
 Applies to: all code, all agents, all branches, all reports  
-Last updated: 2026-05-24
+Last updated: 2026-05-24  
+Governance Index: `docs/governance/GOVERNANCE_INDEX.md`  
+Rules Registry: `docs/governance/RULES_REGISTRY.yml`
+
+> **Note:** `docs/governance/` is the central governance index and registry.
+> This file remains the authoritative source of rule content.
+> See `docs/governance/README.md` for how governance files relate.
 
 ## 1. Purpose
 

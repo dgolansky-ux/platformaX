@@ -1,0 +1,339 @@
+# PlatformaX V2 — Guards Registry
+# Machine-readable registry of all guard scripts.
+
+guards:
+
+  - id: GUARD-001
+    command: node scripts/check-fake-done.mjs
+    file: scripts/check-fake-done.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-001, PX-STATUS-001]
+    runs_in: [pre-commit, pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-002
+    command: node scripts/check-domain-status.mjs
+    file: scripts/check-domain-status.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-STATUS-001, PX-STATUS-002, PX-STATUS-003]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-003
+    command: node scripts/check-no-legacy-imports.mjs
+    file: scripts/check-no-legacy-imports.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ARCH-001, PX-ARCH-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-004
+    command: node scripts/check-removed-product-areas.mjs
+    file: scripts/check-removed-product-areas.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ARCH-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-005
+    command: node scripts/audit-domain-boundaries.mjs
+    file: scripts/audit-domain-boundaries.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ARCH-003, PX-ARCH-004, PX-ARCH-006, PX-ARCH-007]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-006
+    command: node scripts/check-test-env-safety.mjs
+    file: scripts/check-test-env-safety.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEC-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-007
+    command: node scripts/check-env-safety.mjs
+    file: scripts/check-env-safety.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEC-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-008
+    command: node scripts/check-public-dto-pii.mjs
+    file: scripts/check-public-dto-pii.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEC-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-009
+    command: node scripts/check-media-base64.mjs
+    file: scripts/check-media-base64.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-MEDIA-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-010
+    command: node scripts/check-pagination.mjs
+    file: scripts/check-pagination.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-LIST-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-011
+    command: node scripts/check-file-complexity.mjs
+    file: scripts/check-file-complexity.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CODE-001, PX-CODE-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-012
+    command: node scripts/check-build-artifacts.mjs
+    file: scripts/check-build-artifacts.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ARCH-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-013
+    command: node scripts/check-supabase-migrations-safety.mjs
+    file: scripts/check-supabase-migrations-safety.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-INFRA-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-014
+    command: node scripts/check-domain-registry.mjs
+    file: scripts/check-domain-registry.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ARCH-005]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-015
+    command: node scripts/check-domain-scaffold.mjs
+    file: scripts/check-domain-scaffold.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ARCH-005]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-016
+    command: node scripts/check-feature-registry.mjs
+    file: scripts/check-feature-registry.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ARCH-007]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-017
+    command: node scripts/check-secret-scan.mjs
+    file: scripts/check-secret-scan.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEC-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-018
+    command: node scripts/check-local-secret-scan.mjs
+    file: scripts/check-local-secret-scan.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEC-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-019
+    command: node scripts/check-review-reports-index.mjs
+    file: scripts/check-review-reports-index.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-020
+    command: node scripts/check-pre-commit-decision.mjs
+    file: scripts/check-pre-commit-decision.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-021
+    command: node scripts/check-self-audit-evidence.mjs
+    file: scripts/check-self-audit-evidence.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-AI-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-022
+    command: node scripts/check-bramka-acceptance.mjs
+    file: scripts/check-bramka-acceptance.mjs
+    blocks: merge
+    rules_enforced: [PX-GOV-001, PX-GOV-002]
+    runs_in: [ci, manual]
+    required: true
+    status: active
+
+  - id: GUARD-023
+    command: node scripts/validate-bundle.mjs
+    file: scripts/validate-bundle.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEC-002, PX-ARCH-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-024
+    command: node scripts/check-diff-safety.mjs
+    file: scripts/check-diff-safety.mjs
+    blocks: commit
+    rules_enforced: [PX-SEC-002]
+    runs_in: [pre-commit]
+    required: true
+    status: active
+
+  - id: GUARD-025
+    command: node scripts/check-script-safety.mjs
+    file: scripts/check-script-safety.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-026
+    command: node scripts/check-code-quality-structure.mjs
+    file: scripts/check-code-quality-structure.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CODE-001, PX-CODE-002, PX-CODE-003]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-027
+    command: node scripts/check-scalability-patterns.mjs
+    file: scripts/check-scalability-patterns.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-LIST-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-028
+    command: node scripts/check-frontend-performance-patterns.mjs
+    file: scripts/check-frontend-performance-patterns.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CODE-004]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-029
+    command: node scripts/check-status-truth-consistency.mjs
+    file: scripts/check-status-truth-consistency.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-STATUS-001, PX-GOV-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-030
+    command: node scripts/check-dependency-discipline.mjs
+    file: scripts/check-dependency-discipline.mjs
+    blocks: commit, merge
+    rules_enforced: []
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-031
+    command: node scripts/check-logging-pii-security.mjs
+    file: scripts/check-logging-pii-security.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEC-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-032
+    command: node scripts/check-file-size-limits.mjs
+    file: scripts/check-file-size-limits.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CODE-001, PX-CODE-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  # === NEW GOVERNANCE GUARDS ===
+
+  - id: GUARD-033
+    command: node scripts/check-governance-registry.mjs
+    file: scripts/check-governance-registry.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-001, PX-GOV-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-034
+    command: node scripts/check-guards-registry.mjs
+    file: scripts/check-guards-registry.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-035
+    command: node scripts/check-rules-to-guards-coverage.mjs
+    file: scripts/check-rules-to-guards-coverage.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-001, PX-GOV-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-036
+    command: node scripts/check-domain-status-registry.mjs
+    file: scripts/check-domain-status-registry.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-STATUS-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-037
+    command: node scripts/check-ai-agent-permissions.mjs
+    file: scripts/check-ai-agent-permissions.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-003, PX-GOV-004, PX-INFRA-001, PX-INFRA-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
