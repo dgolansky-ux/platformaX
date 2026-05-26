@@ -49,3 +49,4 @@ Last updated: 2026-05-26 (Step 29)
 | step-34-governance-foundation-pack | Governance foundation: canonical rules registry, guard coverage, status taxonomy | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_34_REPORT.md |
 | step-35-governance-red-team | Red-team audit: permissions hardening, status conflict resolution, guard hardening | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_35_REPORT.md |
 | step-36-production-grade-governance-hardening | Production-grade governance hardening: 9 new gates, 17 new rules | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_36_REPORT.md |
+| step-37-governance-deduplication-and-anti-drift | Governance deduplication: hidden rules audit, anti-drift guard, README standardization | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_37_REPORT.md |

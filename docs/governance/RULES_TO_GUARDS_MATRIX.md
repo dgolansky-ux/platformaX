@@ -54,11 +54,12 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-SCALE-001 | No sync fanout in request path | coding-standards §22 | check-scalability-hot-paths | NO | — |
 | PX-SCALE-002 | No unbounded hot-path loops | coding-standards §22 | check-scalability-hot-paths | NO | — |
 | PX-SCALE-003 | No full scans for runtime lists | coding-standards §22 | check-scalability-hot-paths, check-pagination | NO | — |
+| PX-GOV-005 | No governance drift | HIDDEN_RULES_INVENTORY | check-governance-drift | NO | — |
 
 ## Summary
 
-- **Total rules:** 42
-- **Fully automated:** 34
+- **Total rules:** 43
+- **Fully automated:** 35
 - **Automated + manual gate:** 4
 - **Manual gate only:** 4
 - **Gaps requiring improvement:** 4 (all inherently manual — visual parity, agent behavior)

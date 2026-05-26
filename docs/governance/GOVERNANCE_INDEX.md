@@ -143,6 +143,12 @@ Central map of all governance rules, organized by category. Every rule has a sta
 | PX-SCALE-002 | No unbounded hot-path loops | PlatformaX-V2-coding-standards.md §22 |
 | PX-SCALE-003 | No full scans for runtime list/feed/search | PlatformaX-V2-coding-standards.md §22 |
 
+## Governance Anti-Drift Rules
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-GOV-005 | No governance drift — normative rules require Rule ID or link | HIDDEN_RULES_INVENTORY.md |
+
 ## Gates / CI Rules
 
 See `GUARDS_REGISTRY.yml` for full guard inventory.

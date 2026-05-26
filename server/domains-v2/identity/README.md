@@ -56,3 +56,12 @@ a persisted profile.
 - No professional layer runtime (`PROFESSIONAL_PROFILE_RUNTIME_NOT_STARTED`).
 - No media upload runtime (`MEDIA_UPLOAD_NOT_STARTED`) — only `MediaAssetRef` is accepted.
 - Admin role is a policy placeholder; no runtime path.
+
+## Canonical governance
+
+- [Rules Registry](../../docs/governance/RULES_REGISTRY.yml)
+- [Governance Index](../../docs/governance/GOVERNANCE_INDEX.md)
+- [Domain Status Registry](../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
+- [Status Taxonomy](../../docs/governance/STATUS_TAXONOMY.md)
+
+Local exceptions: none

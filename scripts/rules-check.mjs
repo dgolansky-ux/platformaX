@@ -48,6 +48,7 @@ const GUARDS = [
   "check-observability-logging.mjs",
   "check-dto-privacy-classification.mjs",
   "check-scalability-hot-paths.mjs",
+  "check-governance-drift.mjs",
 ];
 
 let failed = 0;

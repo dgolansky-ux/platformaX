@@ -420,3 +420,14 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+
+  # === GOVERNANCE ANTI-DRIFT GUARD ===
+
+  - id: GUARD-047
+    command: node scripts/check-governance-drift.mjs
+    file: scripts/check-governance-drift.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-005]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active

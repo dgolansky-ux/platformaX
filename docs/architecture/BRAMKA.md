@@ -1,5 +1,8 @@
 # PlatformaX V2 — BRAMKA (Governance Gate)
 
+> **Canonical governance entrypoint:** `docs/governance/README.md` · `docs/governance/GOVERNANCE_INDEX.md` · `docs/governance/RULES_REGISTRY.yml`  
+> This document remains the authoritative source of its specific content. The enforceable rule registry is `docs/governance/RULES_REGISTRY.yml`.
+
 ## Purpose
 
 BRAMKA is the governance framework that ensures code quality, architectural integrity, security, and documentation standards for PlatformaX V2. No changes reach `main` without passing all gates.

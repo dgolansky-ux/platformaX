@@ -987,3 +987,26 @@ rules:
     status: active
     owner: architecture
     notes: null
+
+  # === GOVERNANCE ANTI-DRIFT RULES ===
+
+  - id: PX-GOV-005
+    title: No governance drift — normative rules require Rule ID or link
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/governance/HIDDEN_RULES_INVENTORY.md
+      - docs/governance/README.md
+    applies_to: [docs, server/domains-v2/**/README.md, client/src/features-v2/**/README.md]
+    forbidden_patterns:
+      - "new global normative rule without Rule ID"
+      - "domain README creating global policy without link to RULES_REGISTRY.yml"
+      - "authority doc without canonical governance link"
+    required_patterns:
+      - "normative text has Rule ID or RULES_REGISTRY link or LOCAL_NOTE or HISTORICAL_REPORT_ONLY"
+    enforced_by:
+      - scripts/check-governance-drift.mjs
+    evidence_required: gate log showing zero drift violations
+    status: active
+    owner: governance
+    notes: null

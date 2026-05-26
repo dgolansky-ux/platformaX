@@ -1,5 +1,8 @@
 # PlatformaX V2 — Domain Registry
 
+> **Canonical governance entrypoint:** `docs/governance/README.md` · `docs/governance/GOVERNANCE_INDEX.md` · `docs/governance/RULES_REGISTRY.yml`  
+> This document remains the authoritative source of its specific content. The enforceable rule registry is `docs/governance/RULES_REGISTRY.yml`.
+
 Source of truth for all V2 domains, their types, ownership, and status.
 
 ## Domain types

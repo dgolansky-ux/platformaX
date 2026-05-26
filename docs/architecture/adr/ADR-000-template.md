@@ -1,5 +1,8 @@
 # ADR-XXX — Title
 
+> **Canonical governance entrypoint:** `docs/governance/README.md` · `docs/governance/GOVERNANCE_INDEX.md` · `docs/governance/RULES_REGISTRY.yml`  
+> This document remains the authoritative source of its specific content. The enforceable rule registry is `docs/governance/RULES_REGISTRY.yml`.
+
 Status: `Proposed`  
 Date: YYYY-MM-DD  
 Owner: Architecture
