@@ -18,13 +18,13 @@ Content domain for PlatformaX V2. Owns all content-related data and read models.
 
 ## Submodules
 
-- `posts/` — post creation, editing, lifecycle and storage
-- `feeds/` — feed composition, ordering and read models
-- `comments/` — comment threads and replies
-- `reactions/` — reaction types and counts
-- `topics/` — topic taxonomy and tagging
-- `read-models/` — pre-computed read views for content
-- `publisher/` — application orchestration for content publishing flow (NOT a data domain)
+- `posts/` â€” post creation, editing, lifecycle and storage
+- `feeds/` â€” feed composition, ordering and read models
+- `comments/` â€” comment threads and replies
+- `reactions/` â€” reaction types and counts
+- `topics/` â€” topic taxonomy and tagging
+- `read-models/` â€” pre-computed read views for content
+- `publisher/` â€” application orchestration for content publishing flow (NOT a data domain)
 
 ## Boundary notes
 
@@ -46,9 +46,9 @@ Content domain for PlatformaX V2. Owns all content-related data and read models.
 
 ## Canonical governance
 
-- [Rules Registry](../../docs/governance/RULES_REGISTRY.yml)
-- [Governance Index](../../docs/governance/GOVERNANCE_INDEX.md)
-- [Domain Status Registry](../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
-- [Status Taxonomy](../../docs/governance/STATUS_TAXONOMY.md)
+- [Rules Registry](../../../docs/governance/RULES_REGISTRY.yml)
+- [Governance Index](../../../docs/governance/GOVERNANCE_INDEX.md)
+- [Domain Status Registry](../../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
+- [Status Taxonomy](../../../docs/governance/STATUS_TAXONOMY.md)
 
 Local exceptions: none

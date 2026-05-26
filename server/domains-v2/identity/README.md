@@ -24,44 +24,44 @@ a persisted profile.
 ## Does NOT own
 - Friend feed / posts / comments / reactions (`content-v2`)
 - Friendship graph / contact tiers (`social`)
-- Media payloads (`media` — identity stores only `MediaAssetRef`)
+- Media payloads (`media` â€” identity stores only `MediaAssetRef`)
 - Community membership (`communities-v2`)
 - Professional layer runtime (still UI-shell)
 
 ## Public surface
-- `public-api.ts` — `createIdentityService`, `createInMemoryIdentityProfileRepository`, public DTOs, contracts, events, policy predicates, validation limits.
-- `contracts.ts` — `UserId`, `CompleteOnboardingInput`, `UpdatePrivateProfileInput`, `IdentityResult`, `IdentityError`.
-- `events.ts` — `OnboardingCompletedEvent`, `ProfilePublicSummaryChangedEvent`.
+- `public-api.ts` â€” `createIdentityService`, `createInMemoryIdentityProfileRepository`, public DTOs, contracts, events, policy predicates, validation limits.
+- `contracts.ts` â€” `UserId`, `CompleteOnboardingInput`, `UpdatePrivateProfileInput`, `IdentityResult`, `IdentityError`.
+- `events.ts` â€” `OnboardingCompletedEvent`, `ProfilePublicSummaryChangedEvent`.
 
 ## Internal modules (not importable cross-domain)
 - `service.ts`, `repository.ts`, `policy.ts`, `mapper.ts`
-- `internal/private-profile-dto.ts` — owner-only DTO (PII)
-- `internal/record.ts` — persistence record shape
-- `internal/validation.ts` — input normalisation/validation
+- `internal/private-profile-dto.ts` â€” owner-only DTO (PII)
+- `internal/record.ts` â€” persistence record shape
+- `internal/validation.ts` â€” input normalisation/validation
 
 ## Use-cases (this slice)
-- `completeOnboarding(userId, input)` — owner-only; persists the onboarding payload, flips `onboardingCompleted`, emits events.
-- `getMyProfile(userId)` — owner-only; returns `PrivateProfileDTO`.
-- `updatePrivateProfile(userId, input)` — owner-only; partial update.
-- `getPublicProfile(viewerId, profileUserId)` — visibility-gated; returns PII-free `PublicProfileDTO`.
+- `completeOnboarding(userId, input)` â€” owner-only; persists the onboarding payload, flips `onboardingCompleted`, emits events.
+- `getMyProfile(userId)` â€” owner-only; returns `PrivateProfileDTO`.
+- `updatePrivateProfile(userId, input)` â€” owner-only; partial update.
+- `getPublicProfile(viewerId, profileUserId)` â€” visibility-gated; returns PII-free `PublicProfileDTO`.
 
 ## PII policy
 - `PrivateProfileDTO` contains private fields (`phone`, `dateOfBirth`) and is owner-only.
 - `PublicProfileDTO` MUST NOT contain `email`, `phone`, `dateOfBirth` or any auth metadata.
-- Events carry only `userId` and timestamps — never PII.
+- Events carry only `userId` and timestamps â€” never PII.
 
 ## Not done yet
-- No Supabase repository adapter — `BLOCKER_REQUIRES_PERSISTENCE_ADAPTER`. SQL migration shipped in `supabase/migrations/0001_identity_private_profiles.sql` but not applied.
-- No HTTP/transport router yet — backend transport is out of scope for STEP_27.
+- No Supabase repository adapter â€” `BLOCKER_REQUIRES_PERSISTENCE_ADAPTER`. SQL migration shipped in `supabase/migrations/0001_identity_private_profiles.sql` but not applied.
+- No HTTP/transport router yet â€” backend transport is out of scope for STEP_27.
 - No professional layer runtime (`PROFESSIONAL_PROFILE_RUNTIME_NOT_STARTED`).
-- No media upload runtime (`MEDIA_UPLOAD_NOT_STARTED`) — only `MediaAssetRef` is accepted.
+- No media upload runtime (`MEDIA_UPLOAD_NOT_STARTED`) â€” only `MediaAssetRef` is accepted.
 - Admin role is a policy placeholder; no runtime path.
 
 ## Canonical governance
 
-- [Rules Registry](../../docs/governance/RULES_REGISTRY.yml)
-- [Governance Index](../../docs/governance/GOVERNANCE_INDEX.md)
-- [Domain Status Registry](../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
-- [Status Taxonomy](../../docs/governance/STATUS_TAXONOMY.md)
+- [Rules Registry](../../../docs/governance/RULES_REGISTRY.yml)
+- [Governance Index](../../../docs/governance/GOVERNANCE_INDEX.md)
+- [Domain Status Registry](../../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
+- [Status Taxonomy](../../../docs/governance/STATUS_TAXONOMY.md)
 
 Local exceptions: none

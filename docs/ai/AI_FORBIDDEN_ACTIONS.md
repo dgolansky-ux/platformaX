@@ -41,7 +41,9 @@ The agent must not:
 - create broad allowlists without tests,
 - add `eslint-disable` or `as any` as a shortcut,
 - run destructive DB changes without explicit approval,
-- deploy production without explicit approval.
+- deploy production without explicit approval,
+- autonomously merge PRs without explicit owner instruction in current task (PX-GOV-006),
+- use `gh pr merge --admin` to bypass branch protection.
 
 ## 3. Audit and verification prohibitions
 

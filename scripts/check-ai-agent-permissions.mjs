@@ -4,13 +4,15 @@ import { join } from "node:path";
 const ROOT = process.cwd();
 const SETTINGS_PATH = join(ROOT, ".claude/settings.local.json");
 
+const CONTROLLED_MERGE_RE = /^gh\s+pr\s+merge\s+--merge\s+--delete-branch\b/;
+
 const DANGEROUS_PATTERNS = [
   { pattern: /git\s+push\s+(.*\s+)?main/, prefix: "git push", label: "git push to main" },
   { pattern: /git\s+push\s+--force/, prefix: "git push", label: "git push --force" },
   { pattern: /git\s+commit\s+--no-verify/, prefix: "git commit", label: "git commit --no-verify" },
   { pattern: /git\s+reset\s+--hard/, prefix: "git reset", label: "git reset --hard" },
   { pattern: /git\s+merge\s+main/, prefix: "git merge", label: "git merge main" },
-  { pattern: /gh\s+pr\s+merge/, prefix: "gh pr merge", label: "gh pr merge" },
+  { pattern: /gh\s+pr\s+merge\s+--admin/, prefix: "gh pr merge", label: "gh pr merge --admin" },
   { pattern: /rm\s+-rf/, prefix: "rm -rf", label: "rm -rf" },
   { pattern: /supabase\s+db\s+push/, prefix: "supabase db push", label: "supabase db push" },
   { pattern: /\brailway\b/, prefix: "railway", label: "railway" },
@@ -53,6 +55,10 @@ function wildcardCovers(normalized, prefix) {
 
 for (const entry of allowList) {
   const normalized = entry.replace(/^Bash\(/, "").replace(/\)$/, "");
+
+  if (CONTROLLED_MERGE_RE.test(normalized) && !/--admin/.test(normalized)) {
+    continue;
+  }
 
   for (const { pattern, label } of HARD_FAIL_PATTERNS) {
     if (pattern.test(normalized)) {

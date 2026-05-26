@@ -95,3 +95,12 @@ The professional profile is a `mode` of the same `ProfilePage`, not a separate r
 - `Alerty`, `Chat`, `Kontakty` — disabled-policy with explicit `title`.
 
 No `href="#"`, no no-op buttons, no legacy runtime imports.
+
+## Canonical governance
+
+- [Rules Registry](../../../docs/governance/RULES_REGISTRY.yml)
+- [Governance Index](../../../docs/governance/GOVERNANCE_INDEX.md)
+- [Domain Status Registry](../../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
+- [Status Taxonomy](../../../docs/governance/STATUS_TAXONOMY.md)
+
+Local exceptions: none

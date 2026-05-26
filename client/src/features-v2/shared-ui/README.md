@@ -1,4 +1,4 @@
-# shared-ui — Shared UI Components
+# shared-ui â€” Shared UI Components
 
 Status: `SCAFFOLD_ONLY`
 
@@ -27,3 +27,12 @@ Neutral UI component library shared across all feature domains. Provides reusabl
 - API calls or data fetching
 - Business rules or validation logic
 - Domain-specific routing
+
+## Canonical governance
+
+- Rules Registry: `docs/governance/RULES_REGISTRY.yml` (repo root)
+- Governance Index: `docs/governance/GOVERNANCE_INDEX.md` (repo root)
+- Domain Status Registry: `docs/governance/DOMAIN_STATUS_REGISTRY.yml` (repo root)
+- Status Taxonomy: `docs/governance/STATUS_TAXONOMY.md` (repo root)
+
+Local exceptions: none
