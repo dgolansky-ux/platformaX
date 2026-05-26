@@ -337,3 +337,86 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+
+  # === PRODUCTION-GRADE GOVERNANCE HARDENING GUARDS ===
+
+  - id: GUARD-038
+    command: node scripts/check-architecture-import-graph.mjs
+    file: scripts/check-architecture-import-graph.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ARCH-008, PX-ARCH-009]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-039
+    command: node scripts/check-runtime-readiness-status.mjs
+    file: scripts/check-runtime-readiness-status.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-RUNTIME-001, PX-RUNTIME-002, PX-STATUS-003]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-040
+    command: node scripts/check-migration-safety.mjs
+    file: scripts/check-migration-safety.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-DB-001, PX-DB-002, PX-DB-003]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-041
+    command: node scripts/check-dependency-change-policy.mjs
+    file: scripts/check-dependency-change-policy.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-DEPS-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-042
+    command: node scripts/check-exception-expiry.mjs
+    file: scripts/check-exception-expiry.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-EXC-001, PX-EXC-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-043
+    command: node scripts/check-adr-required.mjs
+    file: scripts/check-adr-required.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ADR-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-044
+    command: node scripts/check-observability-logging.mjs
+    file: scripts/check-observability-logging.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-OBS-001, PX-OBS-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-045
+    command: node scripts/check-dto-privacy-classification.mjs
+    file: scripts/check-dto-privacy-classification.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-DTO-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-046
+    command: node scripts/check-scalability-hot-paths.mjs
+    file: scripts/check-scalability-hot-paths.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SCALE-001, PX-SCALE-002, PX-SCALE-003]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active

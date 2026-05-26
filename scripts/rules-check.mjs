@@ -39,6 +39,15 @@ const GUARDS = [
   "check-rules-to-guards-coverage.mjs",
   "check-domain-status-registry.mjs",
   "check-ai-agent-permissions.mjs",
+  "check-architecture-import-graph.mjs",
+  "check-runtime-readiness-status.mjs",
+  "check-migration-safety.mjs",
+  "check-dependency-change-policy.mjs",
+  "check-exception-expiry.mjs",
+  "check-adr-required.mjs",
+  "check-observability-logging.mjs",
+  "check-dto-privacy-classification.mjs",
+  "check-scalability-hot-paths.mjs",
 ];
 
 let failed = 0;

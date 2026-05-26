@@ -81,6 +81,68 @@ Central map of all governance rules, organized by category. Every rule has a sta
 | PX-AI-002 | Agent must self-audit before DONE | AGENT_SELF_AUDIT_PROTOCOL.md |
 | PX-AI-003 | Agent must stop as BLOCKED when rules conflict | AI_FORBIDDEN_ACTIONS.md §2 |
 
+## Architecture Import Graph Rules
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-ARCH-008 | No circular domain dependencies | PlatformaX-V2-architecture-enforcement.md §5 |
+| PX-ARCH-009 | Import graph must match domain ownership | DOMAIN_OWNERSHIP_MATRIX.md |
+
+## Runtime Readiness Status Rules
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-RUNTIME-001 | PARTIAL requires real runtime evidence | PlatformaX-V2-domain-status.md §6 |
+| PX-RUNTIME-002 | IMPLEMENTED requires full runtime evidence | PlatformaX-V2-domain-status.md §6 |
+
+## Database / Migration Safety Rules
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-DB-001 | No live db push without separate decision | AI_AGENT_PERMISSIONS_POLICY.md |
+| PX-DB-002 | Migrations require safety review | AI_AGENT_PERMISSIONS_POLICY.md |
+| PX-DB-003 | No destructive migration without manual approval | AI_AGENT_PERMISSIONS_POLICY.md |
+
+## Dependency Change Policy Rules
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-DEPS-001 | No dependency changes without dependency decision | PlatformaX-V2-coding-standards.md §22 |
+
+## ADR Required Rules
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-ADR-001 | Architecture-impacting changes require ADR decision | PlatformaX-V2-execution-map.md |
+
+## Observability / Logging Safety Rules
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-OBS-001 | No unsafe console logging in runtime code | PlatformaX-V2-coding-standards.md §17 |
+| PX-OBS-002 | No PII in logs/errors/audit output | PlatformaX-V2-coding-standards.md §17 |
+
+## Exception Expiry Rules
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-EXC-001 | Exceptions require owner, reason, expiry, risk, evidence | EXCEPTIONS_REGISTER.md |
+| PX-EXC-002 | Expired exceptions fail gates | EXCEPTIONS_REGISTER.md |
+
+## DTO Privacy Classification Rules
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-DTO-001 | Public DTO fields require privacy classification | PlatformaX-V2-architecture-enforcement.md §8 |
+
+## Scalability Hot Path Rules
+
+| ID | Rule | Source |
+|---|---|---|
+| PX-SCALE-001 | No sync fanout in request path | PlatformaX-V2-coding-standards.md §22 |
+| PX-SCALE-002 | No unbounded hot-path loops | PlatformaX-V2-coding-standards.md §22 |
+| PX-SCALE-003 | No full scans for runtime list/feed/search | PlatformaX-V2-coding-standards.md §22 |
+
 ## Gates / CI Rules
 
 See `GUARDS_REGISTRY.yml` for full guard inventory.
