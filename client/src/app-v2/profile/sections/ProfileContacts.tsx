@@ -73,7 +73,14 @@ export function ProfileContacts({ contacts }: ProfileContactsProps) {
       {visible.length > 0 ? (
         <div className={styles.carousel}>
           {visible.map((c) => (
-            <button key={c.id} type="button" className={styles.contactCard}>
+            <button
+              key={c.id}
+              type="button"
+              className={styles.contactCard}
+              disabled
+              aria-disabled="true"
+              title={`${c.firstName} ${c.lastName} — profile kontaktów dostępne po podłączeniu domeny social`}
+            >
               <span className={styles.contactAvatar} aria-hidden="true">
                 {c.initial}
                 {c.online ? <span className={styles.contactOnline} /> : null}
