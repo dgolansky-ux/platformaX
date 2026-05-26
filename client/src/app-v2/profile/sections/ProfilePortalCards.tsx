@@ -9,6 +9,8 @@ type PortalCard = {
   accent: string;
   bg: string;
   delayMs: number;
+  /** Small "0 odkryj!" badge — count is 0 until the underlying domain is wired. */
+  discoverCount: number;
 };
 
 // Per-card accent colors mirror legacy ProfileTopRow (Społeczności = blue,
@@ -22,6 +24,7 @@ const CARDS: ReadonlyArray<PortalCard> = [
     accent: "#3B82F6",
     bg: "#FFFFFF",
     delayMs: 0,
+    discoverCount: 0,
   },
   {
     id: "channels",
@@ -31,6 +34,7 @@ const CARDS: ReadonlyArray<PortalCard> = [
     accent: "#8B5CF6",
     bg: "#FAFAFA",
     delayMs: 80,
+    discoverCount: 0,
   },
   {
     id: "friends-feed",
@@ -40,13 +44,18 @@ const CARDS: ReadonlyArray<PortalCard> = [
     accent: "#EE1D52",
     bg: "#FFFFFF",
     delayMs: 160,
+    discoverCount: 0,
   },
 ];
 
 /**
  * Three portal cards in the fixed blueprint order. Target domains/routes don't
- * exist yet, so each card is a disabled-policy CTA (honest "wkrótce"), not a
- * no-op and not a fake route. Visual parity with legacy ProfileTopRowCards.
+ * exist yet, so each card is a disabled-policy CTA (honest "wkrótce" title),
+ * not a no-op and not a fake route. Visual parity with legacy ProfileTopRowCards:
+ * "0 odkryj!" discovery badge next to the title and a soft-pulsing green "open"
+ * indicator on the right — the dot stays vivid even while the card is disabled,
+ * because the legacy design uses it to signal that the surface is live for
+ * exploration once enabled.
  */
 export function ProfilePortalCards() {
   return (
@@ -71,12 +80,20 @@ export function ProfilePortalCards() {
               {card.icon}
             </span>
             <span className={styles.portalBody}>
-              <span className={styles.portalTitle}>{card.title}</span>
+              <span className={styles.portalTitleRow}>
+                <span className={styles.portalTitle}>{card.title}</span>
+                <span
+                  className={styles.portalBadge}
+                  aria-label={`${card.discoverCount} nowych do odkrycia`}
+                >
+                  {card.discoverCount} odkryj!
+                </span>
+              </span>
               <span className={styles.portalSubtitle}>{card.subtitle}</span>
             </span>
             <span className={styles.portalRight}>
               <span className={styles.portalOnlineDot} aria-hidden="true" />
-              <span className={styles.portalOpenLabel}>wkrótce</span>
+              <span className={styles.portalOpenLabel}>open</span>
             </span>
           </button>
         );

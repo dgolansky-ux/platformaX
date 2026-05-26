@@ -40,9 +40,13 @@
   );
 }
 
+/* Disabled-policy state mirrors legacy ProfileTopRowCards: the card carries the
+   semantic disabled flag (cursor + title + aria) but stays at full opacity so
+   the "0 odkryj!" badge and the soft-pulsing "open" indicator remain readable.
+   Parent opacity is multiplicative and would dim the pulsing dot — keep it 1. */
 .portalCard:disabled {
   cursor: not-allowed;
-  opacity: 0.78;
+  opacity: 1;
 }
 
 .portalCard:focus-visible {
@@ -73,6 +77,14 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+}
+
+.portalTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .portalTitle {
