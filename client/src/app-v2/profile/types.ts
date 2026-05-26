@@ -50,8 +50,14 @@ export type QuickFeedItem = {
 
 /** Owner's personal profile, as rendered in the mobile shell. No private PII. */
 export type PersonalProfileView = {
+  /** Identity user id, when this view was hydrated from the identity boundary. */
+  userId: string | null;
   displayName: string;
   avatarInitial: string;
+  /** Public media URL for the avatar asset, or null if no asset / storage not ready. */
+  avatarUrl: string | null;
+  /** Public media URL for the banner asset, or null if no asset / storage not ready. */
+  bannerUrl: string | null;
   location: string | null;
   bio: string | null;
   status: ProfileStatus | null;

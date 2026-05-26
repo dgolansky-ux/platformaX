@@ -76,8 +76,8 @@ This table must be updated by code changes. Empty or planned domains must not be
 | `moderation` | operational domain | `PLANNED` | report/block/mute moderation states |
 | `audit` | operational domain | `PLANNED` | append-only restricted audit |
 | `system` | operational domain | `PLANNED` | health/env/feature flags/gates |
-| frontend `app-v2` | composition layer | `PLANNED` | routing/shell/composition |
-| frontend `features-v2` | UI features | `PLANNED` | domain UI shells |
+| frontend `app-v2` | composition layer | `PARTIAL` | routing/shell/composition; `/profile` composes identity + media public adapters into the personal view (step-33) |
+| frontend `features-v2` | UI features | `PARTIAL` | identity (auth + profile adapter, profile `updateMyProfile` wired in step-33) and media (avatar/banner upload-intent) adapters PARTIAL; other features PLANNED |
 | governance docs | governance | `ACTIVE` | Step 01 output after acceptance |
 
 ## 6. Upgrade rules

@@ -14,11 +14,13 @@ import type {
   IdentityResult,
   PrivateProfileDTO,
   PublicProfileDTO,
+  UpdatePrivateProfileInput,
 } from "@server/domains-v2/identity/public-api";
 
 export type CompleteOnboardingResult = IdentityResult<PrivateProfileDTO>;
 export type GetPublicProfileResult = IdentityResult<PublicProfileDTO>;
 export type GetMyProfileResult = IdentityResult<PrivateProfileDTO>;
+export type UpdateMyProfileResult = IdentityResult<PrivateProfileDTO>;
 
 export type OnboardingProfileAdapter = {
   /**
@@ -35,6 +37,10 @@ export type OnboardingProfileAdapter = {
     viewerId: string | null,
     profileUserId: string,
   ): Promise<GetPublicProfileResult>;
+  updateMyProfile(
+    userId: string,
+    input: UpdatePrivateProfileInput,
+  ): Promise<UpdateMyProfileResult>;
 };
 
-export type { CompleteOnboardingInput };
+export type { CompleteOnboardingInput, UpdatePrivateProfileInput };

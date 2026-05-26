@@ -205,6 +205,16 @@
   outline-offset: 2px;
 }
 
+/* Avatar image renders inside the gradient ring's inner surface and fills it.
+   Falls back to the initial letter when no media URL is resolved. */
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sheet {
     animation: none;

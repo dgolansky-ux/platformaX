@@ -53,6 +53,10 @@ function buildProfileAdapter(
       ok: false as const,
       error: { code: "NOT_FOUND" as const, message: "n/a" },
     })),
+    updateMyProfile: vi.fn(async () => ({
+      ok: false as const,
+      error: { code: "NOT_FOUND" as const, message: "n/a" },
+    })),
     ...overrides,
   };
 }

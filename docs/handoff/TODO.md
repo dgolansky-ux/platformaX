@@ -8,11 +8,11 @@
 > Zasady nadrzędne (zawsze): NIE generuj ZIP-a (`ZIP_NOT_GENERATED_BY_OPUS`), NIE `--no-verify`,
 > NIE osłabiaj guardów, NIE direct push do main, NIE fake DONE. Zasady kodowania/governance wygrywają z komendą.
 
-Ostatnia aktualizacja: 2026-05-25.
+Ostatnia aktualizacja: 2026-05-26.
 
 ## Stan main (punkt odniesienia)
 
-- `origin/main` HEAD: `9f64ec2 feat(media): add avatar and banner upload runtime (#20)`
+- `origin/main` HEAD: `8d41ed2 docs(governance): drop completed step-32 from handoff queue (#21)`
 - Na main są: Supabase Auth adapter (#11), auth/register/onboarding shell (#9/#10), `/onboarding`, `/profile` (#12–#16),
   guard hardening (#18 `06b0afb`), identity profile persistence + onboarding runtime (#17 `91ca595`),
   media avatar/banner upload-intent runtime (#20 `9f64ec2`, env-required storage),
@@ -22,16 +22,20 @@ Ostatnia aktualizacja: 2026-05-25.
 
 | # | Zadanie | Handoff | Pre-flight zależności | Status |
 |---|---|---|---|---|
-| 1 | `PROFILE_RUNTIME_WIRING_IDENTITY_AND_MEDIA_REFS` (step-33) | [HAND006](HAND006.md) | identity = OK (#17); media runtime = **OK (#20)** → **ODBLOKOWANE** | PENDING |
-| 2 | `PROFILE_FULL_PARITY_AND_CODE_QUALITY_FIXES` (step-29) | [HAND004](HAND004.md) | guard hardening na main = **OK (PR #18)** → **ODBLOKOWANE** | PENDING |
+| 1 | `PROFILE_FULL_PARITY_AND_CODE_QUALITY_FIXES` (step-29) | [HAND004](HAND004.md) | guard hardening na main = **OK (PR #18)** → **ODBLOKOWANE** | PENDING |
 
 ### Rekomendowana kolejność
-`step-33 (profile wiring)` → `step-29 (profile parity)`.
-- Oba są odblokowane.
-- step-29 i step-33 mocno dotykają tego samego obszaru `client/src/app-v2/profile` — rób je po kolei, nie równolegle, żeby uniknąć konfliktów.
+`step-29 (profile parity)` — jedyna pozostała pozycja.
 
 ## DONE (log, nie ruszać)
 
+- **step-33 / `PROFILE_RUNTIME_WIRING_IDENTITY_AND_MEDIA_REFS`** — PR na branchu `feat/profile-runtime-wiring`.
+  Composition layer w `client/src/app-v2/profile/data` (view-model + `fetchProfileData` + `useProfileData` + `useProfileBioEdit`),
+  identity adapter rozszerzony o `updateMyProfile`, owner-only `ProfileBioSheet`, `ProfileAvatar`/`ProfileBanner` przyjmują
+  media URLs, `ProfilePage` wpięta w runtime z fallbackiem do fixture dla anonim/empty/error. Status truth:
+  `PROFILE_RUNTIME_PARTIAL`, `IDENTITY_PROFILE_RUNTIME_PARTIAL`, `MEDIA_REFS_RUNTIME_PARTIAL`, `BIO_RUNTIME_PARTIAL`,
+  `PROFESSIONAL_PROFILE_RUNTIME_NOT_STARTED`, `FEED_RUNTIME_NOT_STARTED`, `LIVE_UPLOAD_NOT_STARTED`. Raport:
+  `docs/review/step-33-profile-runtime-wiring/STEP_33_REPORT.md`.
 - **step-32 / `MEDIA_AVATAR_BANNER_UPLOAD_RUNTIME`** — zmergowane jako **PR #20** (`9f64ec2`).
   Domena `media` SCAFFOLD_ONLY→PARTIAL (DTO/policy/service/repository in-memory + env-required storage port),
   `features-v2/media` adapter, profile avatar/banner upload sheet (walidacja + object-URL preview + disabled-policy save).

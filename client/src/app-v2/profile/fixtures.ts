@@ -30,10 +30,40 @@ const QUICK_FEED: ReadonlyArray<QuickFeedItem> = [
   { id: "q3", authorInitial: "P", authorName: "Piotr" },
 ];
 
+/** Empty social/feed surface shown when a section has no runtime yet. */
+export const EMPTY_SOCIAL_LINKS: ReadonlyArray<SocialLink> = [];
+export const EMPTY_CONTACTS: ReadonlyArray<ProfileContact> = [];
+export const EMPTY_QUICK_FEED: ReadonlyArray<QuickFeedItem> = [];
+
+/**
+ * Public viewer's baseline profile. Social/feed sections start empty because
+ * `social`/`content-v2` runtime is not wired yet — the shell renders them as
+ * empty rather than faking data through the identity boundary.
+ */
+export const publicPersonalProfile: PersonalProfileView = {
+  userId: null,
+  displayName: "Profil",
+  avatarInitial: "?",
+  avatarUrl: null,
+  bannerUrl: null,
+  location: null,
+  bio: null,
+  status: null,
+  socialLinks: EMPTY_SOCIAL_LINKS,
+  contacts: EMPTY_CONTACTS,
+  quickFeed: EMPTY_QUICK_FEED,
+  presentationPostCount: 0,
+  milestoneCount: 0,
+  isOwner: false,
+};
+
 /** Owner viewing their own personal profile. Content sections start empty. */
 export const ownerPersonalProfile: PersonalProfileView = {
+  userId: null,
   displayName: "Anna Kowalska",
   avatarInitial: "A",
+  avatarUrl: null,
+  bannerUrl: null,
   location: "Warszawa",
   bio: "Projektuję spokojne produkty cyfrowe i buduję społeczności wokół wspólnych celów.",
   status: {
