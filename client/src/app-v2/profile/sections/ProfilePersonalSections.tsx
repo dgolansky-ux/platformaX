@@ -6,10 +6,13 @@ type ProfilePersonalSectionsProps = {
   isOwner: boolean;
 };
 
+type EmptyAccent = "green" | "yellow";
+
 type EmptyBlockProps = {
   title: string;
   subtitle: string;
   icon: string;
+  iconAccent: EmptyAccent;
   ownerText: string;
   isOwner: boolean;
   count: number;
@@ -22,6 +25,7 @@ function SectionBlock({
   title,
   subtitle,
   icon,
+  iconAccent,
   ownerText,
   isOwner,
   count,
@@ -29,6 +33,11 @@ function SectionBlock({
   addLabel,
   emptyTitle,
 }: EmptyBlockProps) {
+  const iconClass =
+    iconAccent === "green"
+      ? `${styles.emptyIcon} ${styles.emptyIconGreen}`
+      : `${styles.emptyIcon} ${styles.emptyIconYellow}`;
+
   return (
     <section className={styles.section} aria-label={title}>
       <div className={styles.sectionHeader}>
@@ -53,7 +62,7 @@ function SectionBlock({
 
       {count === 0 ? (
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon} aria-hidden="true">
+          <div className={iconClass} aria-hidden="true">
             {icon}
           </div>
           <p className={styles.emptyTitle}>{emptyTitle}</p>
@@ -78,6 +87,7 @@ export function ProfilePersonalSections({
         title="Prezentacja profilu"
         subtitle="postów"
         icon="📷"
+        iconAccent="green"
         emptyTitle="Brak postów"
         ownerText="Dodaj do 12 postów ze zdjęciami i filmami."
         isOwner={isOwner}
@@ -89,6 +99,7 @@ export function ProfilePersonalSections({
         title="Ważne wydarzenia"
         subtitle="wydarzeń"
         icon="⭐"
+        iconAccent="yellow"
         emptyTitle="Brak ważnych wydarzeń"
         ownerText="Dodaj ważne momenty ze swojego życia na osi czasu."
         isOwner={isOwner}
