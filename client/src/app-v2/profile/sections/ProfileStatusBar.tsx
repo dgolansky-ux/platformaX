@@ -63,8 +63,13 @@ export function ProfileStatusBar({ status, isOwner }: ProfileStatusBarProps) {
         title="Zdjęcie statusowe będzie dostępne po podłączeniu media"
         disabled
       >
-        <span className={styles.statusPhotoIcon} aria-hidden="true">📷</span>
-        <span>foto</span>
+        <span className={styles.statusPhotoIcon} aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+        </span>
+        <span style={{ fontSize: "9px" }}>foto</span>
       </button>
     </div>
   );

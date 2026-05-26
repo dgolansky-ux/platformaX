@@ -15,8 +15,8 @@
 }
 
 .bannerCell {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   padding: 10px;
   overflow: hidden;
@@ -32,7 +32,7 @@
 .bannerCellLines span {
   height: 4px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .bannerCellLines span:nth-child(1) { width: 80%; }
@@ -61,7 +61,7 @@
 
 .bannerCellBars span {
   width: 14%;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.14);
   border-radius: 3px 3px 0 0;
 }
 
@@ -78,21 +78,20 @@
 .bannerCellList span {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .bannerCellList span:nth-child(1) { width: 70%; }
 .bannerCellList span:nth-child(2) { width: 45%; }
 
-/* Share badge layout — vertical stack of arrow glyph + numeric count. */
 .bannerShareIcon {
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1;
 }
 
 .bannerShareCount {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
 }

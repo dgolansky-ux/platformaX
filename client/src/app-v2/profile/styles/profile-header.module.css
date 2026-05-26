@@ -1,6 +1,4 @@
-/* QUALITY_STRUCTURE_EXCEPTION + ALLOW_FILE_SIZE_EXCEPTION: header CSS serves
-   co-dependent name/avatar/bio/banner/social/preview blocks. Splitting them
-   adds import noise without separation benefit. */
+/* QUALITY_STRUCTURE_EXCEPTION + ALLOW_FILE_SIZE_EXCEPTION */
 
 .header {
   padding: 6px 0 0;
@@ -9,10 +7,12 @@
 .name {
   margin: 0;
   padding: 6px 12px 8px;
+  font-family: var(--font-heading);
   font-size: 20px;
   font-weight: 700;
   line-height: 1.2;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  color: #111827;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -61,18 +61,19 @@
 
 .label {
   margin: 0 0 4px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text-soft);
+  color: #94a3b8;
 }
 
 .bioText {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+  color: #374151;
   display: -webkit-box;
   -webkit-line-clamp: 6;
   -webkit-box-orient: vertical;
@@ -84,8 +85,6 @@
   color: var(--color-text-soft);
 }
 
-/* Avatar wraps with negative bottom margin so it overlaps the banner edge,
-   like the legacy ProfileHeaderAvatar (`mb-[-14px] z-20`). */
 .avatarWrap {
   position: relative;
   margin-bottom: -14px;
@@ -99,15 +98,13 @@
   border-radius: 999px;
   background: #ffffff;
   padding: 2px;
-  box-shadow: 0 2px 12px rgba(15, 60, 201, 0.12);
-  transition: box-shadow 1.1s ease-in-out;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.10);
+  transition: box-shadow 0.3s ease;
 }
 
-/* Polished gradient ring (deep blue → indigo) for a premium feel; was a flat
-   blue in earlier mocks. 3px keeps the outline crisp at 144px. */
 .avatarRing {
   width: 100%; height: 100%; border-radius: 999px; padding: 2px;
-  background: linear-gradient(135deg, #93b4f5 0%, #a5b4fc 50%, #c4b5fd 100%);
+  background: linear-gradient(135deg, #1e4fd8 0%, #2563eb 50%, #3b82f6 100%);
 }
 
 .avatarInner {
@@ -117,16 +114,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f1f5f9;
-  color: var(--color-primary);
+  background: #f8fafc;
+  color: #1e3a5f;
+  font-family: var(--font-heading);
   font-size: 42px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
 }
 
-/* White eye button with a blue glyph (the design pass shows it as a white
-   circle, not the inverse). Sits below the avatar so it overlaps the banner
-   edge. Larger hit target (36px) than the previous 26px to match the screen. */
 .eyeButton {
   position: absolute;
   bottom: -14px;
@@ -174,27 +169,27 @@
   aspect-ratio: 5 / 2;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--gradient-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #102a6b 0%, #1e4fd8 55%, #334155 100%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .bannerShare {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 44px;
-  height: 44px;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.15);
   color: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   cursor: pointer;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
   z-index: 2;
 }
 
@@ -298,7 +293,7 @@
   }
 
   .avatarInner {
-    font-size: 54px;
+    font-size: 52px;
   }
 
   .avatarCol {
@@ -321,8 +316,8 @@
 
 @media (hover: hover) {
   .socialLink:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
   }
 }
 
@@ -344,16 +339,6 @@
   100% {
     transform: scaleY(1);
     opacity: 0.45;
-  }
-}
-
-@keyframes px-divider-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
   }
 }
 

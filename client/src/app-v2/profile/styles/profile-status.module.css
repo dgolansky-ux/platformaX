@@ -16,11 +16,11 @@
   gap: 8px;
   padding: 10px 14px;
   border-radius: 999px;
-  border: 1.5px solid #d1d5db;
+  border: 1px solid #d8e2f0;
   background: #ffffff;
   cursor: pointer;
   text-align: left;
-  transition: filter 150ms ease;
+  transition: border-color 150ms ease;
   font-size: 13px;
 }
 
@@ -40,9 +40,8 @@
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: #1e4fd8;
   flex-shrink: 0;
-  animation: ph-dot 2s ease-in-out infinite;
 }
 
 .statusEmoji {
@@ -80,10 +79,9 @@
 }
 
 .statusSparkle {
-  font-size: 14px;
+  font-size: 12px;
   color: #94a3b8;
   display: inline-block;
-  animation: ph-sparkle 2.2s ease-in-out infinite;
 }
 
 .statusEmptyLabel {
@@ -92,25 +90,22 @@
   color: #94a3b8;
 }
 
-/* Bigger violet status-photo button matching the design pass screenshot:
-   dashed violet ring on a soft violet gradient, large camera glyph and a
-   bold "foto" label. Idle pulse keeps the legacy micro-animation. */
 .statusPhoto {
   width: 80px;
   height: 80px;
   border-radius: 999px;
-  border: 1.5px solid #d1d5db;
-  background: #f9fafb;
-  color: #6b7280;
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
+  color: #64748b;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
   padding: 0;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
   cursor: not-allowed;
   flex-shrink: 0;
   overflow: hidden;
@@ -122,8 +117,9 @@
 }
 
 .statusPhotoIcon {
-  font-size: 24px;
+  font-size: 18px;
   line-height: 1;
+  color: #94a3b8;
 }
 
 .switcherRow {
@@ -145,7 +141,7 @@
   padding: 6px 16px;
   border: none;
   border-radius: 18px;
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   font-size: 12px;
   font-weight: 600;
   color: #94a3b8;

@@ -18,12 +18,12 @@
   border: none;
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  background: #f8fafc;
   cursor: pointer;
 }
 
 .toggleOpen {
-  background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+  background: #f1f5f9;
 }
 
 .toggle:focus-visible {
@@ -35,8 +35,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: var(--font-heading);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
+  color: #374151;
 }
 
 .stack {
@@ -67,17 +69,16 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--color-primary);
 }
 
 .liveDot {
-  width: 14px;
-  height: 14px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   background: #ef4444;
-  animation: qfp-pulse 1.8s ease-in-out infinite;
 }
 
 .panel {

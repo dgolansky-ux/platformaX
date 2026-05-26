@@ -20,12 +20,12 @@ type DesktopSidebarProps = {
 };
 
 const ACTIVE_NOW_MOCK = [
-  { id: "a1", initial: "M", color: "#6366f1" },
-  { id: "a2", initial: "O", color: "#818cf8" },
-  { id: "a3", initial: "P", color: "#a78bfa" },
-  { id: "a4", initial: "K", color: "#c084fc" },
-  { id: "a5", initial: "T", color: "#7c3aed" },
-  { id: "a6", initial: "E", color: "#8b5cf6" },
+  { id: "a1", initial: "M", color: "#1e4fd8" },
+  { id: "a2", initial: "O", color: "#2563eb" },
+  { id: "a3", initial: "P", color: "#3b82f6" },
+  { id: "a4", initial: "K", color: "#475569" },
+  { id: "a5", initial: "T", color: "#1e3a5f" },
+  { id: "a6", initial: "E", color: "#334155" },
 ];
 const ACTIVE_EXTRA_COUNT = 5;
 

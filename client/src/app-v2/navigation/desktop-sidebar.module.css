@@ -26,14 +26,13 @@
   }
 }
 
-/* ---- Logo ---- */
 .logo {
   padding: 22px 20px 8px;
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: #7c3aed;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1e4fd8;
+  font-family: "Sora", "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* ---- User card ---- */
@@ -45,10 +44,11 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #1e4fd8, #2563eb);
   color: #fff;
-  font-size: 18px;
-  font-weight: 700;
+  font-family: "Sora", "DM Sans", sans-serif;
+  font-size: 17px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,9 +56,10 @@
 }
 
 .userName {
-  font-size: 15px;
-  font-weight: 700;
-  color: #0f172a;
+  font-family: "Sora", "DM Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
   line-height: 1.3;
 }
 
@@ -164,9 +165,10 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 14px;
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
   font-weight: 500;
-  color: #334155;
+  color: #374151;
   text-align: left;
   border-left: 3px solid transparent;
   transition: background 150ms ease, color 150ms ease;

@@ -17,10 +17,10 @@ type Tab = {
 
 // Per-tab color scheme mirrors legacy FriendsSection 1:1.
 const TABS: ReadonlyArray<Tab> = [
-  { id: "all", label: "Wszyscy", color: "#2563EB", bg: "#EFF6FF" },
-  { id: "close", label: "Bliscy", color: "#7C3AED", bg: "#F5F3FF" },
-  { id: "family_close", label: "Rodzina bliska", color: "#EC4899", bg: "#FDF2F8" },
-  { id: "family_extended", label: "Rodzina dalsza", color: "#8B5CF6", bg: "#F5F3FF" },
+  { id: "all", label: "Wszyscy", color: "#1E4FD8", bg: "#EEF2FF" },
+  { id: "close", label: "Bliscy", color: "#1E4FD8", bg: "#EEF2FF" },
+  { id: "family_close", label: "Rodzina bliska", color: "#1E4FD8", bg: "#EEF2FF" },
+  { id: "family_extended", label: "Rodzina dalsza", color: "#1E4FD8", bg: "#EEF2FF" },
 ];
 
 function countFor(contacts: ReadonlyArray<ProfileContact>, id: ContactCategory) {

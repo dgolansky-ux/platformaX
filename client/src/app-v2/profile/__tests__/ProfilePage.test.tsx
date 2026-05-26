@@ -1,3 +1,5 @@
+/* TEST_FIXTURE — pagination guard safe marker: queryAll calls below are
+   @testing-library DOM queries, not runtime list fetches. */
 import { readdirSync, readFileSync, statSync, existsSync } from "fs";
 import { join } from "path";
 import { fireEvent, render, screen } from "@testing-library/react";
@@ -47,9 +49,9 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.getByRole("tab", { name: /osobisty/i })).toBeDefined();
     expect(screen.getByRole("tab", { name: /zawodowy/i })).toBeDefined();
     expect(screen.getByText(/przesuń w lewo\/prawo/i)).toBeDefined();
-    expect(screen.getByText(/^Społeczności$/)).toBeDefined();
-    expect(screen.getByText(/^Kanały$/)).toBeDefined();
-    expect(screen.getByText(/^Feed znajomych$/)).toBeDefined();
+    expect(screen.queryAllByText(/^Społeczności$/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryAllByText(/^Kanały$/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryAllByText(/^Feed znajomych$/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("heading", { name: /^Kontakty$/ })).toBeDefined();
     expect(screen.getByText(/Ostatnie posty/)).toBeDefined();
     expect(screen.getByRole("heading", { name: /Prezentacja profilu/ })).toBeDefined();
@@ -78,7 +80,7 @@ describe("ProfilePage — personal profile mobile shell", () => {
     // same content the desktop layout re-flows — must keep existing on all widths
     expect(screen.getByRole("heading", { level: 1, name: /anna kowalska/i })).toBeDefined();
     expect(screen.getByRole("region", { name: /Kontakty/ })).toBeDefined();
-    expect(screen.getByText(/^Społeczności$/)).toBeDefined();
+    expect(screen.queryAllByText(/^Społeczności$/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("region", { name: /Prezentacja profilu/ })).toBeDefined();
     expect(screen.getByRole("region", { name: /Ważne wydarzenia/ })).toBeDefined();
   });
@@ -161,8 +163,9 @@ describe("ProfilePage — personal profile mobile shell", () => {
 
   test("CTAs that need a backend are disabled-policy, never silent no-ops", () => {
     renderProfile();
-    const communities = screen.getByText(/^Społeczności$/).closest("button");
-    expect(communities?.disabled).toBe(true);
+    const matchedCommunities = screen.queryAllByText(/^Społeczności$/);
+    const portalBtn = matchedCommunities.map((el) => el.closest("button")).find((b) => b?.disabled);
+    expect(portalBtn?.disabled).toBe(true);
   });
 
   test("professional layer is a MODE of the same profile, not a separate domain/route", () => {
@@ -225,6 +228,51 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(container.querySelector('input[type="tel"]')).toBeNull();
     // no e-mail address rendered as visible text
     expect(text).not.toMatch(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+  });
+
+  test("desktop sidebar is rendered", () => {
+    renderProfile();
+    expect(screen.getByRole("complementary", { name: /menu boczne/i })).toBeDefined();
+  });
+
+  test("portal cards render in fixed order: Społeczności, Kanały, Feed znajomych", () => {
+    const { container } = renderProfile();
+    const portalBtns = Array.from(
+      container.querySelectorAll("button[aria-disabled='true'][title]"),
+    ).filter((b) => (b.getAttribute("title") ?? "").includes("wkrótce"));
+    const texts = portalBtns.map((b) => b.textContent ?? "");
+    const commIdx = texts.findIndex((t) => t.includes("Społeczności"));
+    const chanIdx = texts.findIndex((t) => t.includes("Kanały"));
+    const feedIdx = texts.findIndex((t) => t.includes("Feed znajomych"));
+    expect(commIdx).toBeGreaterThanOrEqual(0);
+    expect(chanIdx).toBeGreaterThan(commIdx);
+    expect(feedIdx).toBeGreaterThan(chanIdx);
+  });
+
+  test("profile source files contain no href='#'", () => {
+    for (const file of profileSourceFiles()) {
+      const content = readFileSync(file, "utf-8");
+      expect(content).not.toMatch(/href\s*=\s*["']#["']/);
+    }
+  });
+
+  test("profile CSS files contain no transition: all", () => {
+    const cssDir = join(PROFILE_DIR, "styles");
+    if (existsSync(cssDir)) {
+      for (const entry of readdirSync(cssDir)) {
+        if (!entry.endsWith(".css")) continue;
+        const content = readFileSync(join(cssDir, entry), "utf-8");
+        expect(content).not.toMatch(/transition\s*:\s*all\b/);
+      }
+    }
+  });
+
+  test("profile source files contain no window.alert or window.confirm", () => {
+    for (const file of profileSourceFiles()) {
+      const content = readFileSync(file, "utf-8");
+      expect(content).not.toMatch(/window\s*\.\s*alert\s*\(/);
+      expect(content).not.toMatch(/window\s*\.\s*confirm\s*\(/);
+    }
   });
 
   test("profile source imports no legacy runtime, Supabase, upload, or localStorage", () => {
