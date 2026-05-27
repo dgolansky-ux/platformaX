@@ -16,8 +16,10 @@ import type {
   CompleteOnboardingInput,
   IdentityError,
   IdentityService,
+  PersonalStatusDTO,
   PrivateProfileDTO,
   PublicProfileDTO,
+  UpdatePersonalStatusInput,
   UpdatePrivateProfileInput,
 } from "@server/domains-v2/identity/public-api";
 import type {
@@ -33,6 +35,7 @@ import {
 } from "./errors";
 import type {
   OwnerProfileView,
+  PersonalStatusView,
   ProfileMediaRefView,
   PublicProfileView,
 } from "./dto";
@@ -58,11 +61,22 @@ export interface ProfileApplicationService {
     currentUserId: string,
     patch: UpdatePrivateProfileInput,
   ): Promise<ProfileApplicationResult<OwnerProfileView>>;
+  updatePersonalStatus(
+    currentUserId: string,
+    input: UpdatePersonalStatusInput,
+  ): Promise<ProfileApplicationResult<OwnerProfileView>>;
+  clearPersonalStatus(
+    currentUserId: string,
+  ): Promise<ProfileApplicationResult<OwnerProfileView>>;
   attachProfileAvatarRef(
     currentUserId: string,
     assetId: string,
   ): Promise<ProfileApplicationResult<OwnerProfileView>>;
   attachProfileBannerRef(
+    currentUserId: string,
+    assetId: string,
+  ): Promise<ProfileApplicationResult<OwnerProfileView>>;
+  attachProfileStatusPhotoRef(
     currentUserId: string,
     assetId: string,
   ): Promise<ProfileApplicationResult<OwnerProfileView>>;
@@ -135,22 +149,43 @@ async function resolveRefView(
   return refViewFromAsset(result.value);
 }
 
+async function statusView(
+  media: MediaService,
+  status: PersonalStatusDTO | null,
+): Promise<PersonalStatusView | null> {
+  if (!status) return null;
+  const photo = await resolveRefView(media, status.photoMediaRef?.assetId);
+  return {
+    text: status.text,
+    emoji: status.emoji,
+    description: status.description,
+    visibility: status.visibility,
+    photo,
+  };
+}
+
 async function composeOwnerView(
   media: MediaService,
   dto: PrivateProfileDTO,
 ): Promise<OwnerProfileView> {
-  const [avatar, banner] = await Promise.all([
+  const [avatar, banner, personalStatus] = await Promise.all([
     resolveRefView(media, dto.avatarMediaRef?.assetId),
     resolveRefView(media, dto.bannerMediaRef?.assetId),
+    statusView(media, dto.personalStatus),
   ]);
   return {
     userId: dto.userId,
+    profileSlug: dto.profileSlug,
     firstName: dto.firstName,
     lastName: dto.lastName,
     displayName: displayNameOf(dto.firstName, dto.lastName),
     dateOfBirth: dto.dateOfBirth,
     phone: dto.phone,
     bio: dto.bio,
+    location: dto.location,
+    civilStatus: dto.civilStatus,
+    socialLinks: dto.socialLinks,
+    personalStatus,
     visibility: dto.visibility,
     onboardingCompleted: dto.onboardingCompleted,
     avatar,
@@ -165,14 +200,20 @@ async function composePublicView(
   media: MediaService,
   dto: PublicProfileDTO,
 ): Promise<PublicProfileView> {
-  const [avatar, banner] = await Promise.all([
+  const [avatar, banner, personalStatus] = await Promise.all([
     resolveRefView(media, dto.avatarMediaRef?.assetId),
     resolveRefView(media, dto.bannerMediaRef?.assetId),
+    statusView(media, dto.personalStatus),
   ]);
   return {
     userId: dto.userId,
+    profileSlug: dto.profileSlug,
     displayName: dto.displayName,
     bio: dto.bio,
+    location: dto.location,
+    civilStatus: dto.civilStatus,
+    socialLinks: dto.socialLinks,
+    personalStatus,
     visibility: dto.visibility,
     onboardingCompleted: dto.onboardingCompleted,
     avatar,
@@ -195,11 +236,14 @@ async function attachRef(
   );
   if (!verified.ok) return { ok: false, error: mapMediaError(verified.error) };
 
-  const patch: UpdatePrivateProfileInput =
-    purpose === "avatar"
-      ? { avatarMediaRef: { assetId } }
-      : { bannerMediaRef: { assetId } };
-  const updated = await deps.identity.updatePrivateProfile(currentUserId, patch);
+  let updated;
+  if (purpose === "avatar") {
+    updated = await deps.identity.attachAvatarMediaRef(currentUserId, assetId);
+  } else if (purpose === "banner") {
+    updated = await deps.identity.attachBannerMediaRef(currentUserId, assetId);
+  } else {
+    updated = await deps.identity.attachStatusPhotoMediaRef(currentUserId, assetId);
+  }
   if (!updated.ok) return { ok: false, error: mapIdentityError(updated.error) };
   return { ok: true, value: await composeOwnerView(deps.media, updated.value) };
 }
@@ -235,10 +279,27 @@ export function createProfileApplicationService(
       return { ok: true, value: await composeOwnerView(deps.media, result.value) };
     },
 
+    async updatePersonalStatus(currentUserId, input) {
+      if (!currentUserId) return { ok: false, error: unauthError() };
+      const result = await deps.identity.updatePersonalStatus(currentUserId, input);
+      if (!result.ok) return { ok: false, error: mapIdentityError(result.error) };
+      return { ok: true, value: await composeOwnerView(deps.media, result.value) };
+    },
+
+    async clearPersonalStatus(currentUserId) {
+      if (!currentUserId) return { ok: false, error: unauthError() };
+      const result = await deps.identity.clearPersonalStatus(currentUserId);
+      if (!result.ok) return { ok: false, error: mapIdentityError(result.error) };
+      return { ok: true, value: await composeOwnerView(deps.media, result.value) };
+    },
+
     attachProfileAvatarRef: (currentUserId, assetId) =>
       attachRef(deps, currentUserId, assetId, "avatar"),
 
     attachProfileBannerRef: (currentUserId, assetId) =>
       attachRef(deps, currentUserId, assetId, "banner"),
+
+    attachProfileStatusPhotoRef: (currentUserId, assetId) =>
+      attachRef(deps, currentUserId, assetId, "statusPhoto"),
   };
 }

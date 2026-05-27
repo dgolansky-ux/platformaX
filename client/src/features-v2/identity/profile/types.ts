@@ -13,6 +13,7 @@
  */
 import type {
   CompleteOnboardingInput,
+  UpdatePersonalStatusInput,
   UpdatePrivateProfileInput,
 } from "@server/domains-v2/identity/public-api";
 import type {
@@ -46,6 +47,11 @@ export type OnboardingProfileAdapter = {
     userId: string,
     input: UpdatePrivateProfileInput,
   ): Promise<UpdateMyProfileResult>;
+  updatePersonalStatus(
+    userId: string,
+    input: UpdatePersonalStatusInput,
+  ): Promise<UpdateMyProfileResult>;
+  clearPersonalStatus(userId: string): Promise<UpdateMyProfileResult>;
   attachProfileAvatarRef(
     userId: string,
     assetId: string,
@@ -54,11 +60,16 @@ export type OnboardingProfileAdapter = {
     userId: string,
     assetId: string,
   ): Promise<AttachProfileMediaRefResult>;
+  attachProfileStatusPhotoRef(
+    userId: string,
+    assetId: string,
+  ): Promise<AttachProfileMediaRefResult>;
 };
 
 export type {
   CompleteOnboardingInput,
   UpdatePrivateProfileInput,
+  UpdatePersonalStatusInput,
   OwnerProfileView,
   PublicProfileView,
 };

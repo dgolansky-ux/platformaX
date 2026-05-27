@@ -36,6 +36,11 @@ export type {
 export type {
   PublicProfileDTO,
   ProfileVisibility,
+  PersonalStatusVisibility,
+  PersonalStatusDTO,
+  CivilStatus,
+  SocialLinkKind,
+  SocialLinks,
   MediaAssetRef,
 } from "./dto";
 
@@ -45,6 +50,7 @@ export type {
   UserId,
   CompleteOnboardingInput,
   UpdatePrivateProfileInput,
+  UpdatePersonalStatusInput,
   IdentityResult,
   IdentityError,
   IdentityErrorCode,

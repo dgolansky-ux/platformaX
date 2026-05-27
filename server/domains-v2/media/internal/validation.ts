@@ -23,13 +23,19 @@ const MB = 1024 * 1024;
 export const MEDIA_VALIDATION_LIMITS = {
   avatarMaxBytes: 5 * MB,
   bannerMaxBytes: 10 * MB,
+  statusPhotoMaxBytes: 5 * MB,
   allowedMimeTypes: ALLOWED_MIME_TYPES,
 } as const;
 
 export function maxBytesFor(purpose: MediaPurpose): number {
-  return purpose === "avatar"
-    ? MEDIA_VALIDATION_LIMITS.avatarMaxBytes
-    : MEDIA_VALIDATION_LIMITS.bannerMaxBytes;
+  switch (purpose) {
+    case "avatar":
+      return MEDIA_VALIDATION_LIMITS.avatarMaxBytes;
+    case "banner":
+      return MEDIA_VALIDATION_LIMITS.bannerMaxBytes;
+    case "statusPhoto":
+      return MEDIA_VALIDATION_LIMITS.statusPhotoMaxBytes;
+  }
 }
 
 function isAllowedMime(mimeType: string): boolean {

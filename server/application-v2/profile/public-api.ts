@@ -15,6 +15,7 @@ export type {
   OwnerProfileView,
   PublicProfileView,
   ProfileMediaRefView,
+  PersonalStatusView,
   ProfileVisibility,
 } from "./dto";
 

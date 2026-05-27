@@ -42,8 +42,11 @@ a persisted profile.
 ## Use-cases (this slice)
 - `completeOnboarding(userId, input)` — owner-only; persists the onboarding payload, flips `onboardingCompleted`, emits events.
 - `getMyProfile(userId)` — owner-only; returns `PrivateProfileDTO`.
-- `updatePrivateProfile(userId, input)` — owner-only; partial update.
-- `getPublicProfile(viewerId, profileUserId)` — visibility-gated; returns PII-free `PublicProfileDTO`.
+- `updatePrivateProfile(userId, input)` — owner-only; partial update across the personal-profile core fields (bio, location, profileSlug, civilStatus, socialLinks, visibility, name, phone, dateOfBirth, avatar/banner ref).
+- `updatePersonalStatus(userId, input)` — owner-only; sets the typed personal status (text, emoji, description, visibility, photo ref).
+- `clearPersonalStatus(userId)` — owner-only; removes the active status block in one call.
+- `attachAvatarMediaRef`, `attachBannerMediaRef`, `attachStatusPhotoMediaRef(userId, mediaAssetId)` — thin setters for the media refs. Media-asset ownership/purpose/ready validation is performed one layer up by `application-v2/profile`, which calls `media.verifyProfileAssetForAttach` before invoking these methods.
+- `getPublicProfile(viewerId, profileUserId)` — visibility-gated; returns PII-free `PublicProfileDTO`. The mapper additionally filters the personal status by `statusVisibility` + viewer role (friends-only stays hidden from strangers, private stays owner-only).
 
 ## PII policy
 - `PrivateProfileDTO` contains private fields (`phone`, `dateOfBirth`) and is owner-only.
@@ -51,10 +54,11 @@ a persisted profile.
 - Events carry only `userId` and timestamps — never PII.
 
 ## Not done yet
-- No Supabase repository adapter — `BLOCKER_REQUIRES_PERSISTENCE_ADAPTER`. SQL migration shipped in `supabase/migrations/0001_identity_private_profiles.sql` but not applied.
-- No HTTP/transport router yet — backend transport is out of scope for STEP_27.
+- No Supabase repository adapter — `BLOCKER_REQUIRES_PERSISTENCE_ADAPTER`. SQL migrations shipped in `supabase/migrations/0001_identity_private_profiles.sql` (base) and `supabase/migrations/0003_identity_personal_profile_fields.sql` (forward-additive personal-profile columns) but neither is applied automatically.
+- No HTTP/transport router yet — backend transport is out of scope.
 - No professional layer runtime (`PROFESSIONAL_PROFILE_RUNTIME_NOT_STARTED`).
-- No media upload runtime (`MEDIA_UPLOAD_NOT_STARTED`) — only `MediaAssetRef` is accepted.
+- No real media storage runtime — `MEDIA_UPLOAD_NOT_STARTED`. Identity stores only `MediaAssetRef` for avatar / banner / status photo.
+- `friends_only` status visibility relies on the `friend` viewer role; the social graph runtime does not exist yet, so no viewer resolves to "friend" and friends-only status correctly stays hidden from strangers (`FRIENDS_RUNTIME_NOT_CONNECTED`).
 - Admin role is a policy placeholder; no runtime path.
 
 ## Canonical governance

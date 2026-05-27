@@ -50,7 +50,9 @@ export function useProfileMediaUpload(purpose: MediaPurpose, userId: string) {
       const create =
         purpose === "avatar"
           ? mediaAdapter.createAvatarUploadIntent
-          : mediaAdapter.createBannerUploadIntent;
+          : purpose === "banner"
+            ? mediaAdapter.createBannerUploadIntent
+            : mediaAdapter.createStatusPhotoUploadIntent;
       const result = await create(userId, meta);
       if (!result.ok) {
         setState({ ...EMPTY, fileName: file.name, error: result.error.message });

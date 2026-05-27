@@ -7,7 +7,7 @@
  */
 
 /** What a media asset is attached to within a profile. */
-export type MediaPurpose = "avatar" | "banner";
+export type MediaPurpose = "avatar" | "banner" | "statusPhoto";
 
 /** Lifecycle of an asset. `ready` means a public URL is resolvable. */
 export type MediaAssetStatus = "pending" | "ready" | "failed";

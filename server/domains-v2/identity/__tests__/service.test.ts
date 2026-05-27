@@ -227,3 +227,151 @@ describe("identity service — getPublicProfile", () => {
     expect(result.error.code).toBe("NOT_FOUND");
   });
 });
+
+describe("identity service — personal status", () => {
+  async function seed() {
+    const { service } = buildService();
+    await service.completeOnboarding(OWNER, {
+      firstName: "Anna",
+      lastName: "Kowalska",
+      dateOfBirth: "1990-03-15",
+      phone: "+48600999111",
+    });
+    return service;
+  }
+
+  it("updatePersonalStatus persists text/emoji/visibility and surfaces it via getMyProfile", async () => {
+    const service = await seed();
+    const updated = await service.updatePersonalStatus(OWNER, {
+      text: "produktywny",
+      emoji: "🚀",
+      description: "skupiona na release",
+      visibility: "public",
+    });
+    expect(updated.ok).toBe(true);
+    if (!updated.ok) return;
+    expect(updated.value.personalStatus?.text).toBe("produktywny");
+    expect(updated.value.personalStatus?.visibility).toBe("public");
+  });
+
+  it("clearPersonalStatus removes the status entirely", async () => {
+    const service = await seed();
+    await service.updatePersonalStatus(OWNER, { text: "tymczasowy", visibility: "public" });
+    const cleared = await service.clearPersonalStatus(OWNER);
+    expect(cleared.ok).toBe(true);
+    if (!cleared.ok) return;
+    expect(cleared.value.personalStatus).toBeNull();
+  });
+
+  it("updatePersonalStatus rejects empty text with INVALID_INPUT", async () => {
+    const service = await seed();
+    const result = await service.updatePersonalStatus(OWNER, {
+      text: "   ",
+      visibility: "public",
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("INVALID_INPUT");
+    expect(result.error.fields?.text).toBeTruthy();
+  });
+
+  it("attachStatusPhotoMediaRef requires an active status (INVALID_INPUT otherwise)", async () => {
+    const service = await seed();
+    const result = await service.attachStatusPhotoMediaRef(OWNER, "asset-x");
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("INVALID_INPUT");
+  });
+
+  it("attachStatusPhotoMediaRef stores the ref once status exists", async () => {
+    const service = await seed();
+    await service.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
+    const result = await service.attachStatusPhotoMediaRef(OWNER, "asset-x");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.personalStatus?.photoMediaRef).toEqual({ assetId: "asset-x" });
+  });
+
+  it("getPublicProfile hides a friends_only personal status from strangers", async () => {
+    const service = await seed();
+    await service.updatePersonalStatus(OWNER, {
+      text: "tylko znajomi",
+      visibility: "friends_only",
+    });
+    const result = await service.getPublicProfile(STRANGER, OWNER);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.personalStatus).toBeNull();
+  });
+});
+
+describe("identity service — personal profile fields", () => {
+  async function seed() {
+    const { service } = buildService();
+    await service.completeOnboarding(OWNER, {
+      firstName: "Anna",
+      lastName: "Kowalska",
+      dateOfBirth: "1990-03-15",
+      phone: "+48600999111",
+    });
+    return service;
+  }
+
+  it("updatePrivateProfile accepts location, profileSlug, civilStatus and socialLinks", async () => {
+    const service = await seed();
+    const result = await service.updatePrivateProfile(OWNER, {
+      location: "Kraków",
+      profileSlug: "anna-k",
+      civilStatus: "partnered",
+      socialLinks: { linkedin: "https://linkedin.com/in/anna" },
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.location).toBe("Kraków");
+    expect(result.value.profileSlug).toBe("anna-k");
+    expect(result.value.civilStatus).toBe("partnered");
+    expect(result.value.socialLinks?.linkedin).toBe("https://linkedin.com/in/anna");
+  });
+
+  it("updatePrivateProfile rejects invalid slug with field-level error", async () => {
+    const service = await seed();
+    const result = await service.updatePrivateProfile(OWNER, { profileSlug: "AB" });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("INVALID_INPUT");
+    expect(result.error.fields?.profileSlug).toBeTruthy();
+  });
+
+  it("updatePrivateProfile rejects a non-https social link", async () => {
+    const service = await seed();
+    const result = await service.updatePrivateProfile(OWNER, {
+      socialLinks: { github: "ftp://github.com/anna" },
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("INVALID_INPUT");
+    expect(result.error.fields?.["socialLinks.github"]).toBeTruthy();
+  });
+
+  it("updatePrivateProfile rejects an unknown civilStatus value", async () => {
+    const service = await seed();
+    const result = await service.updatePrivateProfile(OWNER, {
+      civilStatus: "married_with_kids" as never,
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("INVALID_INPUT");
+    expect(result.error.fields?.civilStatus).toBeTruthy();
+  });
+
+  it("attachAvatarMediaRef and attachBannerMediaRef thinly set the refs", async () => {
+    const service = await seed();
+    const a = await service.attachAvatarMediaRef(OWNER, "asset-a");
+    const b = await service.attachBannerMediaRef(OWNER, "asset-b");
+    expect(a.ok).toBe(true);
+    expect(b.ok).toBe(true);
+    if (!a.ok || !b.ok) return;
+    expect(b.value.avatarMediaRef).toEqual({ assetId: "asset-a" });
+    expect(b.value.bannerMediaRef).toEqual({ assetId: "asset-b" });
+  });
+});

@@ -35,6 +35,10 @@ export type MediaUploadAdapter = {
     userId: string,
     meta: UploadFileMeta,
   ): Promise<CreateUploadIntentResult>;
+  createStatusPhotoUploadIntent(
+    userId: string,
+    meta: UploadFileMeta,
+  ): Promise<CreateUploadIntentResult>;
   confirmProfileMediaUpload(
     userId: string,
     assetId: string,

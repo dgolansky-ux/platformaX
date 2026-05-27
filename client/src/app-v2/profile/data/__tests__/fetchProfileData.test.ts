@@ -19,12 +19,17 @@ const NOW = "2026-05-25T12:00:00.000Z";
 function ownerViewFor(userId: string): OwnerProfileView {
   return {
     userId,
+    profileSlug: null,
     firstName: "Anna",
     lastName: "Kowalska",
     displayName: "Anna Kowalska",
     dateOfBirth: "1990-03-15",
     phone: "+48600999111",
     bio: null,
+    location: null,
+    civilStatus: null,
+    socialLinks: null,
+    personalStatus: null,
     visibility: "public",
     onboardingCompleted: true,
     avatar: { assetId: "asset-avatar", url: "https://cdn.example/avatar.jpg" },
@@ -62,8 +67,11 @@ function buildProfileAdapter(
     getMyProfileView: async () => notFound,
     getPublicProfileView: async () => notFound,
     updateMyProfile: async () => notFound,
+    updatePersonalStatus: async () => notFound,
+    clearPersonalStatus: async () => notFound,
     attachProfileAvatarRef: async () => notFound,
     attachProfileBannerRef: async () => notFound,
+    attachProfileStatusPhotoRef: async () => notFound,
     ...overrides,
   };
 }
@@ -110,6 +118,9 @@ describe("fetchProfileDataOnce", () => {
     expect(json).not.toContain("1990-03-15");
   });
 
+  // explosive-adapter check below also acts as a structural test: any new method
+  // added to the OnboardingProfileAdapter contract must be covered here, otherwise
+  // the inline object literal stops type-checking.
   it("surfaces non-PROFILE_NOT_FOUND application errors as error state", async () => {
     const profile = buildProfileAdapter({
       getMyProfileView: async () => ({

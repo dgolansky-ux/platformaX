@@ -31,6 +31,8 @@ export function createMediaAdapter(deps: MediaAdapterDeps): MediaUploadAdapter {
       deps.service.createAvatarUploadIntent(userId, meta),
     createBannerUploadIntent: (userId, meta) =>
       deps.service.createBannerUploadIntent(userId, meta),
+    createStatusPhotoUploadIntent: (userId, meta) =>
+      deps.service.createStatusPhotoUploadIntent(userId, meta),
     confirmProfileMediaUpload: (userId, assetId) =>
       deps.service.confirmProfileMediaUpload(userId, assetId),
     getPublicMediaUrl: (ref) => deps.service.getPublicMediaUrl(ref),
