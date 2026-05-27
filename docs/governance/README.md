@@ -27,6 +27,7 @@ Historical documents in `docs/architecture/`, `docs/ai/`, `docs/security/`, and 
 | `AGENT_COMMAND_STANDARD.md` | Standard structure for every agent task |
 | `EXCEPTIONS_REGISTER.md` | Active exceptions to rules |
 | `REQUIRED_DOCS_BY_SCOPE.yml` | Required reading per task type |
+| `BACKEND_ARCHITECTURE_INVARIANTS.md` | Hard backend invariants (owner/viewer/DTO/media/list/outbox) |
 
 ## Where to Start
 

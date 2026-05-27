@@ -364,7 +364,29 @@ Only if all required items pass:
 BRAMKA_COMPLETE
 ```
 
-## 21. Work control rule
+## 21. Backend runtime execution order (post-governance)
+
+After Step 17 / BRAMKA baseline, backend feature work follows this sequence. Status must be honest (`DOCS_READY`, `GOVERNANCE_GAP_TRACKED`, `PARTIAL`, `IMPLEMENTED`) — no fake DONE.
+
+| Order | Work item | Status until evidence |
+|---:|---|---|
+| 1 | Governance runtime invariants reconciliation | `DOCS_READY` when docs/guards matrix updated |
+| 2 | `server/application-v2/use-cases` skeleton | `PARTIAL` when folder + sample use-case exists |
+| 3 | EventEnvelope + transactional outbox ADR/skeleton | `DOCS_READY` / `PARTIAL` when contracts exist |
+| 4 | Identity profile core | per `DOMAIN_STATUS_REGISTRY.yml` |
+| 5 | Media refs (attach invariants) | per media domain status |
+| 6 | Professions / specializations runtime | `PARTIAL` minimum |
+| 7 | Profile runtime wiring (application boundary) | `PARTIAL` when wired + tests |
+| 8 | Social contacts | per social domain status |
+| 9 | Content profile posts / milestones | per content-v2 status |
+| 10 | Friend feed read model (single owner) | `PARTIAL` + read-model owner doc |
+| 11 | Comments / reactions | per content-v2 status |
+| 12 | Notifications / search / audit workers | outbox-driven; not sync request path |
+
+Canonical invariant checklist: `docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md`  
+Agent command blocks: `docs/governance/AGENT_COMMAND_STANDARD.md` §9–§10
+
+## 22. Work control rule
 
 Agents must not jump steps.
 

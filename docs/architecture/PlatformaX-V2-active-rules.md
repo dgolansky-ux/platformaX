@@ -217,11 +217,60 @@ The following actions are forbidden unless explicitly requested by the project o
 - changing status documents to match broken code
 - inventing fake evidence
 
-## 10. Acceptance
+## 10. Runtime governance invariants
+
+This section is the **addendum** to the full architecture corpus (`PlatformaX-V2-architecture-enforcement.md`, `DOMAIN_OWNERSHIP_MATRIX.md`, ADRs). It is not a replacement for those documents.
+
+Governance index: `docs/governance/GOVERNANCE_INDEX.md` — section **Runtime invariants / anti-spaghetti rules**.
+
+### 10.1 Application orchestration
+
+- Flows touching **2+ domains** must go through `server/application-v2/use-cases` (rule **PX-APP-001**, ADR-010).
+- Domain `service.ts` owns single-domain use-cases only.
+
+### 10.2 Events and outbox
+
+- Cross-domain events use **EventEnvelope**: `{ id, type, version, occurredAt, actorId, payload, idempotencyKey }` (**PX-EVENT-001**, ADR-009).
+- **Transactional outbox**: source-of-truth write + outbox row in **one DB transaction** (**PX-EVENT-002**).
+- No synchronous fanout to many users in the request path (**PX-SCALE-001**).
+
+### 10.3 Read models and contracts
+
+- Each projection/read model has **exactly one owner domain** (**PX-READMODEL-001**, ADR-011).
+- Public DTO / `public-api` changes require **contract or snapshot tests** (**PX-CONTRACT-001**).
+
+### 10.4 Types, errors, transport
+
+- Branded IDs at boundaries: `UserId`, `PostId`, `MediaAssetId`, `CommunityId` (**PX-ID-001**, ADR-012).
+- Domain boundaries return **typed `Result` / `DomainError`**, not raw thrown errors for expected failures (**PX-ERROR-001**).
+- **Zod** (or equivalent) only at **transport** boundary — not inside pure policy/mapper core.
+
+### 10.5 Pagination and lifecycle
+
+- Large runtime lists use **opaque cursor** — no offset pagination on hot paths (**PX-CURSOR-001**, ADR-013).
+- Deletable entities: lifecycle **status enum** + **`deletedAt`** soft delete (**PX-LIFECYCLE-001**, **PX-LC-001**).
+- **Idempotency table** for create / publish / upload / finalize (**PX-IDEMPOTENCY-001**, **PX-IDEMP-001**, ADR-015).
+
+### 10.6 Policy, UI, observability, data
+
+- Policies are **pure functions**: `canView` / `canEdit` / `canAttach` / `canDelete` (**PX-POLICY-001**, ADR-014).
+- **Design tokens** are the source of truth for profile/legacy visual parity (**PX-UI-001**).
+- **Presentational** components must not import data hooks/adapters (**PX-UI-002**).
+- **Server state** through one API/data access layer per feature — no scattered fetch in presentational trees.
+- **Correlation ID** end-to-end through request → use-case → log → error (**PX-OBS-003**).
+- **Forward-only** migrations; no destructive live push without decision.
+- **Deterministic, PII-safe** dev/test seeds (**PX-SEED-001**).
+
+### 10.7 Backend invariant doc
+
+Hard checklist for agents: `docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md` (owner/viewer, visibility, DTO, media, lists, raw DB, outbox, AIS).
+
+## 11. Acceptance
 
 This document is acceptable only if:
 
 - it is committed with the rest of governance docs,
 - it is referenced by agent command templates,
 - later scripts enforce its key rules,
-- no feature work depends on ignoring it.
+- no feature work depends on ignoring it,
+- runtime governance invariants remain linked from `GOVERNANCE_INDEX.md` and `RULES_REGISTRY.yml`.

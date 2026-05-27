@@ -149,6 +149,50 @@ Central map of all governance rules, organized by category. Every rule has a sta
 |---|---|---|
 | PX-GOV-005 | No governance drift — normative rules require Rule ID or link | HIDDEN_RULES_INVENTORY.md |
 
+## Backend architecture invariants
+
+Canonical checklist: [`BACKEND_ARCHITECTURE_INVARIANTS.md`](BACKEND_ARCHITECTURE_INVARIANTS.md)
+
+| ID | Rule | Enforcement |
+|---|---|---|
+| PX-OWN-001 | Resource owner model | manual_gate |
+| PX-OWN-002 | viewerContext on public reads | manual_gate |
+| PX-VIS-001 | Visibility matrix | manual_gate + PX-POLICY-001 |
+| PX-DTO-002 | Public DTO zero PII (extended) | check-public-dto-pii, check-dto-privacy-classification |
+| PX-CTX-001 | Resource context refs | manual_gate |
+| PX-MEDIA-004 | Media attach owner/purpose | manual_gate |
+| PX-LIST-004 | limit/cursor/stable order | check-pagination, check-scalability-* |
+| PX-DB-004 | No raw DB outside domain | audit-domain-boundaries, check-architecture-import-graph |
+| PX-EVENT-001 | EventEnvelope + outbox fanout | check-scalability-hot-paths, manual_gate |
+| PX-EVENT-002 | Transactional outbox same TX | manual_gate |
+| PX-LC-001 | Explicit lifecycle statuses | manual_gate |
+| PX-IDEMP-001 | Idempotency on retry writes | manual_gate |
+| PX-AIS-002 | Architecture Impact Statement | check-adr-required, manual_gate |
+
+## Runtime invariants / anti-spaghetti rules
+
+Source addendum: `docs/architecture/PlatformaX-V2-active-rules.md` §10
+
+| ID | Topic | ADR / doc |
+|---|---|---|
+| PX-APP-001 | `server/application-v2/use-cases` for 2+ domains | ADR-010 |
+| PX-EVENT-001 | EventEnvelope + no sync fanout | ADR-009 |
+| PX-EVENT-002 | Transactional outbox | ADR-009 |
+| PX-READMODEL-001 | Single read-model owner | ADR-011 |
+| PX-CONTRACT-001 | Public DTO contract tests | — |
+| PX-ID-001 | Branded ID types | ADR-012 |
+| PX-ERROR-001 | Result/DomainError boundaries | ADR-012 |
+| PX-CURSOR-001 | Opaque cursor | ADR-013 |
+| PX-LIFECYCLE-001 | status + deletedAt | BACKEND_ARCHITECTURE_INVARIANTS |
+| PX-IDEMPOTENCY-001 | Idempotency table | ADR-015 |
+| PX-POLICY-001 | Pure policy functions | ADR-014 |
+| PX-UI-001 | Design tokens | PROFILE_BLUEPRINT |
+| PX-UI-002 | Presentational/container split | coding-standards |
+| PX-OBS-003 | Correlation ID | coding-standards |
+| PX-SEED-001 | Deterministic PII-safe seeds | coding-standards |
+
+Also see: owner/viewer/resource model (`BACKEND_ARCHITECTURE_INVARIANTS.md`), application/use-case boundary, event envelope, transactional outbox, read model ownership, public DTO contract tests, idempotency, cursor standard, pure policy functions, design tokens, deterministic seed, correlation ID.
+
 ## Gates / CI Rules
 
 See `GUARDS_REGISTRY.yml` for full guard inventory.

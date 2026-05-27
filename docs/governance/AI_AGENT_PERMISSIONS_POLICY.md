@@ -82,6 +82,21 @@ Defines what AI agents (Opus, Cursor, Claude) may and must not do in this reposi
 - Agent MUST run all gates before commit
 - Agent MUST NOT trust its own prior output without verification
 
+## Backend / runtime DONE evidence (agents)
+
+An AI agent must **not** mark backend or runtime work DONE (or `IMPLEMENTED` / `BACKEND_DONE`) when any of the following are missing:
+
+| Missing evidence | Rule |
+|---|---|
+| Owner/viewer/resource model on new resources | PX-OWN-001, PX-OWN-002 |
+| Public DTO privacy (gate log or tests) | PX-DTO-002, PX-SEC-001 |
+| limit/cursor/stable order on new lists/feeds/search | PX-LIST-004, PX-CURSOR-001 |
+| Media ownership validation on attach paths | PX-MEDIA-004 |
+| Architecture Impact Statement on larger tasks | PX-AIS-002, PX-ADR-001 |
+| Status aligned with files/tests/gates | PX-STATUS-001, PX-RUNTIME-001, PX-RUNTIME-002 |
+
+Use `IN_PROGRESS` or `BLOCKED` with concrete blockers. See `docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md`.
+
 ## Gate Requirements
 
 | Action | Required gates |

@@ -9,11 +9,71 @@ scopes:
       - docs/governance/GOVERNANCE_INDEX.md
       - docs/governance/RULES_REGISTRY.yml
       - docs/governance/GUARDS_REGISTRY.yml
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
       - docs/architecture/PlatformaX-V2-active-rules.md
       - docs/architecture/PlatformaX-V2-coding-standards.md
       - docs/ai/AGENT_OPERATING_STANDARD.md
       - docs/ai/AI_FORBIDDEN_ACTIONS.md
     notes: Full governance context required
+
+  backend:
+    required_reading:
+      - docs/governance/README.md
+      - docs/governance/GOVERNANCE_INDEX.md
+      - docs/governance/RULES_REGISTRY.yml
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/governance/AGENT_COMMAND_STANDARD.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/architecture/DOMAIN_OWNERSHIP_MATRIX.md
+    notes: Backend tasks require invariant checklist + AIS
+
+  ai-agent-command:
+    required_reading:
+      - docs/governance/AGENT_COMMAND_STANDARD.md
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/governance/RULES_REGISTRY.yml
+      - docs/governance/AI_AGENT_PERMISSIONS_POLICY.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+    notes: Copy mandatory invariant blocks from AGENT_COMMAND_STANDARD
+
+  identity:
+    required_reading:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+      - docs/architecture/DOMAIN_OWNERSHIP_MATRIX.md
+      - docs/profile/PROFILE_RUNTIME_LOGIC_BLUEPRINT_FROM_LEGACY.md
+    notes: Owner/viewer/visibility matrix for profile
+
+  media:
+    required_reading:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/adr/ADR-006-media-presigned-no-base64.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    notes: Media attach invariants PX-MEDIA-004
+
+  content-v2:
+    required_reading:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/adr/ADR-007-feed-ownership-no-global-social-feed.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    notes: Context refs PX-CTX-001 + read model ownership
+
+  social:
+    required_reading:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/DOMAIN_OWNERSHIP_MATRIX.md
+      - docs/architecture/adr/ADR-007-feed-ownership-no-global-social-feed.md
+    notes: null
+
+  migrations:
+    required_reading:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/governance/AI_AGENT_PERMISSIONS_POLICY.md
+      - docs/ai/SUPABASE_ACCESS_POLICY.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+    notes: Forward-only; no live db push without decision
 
   profile-ui:
     required_reading:
@@ -30,6 +90,7 @@ scopes:
     required_reading:
       - docs/governance/README.md
       - docs/governance/GOVERNANCE_INDEX.md
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
       - docs/architecture/PlatformaX-V2-active-rules.md
       - docs/architecture/PlatformaX-V2-coding-standards.md
       - docs/architecture/PlatformaX-V2-architecture-enforcement.md
@@ -37,7 +98,7 @@ scopes:
       - docs/profile/PROFILE_RUNTIME_LOGIC_BLUEPRINT_FROM_LEGACY.md
       - docs/ai/AGENT_OPERATING_STANDARD.md
       - docs/ai/AI_FORBIDDEN_ACTIONS.md
-    notes: Profile runtime requires both blueprints
+    notes: Profile runtime requires both blueprints + viewerContext/visibility invariants
 
   identity-runtime:
     required_reading:

@@ -1010,3 +1010,543 @@ rules:
     status: active
     owner: governance
     notes: null
+
+  # === BACKEND ARCHITECTURE INVARIANTS (owner/viewer/DTO/media/list/outbox) ===
+
+  - id: PX-OWN-001
+    title: Resource records require explicit owner model
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    applies_to: [server/domains-v2]
+    forbidden_patterns:
+      - "using record id alone as ownership proof"
+      - "update/delete/attach without owner check"
+      - "mixing ownerUserId with viewerUserId in one field"
+    required_patterns:
+      - "ownerUserId or ownerId on owned resources"
+      - "slug or publicId for public URL resources when applicable"
+    enforced_by:
+      - manual_gate
+    evidence_required: policy/service tests or Architecture Impact Statement owner matrix
+    status: active
+    owner: architecture
+    notes: Partial automation via domain-scaffold and policy tests; dedicated guard TODO
+
+  - id: PX-OWN-002
+    title: Public reads require viewerContext or explicit public-only policy
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/profile/PROFILE_RUNTIME_LOGIC_BLUEPRINT_FROM_LEGACY.md
+    applies_to: [server/domains-v2/identity, server/domains-v2/social, server/application-v2]
+    forbidden_patterns:
+      - "public profile/resource read without viewerContext"
+      - "implicit stranger visibility without policy"
+    required_patterns:
+      - "viewerContext owner|friend|stranger|anonymous|admin"
+      - "or documented public-only read path"
+    enforced_by:
+      - manual_gate
+    evidence_required: public read service signature + policy tests
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-VIS-001
+    title: Profile and resource visibility matrix required
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/profile/PROFILE_RUNTIME_LOGIC_BLUEPRINT_FROM_LEGACY.md
+    applies_to: [server/domains-v2/identity, server/domains-v2/social, server/domains-v2/content-v2]
+    forbidden_patterns:
+      - "ad-hoc visibility checks in routers"
+      - "field exposed without owner/friend/stranger/anonymous matrix"
+    required_patterns:
+      - "policy.ts defines canView/canEdit per viewerContext"
+      - "visibility matrix tests for profile fields"
+    enforced_by:
+      - manual_gate
+    evidence_required: policy tests + PROFILE_RUNTIME_LOGIC alignment
+    status: active
+    owner: architecture
+    notes: Pure policy functions — see PX-POLICY-001
+
+  - id: PX-DTO-002
+    title: Public DTO zero PII and no raw auth provider session storage paths
+    severity: P0
+    category: security
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    applies_to: [server/domains-v2, shared, public-api, dto]
+    forbidden_patterns:
+      - "email phone dateOfBirth in public DTO"
+      - "token session provider rawUser in public DTO"
+      - "storagePath serviceRole internal storage path in public DTO"
+      - "raw Supabase user in public output"
+    required_patterns:
+      - "mapper produces classified public DTO only"
+    enforced_by:
+      - scripts/check-public-dto-pii.mjs
+      - scripts/check-dto-privacy-classification.mjs
+      - scripts/check-logging-pii-security.mjs
+    evidence_required: gate log
+    status: active
+    owner: security
+    notes: Extends PX-SEC-001 and PX-DTO-001 with explicit backend invariant doc
+
+  - id: PX-CTX-001
+    title: Content and resources require explicit context refs
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+    applies_to: [server/domains-v2/content-v2, server/domains-v2/social, server/domains-v2/identity]
+    forbidden_patterns:
+      - "content without contextType contextOwnerId contextRefId"
+      - "orphan content without ownerUserId"
+    required_patterns:
+      - "contextType contextOwnerId contextRefId visibility ownerUserId"
+    enforced_by:
+      - manual_gate
+    evidence_required: contracts/DTO fields + mapper tests
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-MEDIA-004
+    title: Media attach requires owner and purpose validation
+    severity: P0
+    category: media
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/adr/ADR-006-media-presigned-no-base64.md
+    applies_to: [server/domains-v2/media, server/domains-v2/identity]
+    forbidden_patterns:
+      - "attach foreign media asset"
+      - "attach without purpose match"
+      - "public DTO exposes internal storage path"
+    required_patterns:
+      - "validate asset ownerUserId ownerType purpose status before attach"
+    enforced_by:
+      - manual_gate
+      - scripts/check-media-base64.mjs
+    evidence_required: media policy tests + attach service tests
+    status: active
+    owner: architecture
+    notes: Dedicated attach guard TODO; base64 path blocked by PX-MEDIA-001
+
+  - id: PX-LIST-004
+    title: Runtime lists feed search require limit maxLimit cursor stable order
+    severity: P0
+    category: scalability
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/PlatformaX-V2-architecture-enforcement.md
+    applies_to: [server/domains-v2, server/application-v2]
+    forbidden_patterns:
+      - "unbounded runtime list"
+      - "feed without cursor or fixed cap"
+      - "unstable ordering"
+    required_patterns:
+      - "limit maxLimit cursor or fixed cap stable order"
+    enforced_by:
+      - scripts/check-pagination.mjs
+      - scripts/check-scalability-patterns.mjs
+      - scripts/check-scalability-hot-paths.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: Extends PX-LIST-001 and PX-SCALE-003 with explicit invariant doc
+
+  - id: PX-DB-004
+    title: No raw DB records outside domain boundaries
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [server/domains-v2, server/application-v2]
+    forbidden_patterns:
+      - "raw DB row in public-api or router response"
+      - "cross-domain repository mapper db import"
+      - "select(*) on hot path without justification comment"
+    required_patterns:
+      - "DB record to mapper to DTO to public-api"
+    enforced_by:
+      - scripts/audit-domain-boundaries.mjs
+      - scripts/check-architecture-import-graph.mjs
+    evidence_required: gate log
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-EVENT-001
+    title: Fanout and cross-domain events use EventEnvelope and outbox not sync request path
+    severity: P0
+    category: scalability
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/adr/ADR-009-event-envelope-transactional-outbox.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+    applies_to: [server/domains-v2, server/application-v2]
+    forbidden_patterns:
+      - "sync fanout to many users in request path"
+      - "cross-domain event without EventEnvelope shape"
+      - "untyped event payload"
+    required_patterns:
+      - "EventEnvelope id type version occurredAt actorId payload idempotencyKey"
+      - "fanout via events outbox worker"
+    enforced_by:
+      - scripts/check-scalability-hot-paths.mjs
+      - manual_gate
+    evidence_required: events.ts contracts + ADR-009 + no sync fanout in touched paths
+    status: active
+    owner: architecture
+    notes: Extends PX-SCALE-001; envelope guard TODO
+
+  - id: PX-EVENT-002
+    title: Outbox event persisted in same DB transaction as source write
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/adr/ADR-009-event-envelope-transactional-outbox.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+    applies_to: [server/domains-v2, supabase/migrations]
+    forbidden_patterns:
+      - "event publish after commit without outbox"
+      - "source write without paired outbox row when fanout required"
+    required_patterns:
+      - "transactional outbox write with source of truth"
+    enforced_by:
+      - manual_gate
+    evidence_required: repository transaction pattern or ADR rollout note
+    status: active
+    owner: architecture
+    notes: Automated outbox guard TODO — MANUAL_GATE_REQUIRED until outbox table exists
+
+  - id: PX-LC-001
+    title: Domain entities with lifecycle require explicit statuses
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/PlatformaX-V2-domain-status.md
+    applies_to: [server/domains-v2]
+    forbidden_patterns:
+      - "hard delete without lifecycle policy"
+      - "hidden state without status enum"
+    required_patterns:
+      - "explicit status enum draft active disabled deleted pending approved rejected archived"
+      - "soft delete uses deletedAt where applicable"
+    enforced_by:
+      - manual_gate
+    evidence_required: contracts status field + tests
+    status: active
+    owner: architecture
+    notes: Aligns with PX-LIFECYCLE-001
+
+  - id: PX-IDEMP-001
+    title: Retry-sensitive write operations require idempotency
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/adr/ADR-015-idempotency-table.md
+    applies_to: [server/domains-v2, server/application-v2]
+    forbidden_patterns:
+      - "create publish upload finalize without idempotencyKey or documented exemption"
+    required_patterns:
+      - "idempotencyKey on retry-sensitive commands"
+      - "or explicit reason in Architecture Impact Statement"
+    enforced_by:
+      - manual_gate
+    evidence_required: command contract + service handling or AIS exemption
+    status: active
+    owner: architecture
+    notes: Aligns with PX-IDEMPOTENCY-001 when table lands
+
+  - id: PX-AIS-002
+    title: Backend tasks require Architecture Impact Statement
+    severity: P1
+    category: governance
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/templates/ARCHITECTURE_IMPACT_STATEMENT.md
+      - docs/governance/AGENT_COMMAND_STANDARD.md
+    applies_to: [reports, PRs, agent-output, server/domains-v2]
+    forbidden_patterns:
+      - "large backend change without Architecture Impact Statement"
+      - "BACKEND_DONE without invariant checklist answers"
+    required_patterns:
+      - "Architecture Impact Statement with domain owner DTO list media outbox status sections"
+    enforced_by:
+      - scripts/check-adr-required.mjs
+      - manual_gate
+    evidence_required: AIS section in step report or PR body
+    status: active
+    owner: governance
+    notes: Extends PX-ADR-001 for backend-specific invariant questions
+
+  # === RUNTIME GOVERNANCE INVARIANTS (application layer / types / UI boundaries) ===
+
+  - id: PX-APP-001
+    title: Flows touching 2+ domains use server/application-v2/use-cases
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/adr/ADR-010-application-use-cases-boundary.md
+    applies_to: [server/application-v2]
+    forbidden_patterns:
+      - "orchestration across domains inside a single domain service"
+      - "router coordinating two domain repositories directly"
+    required_patterns:
+      - "use-case module under server/application-v2/use-cases"
+    enforced_by:
+      - manual_gate
+    evidence_required: use-case file + import graph review
+    status: active
+    owner: architecture
+    notes: check-application-use-cases-boundary.mjs TODO
+
+  - id: PX-READMODEL-001
+    title: Every read model projection has exactly one owner domain
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/adr/ADR-011-single-read-model-owner.md
+      - docs/architecture/adr/ADR-007-feed-ownership-no-global-social-feed.md
+    applies_to: [server/domains-v2, server/application-v2]
+    forbidden_patterns:
+      - "shared global feed table without owner domain"
+      - "two domains writing same projection"
+    required_patterns:
+      - "single owner domain per read model"
+    enforced_by:
+      - manual_gate
+    evidence_required: DOMAIN_OWNERSHIP_MATRIX + read model README
+    status: active
+    owner: architecture
+    notes: null
+
+  - id: PX-CONTRACT-001
+    title: Public DTO and public-api require contract or snapshot tests
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+    applies_to: [server/domains-v2]
+    forbidden_patterns:
+      - "public-api surface change without contract test"
+    required_patterns:
+      - "contract test or snapshot test for public DTO exports"
+    enforced_by:
+      - manual_gate
+      - scripts/check-public-dto-pii.mjs
+    evidence_required: __tests__ public-api or dto contract suite
+    status: active
+    owner: architecture
+    notes: Dedicated check-public-dto-contract-tests.mjs TODO
+
+  - id: PX-ID-001
+    title: Domain IDs use branded types not raw string at boundaries
+    severity: P1
+    category: code-quality
+    source_docs:
+      - docs/architecture/adr/ADR-012-branded-ids-result-boundary.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+    applies_to: [server/domains-v2, shared]
+    forbidden_patterns:
+      - "raw string userId postId everywhere without brand"
+    required_patterns:
+      - "UserId PostId MediaAssetId CommunityId branded types at domain boundary"
+    enforced_by:
+      - manual_gate
+    evidence_required: shared/types or domain contracts
+    status: active
+    owner: engineering
+    notes: check-branded-id-types.mjs TODO
+
+  - id: PX-ERROR-001
+    title: Domain boundaries return typed Result not raw thrown errors
+    severity: P1
+    category: code-quality
+    source_docs:
+      - docs/architecture/adr/ADR-012-branded-ids-result-boundary.md
+    applies_to: [server/domains-v2]
+    forbidden_patterns:
+      - "throw new Error for expected domain failures at public-api boundary"
+    required_patterns:
+      - "Result or DomainError at domain public boundary"
+    enforced_by:
+      - manual_gate
+    evidence_required: public-api return types + tests
+    status: active
+    owner: engineering
+    notes: null
+
+  - id: PX-CURSOR-001
+    title: Runtime list feed search uses opaque cursor not offset pagination
+    severity: P0
+    category: scalability
+    source_docs:
+      - docs/architecture/adr/ADR-013-opaque-cursor-standard.md
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+    applies_to: [server/domains-v2]
+    forbidden_patterns:
+      - "offset pagination for large runtime lists"
+      - "page number on hot feed paths"
+    required_patterns:
+      - "opaque cursor nextCursor hasMore stable order"
+    enforced_by:
+      - scripts/check-pagination.mjs
+      - scripts/check-scalability-patterns.mjs
+    evidence_required: gate log + repository cursor contract
+    status: active
+    owner: architecture
+    notes: Extends PX-LIST-004; offset ban manual on new endpoints
+
+  - id: PX-LIFECYCLE-001
+    title: Deletable entities use lifecycle status and deletedAt soft delete
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+    applies_to: [server/domains-v2]
+    forbidden_patterns:
+      - "physical delete without policy"
+      - "missing deletedAt on soft-deletable entities"
+    required_patterns:
+      - "status enum plus deletedAt for soft delete"
+    enforced_by:
+      - manual_gate
+    evidence_required: schema/migration + contracts
+    status: active
+    owner: architecture
+    notes: Same family as PX-LC-001
+
+  - id: PX-IDEMPOTENCY-001
+    title: Create publish upload finalize persist idempotency key
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/adr/ADR-015-idempotency-table.md
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+    applies_to: [server/domains-v2, supabase/migrations]
+    forbidden_patterns:
+      - "duplicate side effects on retry without idempotency table"
+    required_patterns:
+      - "idempotency key storage for create publish upload finalize"
+    enforced_by:
+      - manual_gate
+    evidence_required: migration + repository idempotency check
+    status: active
+    owner: architecture
+    notes: Aligns with PX-IDEMP-001; table guard TODO
+
+  - id: PX-POLICY-001
+    title: Policies are pure testable functions canView canEdit canAttach canDelete
+    severity: P0
+    category: architecture
+    source_docs:
+      - docs/architecture/adr/ADR-014-policy-pure-functions.md
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+    applies_to: [server/domains-v2]
+    forbidden_patterns:
+      - "policy with IO or DB calls"
+      - "duplicated ad-hoc permission in router"
+    required_patterns:
+      - "pure policy functions with unit tests"
+    enforced_by:
+      - manual_gate
+    evidence_required: policy.ts tests without mocks for IO
+    status: active
+    owner: architecture
+    notes: check-policy-pure-functions.mjs TODO
+
+  - id: PX-UI-001
+    title: Design tokens are source of truth for profile visual parity
+    severity: P1
+    category: profile
+    source_docs:
+      - docs/profile/PROFILE_BLUEPRINT_MOBILE_FIRST.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+    applies_to: [client/src/features-v2/identity, client/src/app-v2/profile]
+    forbidden_patterns:
+      - "hardcoded colors spacing breaking token contract"
+    required_patterns:
+      - "design tokens drive profile legacy parity"
+    enforced_by:
+      - manual_gate
+    evidence_required: token usage review + screenshots
+    status: active
+    owner: product
+    notes: check-design-tokens-usage.mjs TODO
+
+  - id: PX-UI-002
+    title: Presentational components must not import data hooks or adapters
+    severity: P1
+    category: code-quality
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/architecture/PlatformaX-V2-active-rules.md
+    applies_to: [client/src/features-v2, client/src/app-v2]
+    forbidden_patterns:
+      - "presentational component imports useQuery fetch adapter"
+    required_patterns:
+      - "container owns data presentational owns markup"
+    enforced_by:
+      - manual_gate
+    evidence_required: import review or lint rule future
+    status: active
+    owner: engineering
+    notes: check-presentational-container-boundary.mjs TODO
+
+  - id: PX-OBS-003
+    title: Correlation ID flows through request use-case log error boundaries
+    severity: P1
+    category: security
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [server, client]
+    forbidden_patterns:
+      - "request without correlation id in logs"
+    required_patterns:
+      - "correlationId end to end"
+    enforced_by:
+      - manual_gate
+    evidence_required: middleware/use-case log fields
+    status: active
+    owner: engineering
+    notes: check-correlation-id-boundary.mjs TODO
+
+  - id: PX-SEED-001
+    title: Dev and test seeds must be deterministic and PII-safe
+    severity: P1
+    category: governance
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [scripts, tests, fixtures]
+    forbidden_patterns:
+      - "random seed data in snapshot tests"
+      - "real PII in fixtures"
+    required_patterns:
+      - "stable IDs deterministic dates MOCK fixtures"
+    enforced_by:
+      - scripts/check-test-env-safety.mjs
+      - manual_gate
+    evidence_required: fixture builders + seed scripts review
+    status: active
+    owner: engineering
+    notes: check-deterministic-seeds.mjs TODO

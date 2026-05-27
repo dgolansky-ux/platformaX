@@ -146,6 +146,50 @@ Policy rules:
 - no duplicated ad-hoc permission checks across screens
 - critical policy decisions have tests
 
+## 5.1 Backend architecture invariants
+
+Canonical checklist: `docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md`  
+Rules: `PX-OWN-001`, `PX-OWN-002`, `PX-VIS-001`, `PX-DTO-002`, `PX-CTX-001`, `PX-MEDIA-004`, `PX-LIST-004`, `PX-DB-004`, `PX-EVENT-001`, `PX-LC-001`, `PX-IDEMP-001`, `PX-AIS-002`
+
+### Identity fields (do not conflate)
+
+| Field | Role |
+|---|---|
+| `id` | Record UUID — **not** proof of ownership |
+| `ownerUserId` / `ownerId` | Who owns the resource |
+| `viewerUserId` / `viewerContext` | Who is reading (`owner` \| `friend` \| `stranger` \| `anonymous` \| `admin`) |
+| `slug` / `publicId` | Public URL identifier — never raw `userId` in public routes when slug is required |
+
+### DTO mapping
+
+- Flow: `DB record → mapper → DTO → public-api`
+- Public DTO: zero PII (no email, phone, DOB, token, session, provider, raw user, storage path)
+- Private/admin DTOs stay inside domain; never leak through public mapper
+
+### Visibility and policy
+
+- Visibility matrix per field: owner / friend / stranger / anonymous
+- Policies are pure functions: `canView`, `canEdit`, `canAttach`, `canDelete` (**PX-POLICY-001**)
+
+### Lists and cursors
+
+- `limit` + `maxLimit` + opaque `cursor` (or fixed cap) + stable order
+- No offset pagination on large runtime feeds (**PX-CURSOR-001**)
+
+### Media
+
+- Attach only after validating asset `ownerUserId`, `purpose`, `status`
+- Store refs in owner domain; uploads via media domain presigned path only
+
+### Events, outbox, idempotency
+
+- Fanout via **EventEnvelope** + **transactional outbox** — not sync request-path loops
+- Retry-sensitive writes: `idempotencyKey` or documented exemption in AIS
+
+### Status lifecycle
+
+- Use explicit status enums; soft delete via `deletedAt` where applicable — no ad-hoc hidden states
+
 ## 6. File size and complexity limits
 
 | File type | Soft limit | Hard limit | Required reaction |

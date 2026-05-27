@@ -75,16 +75,25 @@ describe("ai-agent-permissions guard logic", () => {
     const content = readFileSync(SETTINGS_PATH, "utf-8");
     const allowList = getAllowList(content);
 
+    const covered: Array<{ entry: string; wildcard: string; base: string }> = [];
+
     for (const entry of allowList) {
       const normalized = entry.replace(/^Bash\(/, "").replace(/\)$/, "");
       for (const { wildcard, covers } of WILDCARD_DANGEROUS_PREFIXES) {
         if (wildcardCovers(normalized, wildcard)) {
-          for (const dangerous of covers) {
-            expect(false).toBe(true);
-          }
+          covered.push({
+            entry,
+            wildcard,
+            base: normalized.replace(/\s*\*+\s*$/, "").trim(),
+          });
         }
       }
     }
+
+    expect(
+      covered,
+      `Wildcard permissions cover dangerous prefixes:\n${covered.map((c) => `- ${c.entry} covers "${c.wildcard}" via base "${c.base}"`).join("\n")}`,
+    ).toHaveLength(0);
   });
 
   it("FAIL: detects --force in allow list", () => {

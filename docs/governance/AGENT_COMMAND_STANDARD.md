@@ -110,3 +110,58 @@ If BLOCKED, provide:
 - Reason
 - What is needed
 - Who needs to decide
+
+---
+
+## 9. Mandatory backend architecture invariants (copy into every larger backend command)
+
+Every backend/domain/migration task touching `server/domains-v2` or `server/application-v2` must include this block in the task prompt:
+
+```
+MANDATORY BACKEND ARCHITECTURE INVARIANTS (docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md)
+
+- Owner/viewer/resource: id ≠ ownership; ownerUserId/ownerId; viewerContext on public reads; slug/publicId for public URLs.
+- Visibility matrix: owner/friend/stranger/anonymous (admin later) — policy.ts, not ad-hoc router checks.
+- Public DTO zero PII: no email/phone/DOB/token/session/provider/rawUser/storagePath/service role.
+- Resource context refs: contextType, contextOwnerId, contextRefId, visibility, ownerUserId.
+- Media attach: validate asset owner, purpose, status; no foreign attach; no storage path in public DTO.
+- Lists/feeds/search: limit + maxLimit + cursor or fixed cap + stable order; no unbounded select.
+- No raw DB outside domain: DB → mapper → DTO → public-api only; no cross-domain repository/mapper imports.
+- Fanout: events + transactional outbox — no sync multi-user fanout in request path (EventEnvelope).
+- Status lifecycle: explicit enum; soft delete via deletedAt where applicable.
+- Idempotency: idempotencyKey on create/publish/upload/finalize or documented exemption.
+- Architecture Impact Statement: domains, entities, owners, public-api, cross-domain, tests/guards evidence.
+
+FORBIDDEN: db push, Railway, --no-verify, fake DONE, guard weakening, runtime/UI changes outside scope.
+```
+
+---
+
+## 10. Mandatory architecture invariants (runtime + backend — full reconciliation block)
+
+For cross-cutting or runtime reconciliation tasks, use this expanded block (includes application layer and UI boundaries):
+
+```
+MANDATORY ARCHITECTURE INVARIANTS
+
+Backend (BACKEND_ARCHITECTURE_INVARIANTS.md):
+- owner/viewer/resource model, viewerContext, visibility matrix
+- public/private DTO, public DTO zero PII, resource context refs
+- media ownership validation, limit/cursor/stable order
+- no raw DB outside domain, EventEnvelope + transactional outbox, no sync fanout
+- status lifecycle, idempotency, Architecture Impact Statement
+
+Runtime (PlatformaX-V2-active-rules.md § Runtime governance invariants):
+- server/application-v2/use-cases for 2+ domain flows
+- single read-model owner per projection
+- public DTO/public-api contract tests
+- branded IDs + Result/DomainError at boundaries; Zod at transport only
+- opaque cursor (no offset on large lists); pure policy functions
+- design tokens + presentational/container split; one API data layer
+- correlation ID end-to-end; forward-only migrations; deterministic PII-safe seeds
+
+FORBIDDEN: localStorage/sessionStorage fake backend, base64/dataUrl upload,
+db push/Railway without separate decision, --no-verify, fake DONE.
+```
+
+Rule IDs: see `docs/governance/RULES_REGISTRY.yml` and `docs/governance/RULES_TO_GUARDS_MATRIX.md`.

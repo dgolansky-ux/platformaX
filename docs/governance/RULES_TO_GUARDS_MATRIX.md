@@ -55,14 +55,40 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-SCALE-002 | No unbounded hot-path loops | coding-standards §22 | check-scalability-hot-paths | NO | — |
 | PX-SCALE-003 | No full scans for runtime lists | coding-standards §22 | check-scalability-hot-paths, check-pagination | NO | — |
 | PX-GOV-005 | No governance drift | HIDDEN_RULES_INVENTORY | check-governance-drift | NO | — |
+| PX-OWN-001 | Resource owner model | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | TODO_GUARD: check-backend-ownership-invariants |
+| PX-OWN-002 | viewerContext on public reads | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
+| PX-VIS-001 | Visibility matrix | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate, PX-POLICY-001 | YES | Policy tests per field |
+| PX-DTO-002 | Public DTO zero PII extended | BACKEND_ARCHITECTURE_INVARIANTS | check-public-dto-pii, check-dto-privacy-classification | NO | Extends PX-SEC-001 |
+| PX-CTX-001 | Resource context refs | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
+| PX-MEDIA-004 | Media attach owner/purpose | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate, check-media-base64 | YES | Attach path tests required |
+| PX-LIST-004 | limit/cursor/stable order | BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns, check-scalability-hot-paths | NO | Extends PX-LIST-001 |
+| PX-DB-004 | No raw DB outside domain | BACKEND_ARCHITECTURE_INVARIANTS | audit-domain-boundaries, check-architecture-import-graph | NO | — |
+| PX-EVENT-001 | EventEnvelope + outbox fanout | BACKEND_ARCHITECTURE_INVARIANTS, ADR-009 | check-scalability-hot-paths, manual_gate | PARTIAL | TODO_GUARD: check-event-envelope-contract |
+| PX-EVENT-002 | Transactional outbox same TX | ADR-009 | manual_gate | YES | TODO_GUARD: outbox transaction pattern |
+| PX-LC-001 | Explicit lifecycle statuses | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
+| PX-IDEMP-001 | Idempotency retry writes | BACKEND_ARCHITECTURE_INVARIANTS, ADR-015 | manual_gate | YES | TODO_GUARD: check-idempotency-flows |
+| PX-AIS-002 | Architecture Impact Statement | BACKEND_ARCHITECTURE_INVARIANTS | check-adr-required, manual_gate | PARTIAL | PR body / step report |
+| PX-APP-001 | application-v2 use-cases | active-rules §10, ADR-010 | manual_gate | YES | TODO_GUARD: check-application-use-cases-boundary |
+| PX-READMODEL-001 | Single read-model owner | ADR-011 | manual_gate | YES | MANUAL_GATE_REQUIRED |
+| PX-CONTRACT-001 | Public DTO contract tests | coding-standards | manual_gate, check-public-dto-pii | PARTIAL | TODO_GUARD: check-public-dto-contract-tests |
+| PX-ID-001 | Branded ID types | ADR-012 | manual_gate | YES | TODO_GUARD: check-branded-id-types |
+| PX-ERROR-001 | Result/DomainError boundary | ADR-012 | manual_gate | YES | MANUAL_GATE_REQUIRED |
+| PX-CURSOR-001 | Opaque cursor | ADR-013, BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns | PARTIAL | Offset ban manual on new endpoints |
+| PX-LIFECYCLE-001 | status + deletedAt | active-rules §10 | manual_gate | YES | Aligns PX-LC-001 |
+| PX-IDEMPOTENCY-001 | Idempotency table | ADR-015 | manual_gate | YES | Aligns PX-IDEMP-001 |
+| PX-POLICY-001 | Pure policy functions | ADR-014 | manual_gate | YES | TODO_GUARD: check-policy-pure-functions |
+| PX-UI-001 | Design tokens | PROFILE_BLUEPRINT | manual_gate | YES | Visual review |
+| PX-UI-002 | Presentational/container | coding-standards | manual_gate | YES | TODO_GUARD: presentational boundary |
+| PX-OBS-003 | Correlation ID | active-rules §10 | manual_gate | YES | TODO_GUARD: check-correlation-id-boundary |
+| PX-SEED-001 | Deterministic PII-safe seeds | active-rules §10 | check-test-env-safety, manual_gate | PARTIAL | TODO_GUARD: check-deterministic-seeds |
 
 ## Summary
 
-- **Total rules:** 43
-- **Fully automated:** 35
-- **Automated + manual gate:** 4
-- **Manual gate only:** 4
-- **Gaps requiring improvement:** 4 (all inherently manual — visual parity, agent behavior)
+- **Total rules:** 70
+- **Fully automated:** 38
+- **Automated + manual gate:** 8
+- **Manual gate only / PARTIAL:** 24
+- **Documented governance gaps (TODO_GUARD):** 10 — see rows marked TODO_GUARD; P0 rules retain manual_gate until guards land
 
 ## Gap Analysis
 

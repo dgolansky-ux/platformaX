@@ -261,7 +261,60 @@ At minimum:
 - `node scripts/check-logging-pii-security.mjs`
 - dependency boundary checker (`dependency-cruiser` or ESLint boundaries)
 
-## 14. Acceptance
+## 14. Backend and runtime invariant enforcement map
+
+Canonical invariant doc: `docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md`  
+Runtime addendum: `docs/architecture/PlatformaX-V2-active-rules.md` §10  
+Matrix: `docs/governance/RULES_TO_GUARDS_MATRIX.md`
+
+### Automatically guarded (fail closed in CI)
+
+| Invariant | Rules | Guards |
+|---|---|---|
+| Public DTO zero PII | PX-SEC-001, PX-DTO-001, PX-DTO-002 | check-public-dto-pii, check-dto-privacy-classification |
+| List limit/cursor/stable order | PX-LIST-001, PX-LIST-004, PX-SCALE-003, PX-CURSOR-001 | check-pagination, check-scalability-patterns, check-scalability-hot-paths |
+| No raw DB / cross-domain internals | PX-ARCH-003, PX-DB-004 | audit-domain-boundaries, check-architecture-import-graph |
+| No sync fanout | PX-SCALE-001, PX-EVENT-001 | check-scalability-hot-paths |
+| No base64 media upload | PX-MEDIA-001 | check-media-base64 |
+| Domain boundaries / ownership registry | PX-ARCH-005 | check-domain-registry |
+
+### Manual gate (PR + AIS + tests required)
+
+| Invariant | Rules | Why manual |
+|---|---|---|
+| Owner/viewer/resource model | PX-OWN-001, PX-OWN-002 | Needs semantic review of new endpoints |
+| Visibility matrix | PX-VIS-001, PX-POLICY-001 | Policy completeness per field |
+| Resource context refs | PX-CTX-001 | New content types vary |
+| Media attach validation | PX-MEDIA-004 | Attach paths need domain tests |
+| EventEnvelope + transactional outbox | PX-EVENT-001, PX-EVENT-002 | Outbox table not fully automated yet |
+| Lifecycle status | PX-LC-001, PX-LIFECYCLE-001 | Schema-dependent |
+| Idempotency persistence | PX-IDEMP-001, PX-IDEMPOTENCY-001 | Table guard TODO |
+| Application use-cases | PX-APP-001 | Orchestration review |
+| Read-model single owner | PX-READMODEL-001 | Ownership matrix review |
+| Contract tests | PX-CONTRACT-001 | Per-domain test coverage |
+| Branded IDs / Result | PX-ID-001, PX-ERROR-001 | Gradual adoption |
+| Design tokens / presentational split | PX-UI-001, PX-UI-002 | Visual/import review |
+| Correlation ID / seeds | PX-OBS-003, PX-SEED-001 | Infra wiring review |
+| Architecture Impact Statement | PX-AIS-002, PX-ADR-001 | Report/PR body |
+
+### PR must prove compliance
+
+1. List touched domains and entities with owners.
+2. Paste or link Architecture Impact Statement (template in `docs/templates/ARCHITECTURE_IMPACT_STATEMENT.md`).
+3. Attach gate logs: `pnpm rules:check`, `pnpm arch:check:v2`.
+4. For manual-gate rules: cite tests, policy files, or explicit `MANUAL_GATE_REQUIRED` note in step report.
+
+### When a task must end BLOCKED
+
+- Missing `viewerContext` on new public reads without public-only policy.
+- Public DTO adds PII fields or guard failures.
+- New list/feed/search without limit/cursor/stable order.
+- Cross-domain repository/mapper import introduced.
+- Sync fanout loop added in request path.
+- Agent claims BACKEND_DONE / IMPLEMENTED without runtime evidence (**PX-STATUS-003**, **PX-RUNTIME-002**).
+- Gates red and not in scope to fix.
+
+## 15. Acceptance
 
 Architecture is acceptable only when:
 

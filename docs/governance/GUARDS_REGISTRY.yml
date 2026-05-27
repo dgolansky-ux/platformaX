@@ -70,7 +70,7 @@ guards:
     command: node scripts/check-public-dto-pii.mjs
     file: scripts/check-public-dto-pii.mjs
     blocks: commit, merge
-    rules_enforced: [PX-SEC-001]
+    rules_enforced: [PX-SEC-001, PX-DTO-002]
     runs_in: [pre-push, ci]
     required: true
     status: active

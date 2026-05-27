@@ -10,8 +10,8 @@ const SCAN_PATTERNS = [
 
 const PII_FIELDS = [
   "email", "phone", "dateOfBirth", "birthDate",
-  "privateContact", "authMetadata", "provider",
-  "token", "serviceRole",
+  "privateContact", "authMetadata", "provider", "providerData",
+  "token", "session", "serviceRole", "rawUser", "storagePath",
 ];
 
 const ALLOWLIST_MARKER = "ALLOW_PRIVATE_DTO_PII";
