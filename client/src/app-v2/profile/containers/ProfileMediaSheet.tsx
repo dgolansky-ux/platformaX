@@ -1,10 +1,13 @@
 import type { MediaPurpose } from "../../../features-v2/media";
-import { useProfileMediaUpload } from "./useProfileMediaUpload";
+import { useProfileMediaUpload } from "../data/useProfileMediaUpload";
 import styles from "../styles/profile-media.module.css";
 
 type ProfileMediaSheetProps = {
   purpose: MediaPurpose;
-  /** Owner of the asset. Placeholder until session wiring (step-33). */
+  /**
+   * Owner of the asset. Carried through for when the upload transport is wired;
+   * not used while uploads are client-side preview only.
+   */
   userId: string;
   onClose: () => void;
 };
@@ -25,12 +28,12 @@ const COPY: Record<MediaPurpose, { title: string; hint: string }> = {
 };
 
 /**
- * Local upload sheet for avatar/banner. The file input runs real validation via
- * the media boundary and shows a local preview; with no storage backend wired
- * the save action is an honest disabled-policy state (never a fake success).
+ * Container: local upload sheet for avatar/banner. Owns the upload data hook and
+ * passes UI state down. With no storage transport wired the save action is an
+ * honest disabled-policy state (never a fake success).
  */
-export function ProfileMediaSheet({ purpose, userId, onClose }: ProfileMediaSheetProps) {
-  const upload = useProfileMediaUpload(purpose, userId);
+export function ProfileMediaSheet({ purpose, onClose }: ProfileMediaSheetProps) {
+  const upload = useProfileMediaUpload(purpose);
   const copy = COPY[purpose];
 
   return (

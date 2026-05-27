@@ -1,56 +1,75 @@
 /**
- * features-v2/media — runtime adapter.
+ * features-v2/media — runtime adapter (client-only, split-ready).
  *
- * Wires the media backend domain to the frontend through a thin typed boundary.
- * It composes the media service with an in-memory repository and the
- * env-required storage port: validation and intent creation run for real, but
- * there is no connected storage backend yet (STORAGE_ADAPTER_ENV_REQUIRED), so
- * `isStorageConnected()` is `false` and an actual upload cannot complete.
+ * The frontend MUST NOT bundle server runtime. This module exposes:
+ *  - `createMediaAdapter(port)` — wraps any `MediaServicePort` (e.g. a future
+ *    HTTP transport) into the frontend `MediaUploadAdapter`.
+ *  - `mediaAdapter` — the default adapter. There is no storage transport yet, so
+ *    it is an explicit client-only stub (`CLIENT_MEDIA_TRANSPORT_NOT_CONNECTED`)
+ *    that returns a typed `STORAGE_UNAVAILABLE` result and reports
+ *    `isStorageConnected() === false`. It never composes the media service in the
+ *    browser, never touches browser storage and never inline-encodes bytes.
  *
- * When a Supabase Storage adapter is wired, swap `createEnvRequiredStoragePort`
- * for the real `MediaStoragePort`; this frontend contract does not change.
+ * The real media validation + intent runtime lives server-side in
+ * `server/domains-v2/media` and is tested there.
  */
-import {
-  createEnvRequiredStoragePort,
-  createInMemoryMediaRepository,
-  createMediaService,
-  type MediaService,
-  type MediaStoragePort,
-} from "@server/domains-v2/media/public-api";
+import type {
+  MediaResult,
+  MediaServicePort,
+} from "@shared/contracts/media-view";
 import type { MediaUploadAdapter } from "./types";
 
 export type MediaAdapterDeps = {
-  service: MediaService;
+  port: MediaServicePort;
   storageConnected: boolean;
 };
 
 export function createMediaAdapter(deps: MediaAdapterDeps): MediaUploadAdapter {
+  const { port } = deps;
   return {
     isStorageConnected: () => deps.storageConnected,
     createAvatarUploadIntent: (userId, meta) =>
-      deps.service.createAvatarUploadIntent(userId, meta),
+      port.createAvatarUploadIntent(userId, meta),
     createBannerUploadIntent: (userId, meta) =>
-      deps.service.createBannerUploadIntent(userId, meta),
+      port.createBannerUploadIntent(userId, meta),
     createStatusPhotoUploadIntent: (userId, meta) =>
-      deps.service.createStatusPhotoUploadIntent(userId, meta),
+      port.createStatusPhotoUploadIntent(userId, meta),
     confirmProfileMediaUpload: (userId, assetId) =>
-      deps.service.confirmProfileMediaUpload(userId, assetId),
-    getPublicMediaUrl: (ref) => deps.service.getPublicMediaUrl(ref),
+      port.confirmProfileMediaUpload(userId, assetId),
+    getPublicMediaUrl: (ref) => port.getPublicMediaUrl(ref),
   };
 }
 
-const defaultStorage: MediaStoragePort = createEnvRequiredStoragePort();
-const defaultService = createMediaService({
-  repository: createInMemoryMediaRepository(),
-  storage: defaultStorage,
-});
+/** Marker for the disconnected default — there is no storage transport wired yet. */
+export const CLIENT_MEDIA_TRANSPORT_NOT_CONNECTED =
+  "CLIENT_MEDIA_TRANSPORT_NOT_CONNECTED" as const;
+
+function notConnected(): MediaResult<never> {
+  return {
+    ok: false,
+    error: {
+      code: "STORAGE_UNAVAILABLE",
+      message:
+        "Przesyłanie plików nie jest jeszcze połączone z serwerem. Transport zostanie podłączony w kolejnym kroku.",
+    },
+  };
+}
 
 /**
- * Default media adapter shared across the app. Storage is not connected yet, so
- * uploads validate and produce an intent but cannot be completed — the UI must
- * surface that honestly instead of faking success.
+ * Client-only port stub. Every call honestly reports that storage is not
+ * connected — no server runtime is bundled and nothing is uploaded.
  */
+export function createNotConnectedMediaPort(): MediaServicePort {
+  return {
+    createAvatarUploadIntent: async () => notConnected(),
+    createBannerUploadIntent: async () => notConnected(),
+    createStatusPhotoUploadIntent: async () => notConnected(),
+    confirmProfileMediaUpload: async () => notConnected(),
+    getPublicMediaUrl: async () => notConnected(),
+  };
+}
+
 export const mediaAdapter: MediaUploadAdapter = createMediaAdapter({
-  service: defaultService,
-  storageConnected: defaultStorage.isConnected(),
+  port: createNotConnectedMediaPort(),
+  storageConnected: false,
 });

@@ -67,6 +67,77 @@ function findConflictsWithoutResolution(content: string) {
   return problems;
 }
 
+const MARKDOWN_STATUS_DOCS = [
+  "docs/architecture/DOMAIN_REGISTRY.md",
+  "docs/architecture/DOMAIN_OWNERSHIP_MATRIX.md",
+  "docs/architecture/PlatformaX-V2-domain-status.md",
+];
+
+function cleanCell(cell: string): string {
+  return cell.trim().replace(/^`+|`+$/g, "").trim();
+}
+
+function parseMarkdownStatusRows(content: string): { name: string; statusCells: string[] }[] {
+  const rows: { name: string; statusCells: string[] }[] = [];
+  for (const line of content.split("\n")) {
+    if (!line.trim().startsWith("|")) continue;
+    const cells = line.split("|").slice(1, -1).map(cleanCell);
+    if (cells.length < 2) continue;
+    if (cells.every((c) => /^:?-+:?$/.test(c) || c === "")) continue;
+    rows.push({ name: cells[0], statusCells: cells.filter((c) => ALLOWED_STATUSES.includes(c)) });
+  }
+  return rows;
+}
+
+function expectedStatusByName(): Record<string, string> {
+  const content = readFileSync(REGISTRY_PATH, "utf-8");
+  const map: Record<string, string> = {};
+  for (const d of parseDomains(content)) {
+    if (d.status) map[d.name] = d.status;
+  }
+  return map;
+}
+
+function findDrift(docContent: string, expected: Record<string, string>): string[] {
+  const problems: string[] = [];
+  for (const row of parseMarkdownStatusRows(docContent)) {
+    const exp = expected[row.name];
+    if (!exp) continue;
+    const distinct = [...new Set(row.statusCells)];
+    if (distinct.length !== 1) continue;
+    if (distinct[0] !== exp) problems.push(`${row.name}:${distinct[0]}!=${exp}`);
+  }
+  return problems;
+}
+
+describe("domain-status-registry markdown anti-drift", () => {
+  it("PASS: status docs agree with DOMAIN_STATUS_REGISTRY.yml", () => {
+    const expected = expectedStatusByName();
+    for (const docRel of MARKDOWN_STATUS_DOCS) {
+      const docPath = join(ROOT, docRel);
+      expect(existsSync(docPath), `${docRel} exists`).toBe(true);
+      const problems = findDrift(readFileSync(docPath, "utf-8"), expected);
+      expect(problems, `${docRel} drift: ${problems.join(", ")}`).toEqual([]);
+    }
+  });
+
+  it("FAIL: drift between a status doc and the registry is detected", () => {
+    const expected = { identity: "PARTIAL" };
+    const driftedDoc = [
+      "| Domain | Type | Status |",
+      "|---|---|---|",
+      "| identity | OWNER_DOMAIN | SCAFFOLD_ONLY |",
+    ].join("\n");
+    expect(findDrift(driftedDoc, expected)).toContain("identity:SCAFFOLD_ONLY!=PARTIAL");
+  });
+
+  it("PASS: illustrative two-status rows are not treated as declarations", () => {
+    const expected = { identity: "PARTIAL" };
+    const exampleDoc = "| identity | PLANNED | SCAFFOLD_ONLY | notes |";
+    expect(findDrift(exampleDoc, expected)).toEqual([]);
+  });
+});
+
 describe("domain-status-registry guard logic", () => {
   it("PASS: DOMAIN_STATUS_REGISTRY.yml exists and has entries", () => {
     expect(existsSync(REGISTRY_PATH)).toBe(true);

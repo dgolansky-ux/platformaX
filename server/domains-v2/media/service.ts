@@ -20,6 +20,7 @@ import type {
 } from "./contracts";
 import type { MediaAssetDTO, MediaPurpose, MediaRefDTO, UploadIntentDTO } from "./dto";
 import type { MediaEvent } from "./events";
+import { mediaUploadConfirmedEvent, mediaUploadIntentCreatedEvent } from "./events";
 import { maxBytesFor, validateUploadFileMeta } from "./internal/validation";
 import { toMediaAssetDTO, toUploadIntentDTO } from "./mapper";
 import { canCreateUploadIntent } from "./policy";
@@ -135,7 +136,15 @@ async function buildUploadIntent(
     now,
   );
 
-  ctx.publish({ type: "media.upload.intent_created", assetId, ownerId: userId, at: now });
+  ctx.publish(
+    mediaUploadIntentCreatedEvent({
+      assetId,
+      ownerId: userId,
+      purpose,
+      occurredAt: now,
+      generateId: ctx.idGen,
+    }),
+  );
   return { ok: true, value: toUploadIntentDTO(record, target, maxBytes) };
 }
 
@@ -176,7 +185,15 @@ export function createMediaService(deps: MediaServiceDeps): MediaService {
       const now = ctx.clock();
       const updated = await ctx.repo.update(assetId, { status: "ready" }, now);
       if (!updated) return { ok: false, error: fail("NOT_FOUND", "Zasób nie istnieje") };
-      ctx.publish({ type: "media.upload.confirmed", assetId, ownerId: userId, at: now });
+      ctx.publish(
+        mediaUploadConfirmedEvent({
+          assetId,
+          ownerId: userId,
+          purpose: updated.purpose,
+          occurredAt: now,
+          generateId: ctx.idGen,
+        }),
+      );
       return { ok: true, value: toMediaAssetDTO(updated) };
     },
 

@@ -1,167 +1,125 @@
 import { describe, expect, it } from "vitest";
+import type {
+  OwnerProfileView,
+  ProfileApplicationPort,
+} from "@shared/contracts/profile-view";
 import {
-  createIdentityService,
-  createInMemoryIdentityProfileRepository,
-} from "@server/domains-v2/identity/public-api";
-import {
-  createInMemoryMediaRepository,
-  createMediaService,
-  type MediaStoragePort,
-} from "@server/domains-v2/media/public-api";
-import { createProfileApplicationService } from "@server/application-v2/profile/public-api";
-import { createProfileAdapter } from "../profile-adapter";
+  createProfileAdapter,
+  createNotConnectedProfilePort,
+  profileAdapter,
+} from "../profile-adapter";
 
-function connectedStorage(): MediaStoragePort {
+/**
+ * The client profile adapter is a transport-neutral wrapper. The real identity +
+ * media composition is tested server-side in
+ * `server/application-v2/profile/__tests__/service.test.ts`. Here we verify the
+ * client boundary: it forwards to a port, reports persistence honestly, and the
+ * default adapter is an explicit not-connected stub (no server runtime bundled).
+ */
+
+const NOW = "2026-05-27T00:00:00.000Z";
+
+function ownerView(userId: string): OwnerProfileView {
   return {
-    provider: "test-storage",
-    isConnected: () => true,
-    async createUploadTarget(req) {
-      return {
-        provider: "test-storage",
-        uploadUrl: `https://storage.test/${req.storageKey}?sig=x`,
-        publicUrl: `https://cdn.test/${req.storageKey}`,
-        transport: "READY",
-        expiresAt: null,
-      };
-    },
+    userId,
+    profileSlug: null,
+    firstName: "Anna",
+    lastName: "Kowalska",
+    displayName: "Anna Kowalska",
+    dateOfBirth: "1990-03-15",
+    phone: "+48600999111",
+    bio: "Hello",
+    location: null,
+    civilStatus: null,
+    socialLinks: null,
+    personalStatus: null,
+    visibility: "public",
+    onboardingCompleted: true,
+    avatar: null,
+    banner: null,
+    createdAt: NOW,
+    updatedAt: NOW,
+    isOwner: true,
   };
 }
 
-describe("profileAdapter (frontend boundary)", () => {
-  function buildAdapter() {
-    const identity = createIdentityService({
-      repository: createInMemoryIdentityProfileRepository(),
-      clock: () => "2026-05-25T12:00:00.000Z",
-    });
-    let assetCounter = 0;
-    const media = createMediaService({
-      repository: createInMemoryMediaRepository(),
-      storage: connectedStorage(),
-      clock: () => "2026-05-25T12:00:00.000Z",
-      idGen: () => `asset-${++assetCounter}`,
-    });
-    const service = createProfileApplicationService({ identity, media });
-    return { adapter: createProfileAdapter({ service, isPersistent: false }), media };
-  }
+function recordingPort(): { port: ProfileApplicationPort; calls: string[] } {
+  const calls: string[] = [];
+  const okOwner = (userId: string) =>
+    Promise.resolve({ ok: true as const, value: ownerView(userId) });
+  const port: ProfileApplicationPort = {
+    getMyProfileView: (u) => {
+      calls.push(`getMyProfileView:${u}`);
+      return okOwner(u);
+    },
+    getPublicProfileView: async () => ({
+      ok: false,
+      error: { code: "PROFILE_NOT_FOUND", message: "n/a" },
+    }),
+    completeOnboarding: (u) => {
+      calls.push(`completeOnboarding:${u}`);
+      return okOwner(u);
+    },
+    updateMyProfile: (u) => okOwner(u),
+    updatePersonalStatus: (u) => okOwner(u),
+    clearPersonalStatus: (u) => okOwner(u),
+    attachProfileAvatarRef: (u) => okOwner(u),
+    attachProfileBannerRef: (u) => okOwner(u),
+    attachProfileStatusPhotoRef: (u) => okOwner(u),
+  };
+  return { port, calls };
+}
 
-  async function seedOnboarded(adapter: ReturnType<typeof buildAdapter>["adapter"]) {
-    return adapter.completeOnboarding("u-1", {
-      firstName: "Anna",
-      lastName: "Kowalska",
-      dateOfBirth: "1990-03-15",
-      phone: "+48600999111",
-    });
-  }
-
-  it("reports isPersistent honestly while running in-memory", () => {
-    const { adapter } = buildAdapter();
-    expect(adapter.isPersistent()).toBe(false);
+describe("createProfileAdapter (client boundary)", () => {
+  it("reports the injected isPersistent flag", () => {
+    const { port } = recordingPort();
+    expect(createProfileAdapter({ port, isPersistent: true }).isPersistent()).toBe(true);
+    expect(createProfileAdapter({ port, isPersistent: false }).isPersistent()).toBe(false);
   });
 
-  it("completeOnboarding writes through the application service and returns the composed owner view", async () => {
-    const { adapter } = buildAdapter();
-    const result = await adapter.completeOnboarding("u-1", {
-      firstName: "Anna",
-      lastName: "Kowalska",
-      dateOfBirth: "1990-03-15",
-      phone: "+48600999111",
-    });
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.value.onboardingCompleted).toBe(true);
-    expect(result.value.userId).toBe("u-1");
-    expect(result.value.isOwner).toBe(true);
-  });
-
-  it("getPublicProfileView after onboarding never returns PII", async () => {
-    const { adapter } = buildAdapter();
-    await seedOnboarded(adapter);
-    const result = await adapter.getPublicProfileView("viewer-2", "u-1");
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    const json = JSON.stringify(result.value);
-    expect(json).not.toContain("+48600999111");
-    expect(json).not.toContain("1990-03-15");
-    expect(Object.keys(result.value)).not.toContain("phone");
-    expect(Object.keys(result.value)).not.toContain("dateOfBirth");
-  });
-
-  it("getMyProfileView returns the owner-only view with private fields", async () => {
-    const { adapter } = buildAdapter();
-    await seedOnboarded(adapter);
+  it("forwards calls to the underlying port and returns its view", async () => {
+    const { port, calls } = recordingPort();
+    const adapter = createProfileAdapter({ port, isPersistent: false });
     const result = await adapter.getMyProfileView("u-1");
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.value.phone).toBe("+48600999111");
-    expect(result.value.dateOfBirth).toBe("1990-03-15");
-    expect(result.value.isOwner).toBe(true);
+    if (result.ok) expect(result.value.userId).toBe("u-1");
+    expect(calls).toContain("getMyProfileView:u-1");
+  });
+});
+
+describe("default profileAdapter (transport not connected)", () => {
+  it("isPersistent() is false — never fakes persistence", () => {
+    expect(profileAdapter.isPersistent()).toBe(false);
   });
 
-  it("updateMyProfile patches bio through the application boundary", async () => {
-    const { adapter } = buildAdapter();
-    await seedOnboarded(adapter);
-    const updated = await adapter.updateMyProfile("u-1", { bio: "Hello world" });
-    expect(updated.ok).toBe(true);
-    if (!updated.ok) return;
-    expect(updated.value.bio).toBe("Hello world");
-
-    const fetched = await adapter.getMyProfileView("u-1");
-    expect(fetched.ok).toBe(true);
-    if (!fetched.ok) return;
-    expect(fetched.value.bio).toBe("Hello world");
+  it("getMyProfileView returns a typed not-connected error", async () => {
+    const result = await profileAdapter.getMyProfileView("u-1");
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe("PROFILE_TRANSPORT_NOT_CONNECTED");
   });
 
-  it("attachProfileAvatarRef stores the ref and resolves the public URL via media", async () => {
-    const { adapter, media } = buildAdapter();
-    await seedOnboarded(adapter);
-    const intent = await media.createAvatarUploadIntent("u-1", {
-      mimeType: "image/png",
-      sizeBytes: 1024,
+  it("completeOnboarding returns a typed not-connected error", async () => {
+    const result = await profileAdapter.completeOnboarding("u-1", {
+      firstName: "A",
+      lastName: "B",
+      dateOfBirth: "1990-01-01",
+      phone: "+48600000000",
     });
-    if (!intent.ok) throw new Error("intent failed");
-    const confirmed = await media.confirmProfileMediaUpload("u-1", intent.value.assetId);
-    if (!confirmed.ok) throw new Error("confirm failed");
-    const attached = await adapter.attachProfileAvatarRef("u-1", intent.value.assetId);
-    expect(attached.ok).toBe(true);
-    if (!attached.ok) return;
-    expect(attached.value.avatar?.assetId).toBe(intent.value.assetId);
-    expect(attached.value.avatar?.url).toContain("cdn.test");
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe("PROFILE_TRANSPORT_NOT_CONNECTED");
   });
 
-  it("attachProfileAvatarRef rejects a foreign asset as MEDIA_ASSET_FORBIDDEN", async () => {
-    const { adapter, media } = buildAdapter();
-    await seedOnboarded(adapter);
-    const intent = await media.createAvatarUploadIntent("intruder", {
-      mimeType: "image/png",
-      sizeBytes: 1024,
-    });
-    if (!intent.ok) throw new Error("intent failed");
-    const confirmed = await media.confirmProfileMediaUpload(
-      "intruder",
-      intent.value.assetId,
-    );
-    if (!confirmed.ok) throw new Error("confirm failed");
-    const result = await adapter.attachProfileAvatarRef("u-1", intent.value.assetId);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error.code).toBe("MEDIA_ASSET_FORBIDDEN");
-  });
-
-  it("updateMyProfile surfaces validation errors as a typed application failure", async () => {
-    const { adapter } = buildAdapter();
-    await seedOnboarded(adapter);
-    const longBio = "x".repeat(200);
-    const result = await adapter.updateMyProfile("u-1", { bio: longBio });
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.error.code).toBe("PROFILE_VALIDATION_FAILED");
-    expect(result.error.fields?.bio).toContain("175");
-  });
-
-  it("updateMyProfile PROFILE_NOT_FOUND when there is no profile", async () => {
-    const { adapter } = buildAdapter();
-    const result = await adapter.updateMyProfile("nobody", { bio: "x" });
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.error.code).toBe("PROFILE_NOT_FOUND");
+  it("the standalone not-connected port reports not-connected for every method", async () => {
+    const port = createNotConnectedProfilePort();
+    const results = await Promise.all([
+      port.getPublicProfileView(null, "u-1"),
+      port.updateMyProfile("u-1", {}),
+      port.clearPersonalStatus("u-1"),
+      port.attachProfileAvatarRef("u-1", "a"),
+    ]);
+    for (const r of results) {
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.error.code).toBe("PROFILE_TRANSPORT_NOT_CONNECTED");
+    }
   });
 });

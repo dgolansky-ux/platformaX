@@ -10,6 +10,10 @@ import type {
   IdentityResult,
 } from "../contracts";
 import type { IdentityEvent } from "../events";
+import {
+  identityOnboardingCompletedEvent,
+  identityProfilePublicSummaryChangedEvent,
+} from "../events";
 import type { PrivateProfileDTO } from "./private-profile-dto";
 import type { PrivateProfileRecord } from "./record";
 import { canCompleteOnboarding } from "../policy";
@@ -84,7 +88,7 @@ export async function completeOnboardingFlow(
   const record: PrivateProfileRecord = existing
     ? ((await repo.update(userId, payload, now)) as PrivateProfileRecord)
     : await repo.create(payload, now);
-  hooks.publish({ type: "identity.onboarding.completed", userId, at: now });
-  hooks.publish({ type: "identity.profile.public_summary_changed", userId, at: now });
+  hooks.publish(identityOnboardingCompletedEvent(userId, { occurredAt: now }));
+  hooks.publish(identityProfilePublicSummaryChangedEvent(userId, { occurredAt: now }));
   return { ok: true, value: toPrivateProfileDTO(record) };
 }

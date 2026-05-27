@@ -9,19 +9,9 @@ import type {
   OnboardingProfileAdapter,
 } from "../../../features-v2/identity";
 import { toOwnerPersonalProfileView } from "./profile-view-model";
-import type { PersonalProfileView } from "../types";
+import type { ProfileDataState } from "../types";
 
-export type ProfileDataState =
-  | { kind: "loading" }
-  | { kind: "anonymous" }
-  | {
-      kind: "ready";
-      userId: string;
-      view: PersonalProfileView;
-      isPersistent: boolean;
-    }
-  | { kind: "empty"; userId: string }
-  | { kind: "error"; message: string };
+export type { ProfileDataState };
 
 export type FetchProfileDataDeps = {
   auth: IdentityAuthAdapter;

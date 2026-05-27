@@ -22,7 +22,9 @@ Registry of active exceptions to governance rules. Every exception must be justi
 
 ## Active Exceptions
 
-No active exceptions.
+| Exception ID | Rule ID | File / Scope | Reason | Expiry | Owner | Evidence | Risk | Status |
+|---|---|---|---|---|---|---|---|---|
+| EXC-001 | check-code-quality-structure (15-export soft cap; partial PX-CODE-001/002 family) | `shared/contracts/profile-view.ts` | Canonical wire-contract surface for the profile application boundary per ADR-010 / PX-APP-001. The 17 exports (value objects + composed views + inputs + error contract + port) are one cohesive contract; splitting them creates multiple import paths for one logical boundary. | Re-review when a second application boundary (e.g. communities, content) requires its own contract file — at that point, generalise the pattern or split. No later than 2026-11-30. | architecture | ADR-010, file docblock, governance reconciliation step-49 | If the file grows additional unrelated exports, the boundary gets noisy; mitigated by the file's narrow scope (profile only) and the broader code-quality function/component caps still applying via `check-file-complexity.mjs`. | active |
 
 ## Expired / Revoked Exceptions
 

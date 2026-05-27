@@ -1,0 +1,76 @@
+/**
+ * PlatformaX V2 — central design tokens (first pass).
+ *
+ * Rule: PX-UI-001. Single source of truth for the visual contract, imported once
+ * at the app entry (client/src/main.tsx) so tokens are available app-wide.
+ *
+ * Values mirror the existing profile/auth/landing token sets; this is a
+ * first-pass centralization, NOT a redesign. Per-module token blocks may still
+ * override these locally until they are migrated onto this file.
+ *
+ * Note: never animate every property at once (PX-CODE-004) — use
+ * --transition-base with explicit transition properties only.
+ */
+
+:root {
+  /* Surfaces / background */
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-tint: #f8fafc;
+
+  /* Borders */
+  --color-border: #e5e7eb;
+  --color-border-soft: #eef2f7;
+
+  /* Text */
+  --color-text: #111827;
+  --color-text-muted: #374151;
+  --color-text-soft: #64748b;
+
+  /* Brand blue */
+  --color-primary: #1e4fd8;
+  --color-primary-hover: #1338a0;
+  --color-primary-soft: #eef2ff;
+  --color-accent: #475569;
+  --color-danger: #dc2626;
+
+  /* Radius */
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-field: 12px;
+  --radius-card: 16px;
+
+  /* Shadow */
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(15, 23, 42, 0.04);
+  --shadow-medium: 0 4px 16px rgba(15, 23, 42, 0.1);
+  --shadow-avatar: 0 4px 16px rgba(15, 23, 42, 0.12);
+
+  /* Spacing / layout */
+  --space-section: 32px;
+  --container-pad: 20px;
+  --container-max: 1120px;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #0f3cc9 0%, #1e4fd8 50%, #334155 100%);
+  --gradient-brand: linear-gradient(135deg, #1e4fd8 0%, #2563eb 50%, #3b82f6 100%);
+  --gradient-hero: linear-gradient(135deg, #0f2f7a 0%, #1e4fd8 52%, #334155 100%);
+  --gradient-page: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+
+  /* Typography */
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Sora", "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Standard transition timing — pair with explicit properties only */
+  --transition-base: 180ms ease;
+
+  /* --- Profile legacy visual tokens (parity with the legacy profile) --- */
+  --profile-avatar-ring: linear-gradient(135deg, #1e4fd8 0%, #2563eb 50%, #3b82f6 100%);
+  --profile-banner-gradient: linear-gradient(135deg, #0f2f7a 0%, #1e4fd8 52%, #334155 100%);
+  --profile-status-pill-bg: #f1f5f9;
+  --profile-portal-card-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 12px 34px rgba(15, 23, 42, 0.06);
+  --nav-glass-bg: rgba(255, 255, 255, 0.92);
+  --sidebar-active-bg: #eef2ff;
+}

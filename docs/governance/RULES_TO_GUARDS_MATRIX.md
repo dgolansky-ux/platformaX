@@ -60,7 +60,7 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-VIS-001 | Visibility matrix | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate, PX-POLICY-001 | YES | Policy tests per field |
 | PX-DTO-002 | Public DTO zero PII extended | BACKEND_ARCHITECTURE_INVARIANTS | check-public-dto-pii, check-dto-privacy-classification | NO | Extends PX-SEC-001 |
 | PX-CTX-001 | Resource context refs | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
-| PX-MEDIA-004 | Media attach owner/purpose | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate, check-media-base64 | YES | Attach path tests required |
+| PX-MEDIA-004 | Media attach owner/purpose | BACKEND_ARCHITECTURE_INVARIANTS | check-media-purpose-migration, check-media-base64, manual_gate | PARTIAL | Attach-path tests still required; migration↔runtime purpose drift now blocked |
 | PX-LIST-004 | limit/cursor/stable order | BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns, check-scalability-hot-paths | NO | Extends PX-LIST-001 |
 | PX-DB-004 | No raw DB outside domain | BACKEND_ARCHITECTURE_INVARIANTS | audit-domain-boundaries, check-architecture-import-graph | NO | — |
 | PX-EVENT-001 | EventEnvelope + outbox fanout | BACKEND_ARCHITECTURE_INVARIANTS, ADR-009 | check-scalability-hot-paths, manual_gate | PARTIAL | TODO_GUARD: check-event-envelope-contract |
@@ -68,27 +68,27 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-LC-001 | Explicit lifecycle statuses | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
 | PX-IDEMP-001 | Idempotency retry writes | BACKEND_ARCHITECTURE_INVARIANTS, ADR-015 | manual_gate | YES | TODO_GUARD: check-idempotency-flows |
 | PX-AIS-002 | Architecture Impact Statement | BACKEND_ARCHITECTURE_INVARIANTS | check-adr-required, manual_gate | PARTIAL | PR body / step report |
-| PX-APP-001 | application-v2 use-cases | active-rules §10, ADR-010 | manual_gate | YES | TODO_GUARD: check-application-use-cases-boundary |
+| PX-APP-001 | application-v2 use-cases | active-rules §10, ADR-010 | check-client-server-boundary, manual_gate | PARTIAL | Client/server split now blocked by gate; use-cases placement for 2+ domains remains manual_gate (check-application-use-cases-boundary.mjs TODO) |
 | PX-READMODEL-001 | Single read-model owner | ADR-011 | manual_gate | YES | MANUAL_GATE_REQUIRED |
-| PX-CONTRACT-001 | Public DTO contract tests | coding-standards | manual_gate, check-public-dto-pii | PARTIAL | TODO_GUARD: check-public-dto-contract-tests |
-| PX-ID-001 | Branded ID types | ADR-012 | manual_gate | YES | TODO_GUARD: check-branded-id-types |
-| PX-ERROR-001 | Result/DomainError boundary | ADR-012 | manual_gate | YES | MANUAL_GATE_REQUIRED |
-| PX-CURSOR-001 | Opaque cursor | ADR-013, BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns | PARTIAL | Offset ban manual on new endpoints |
+| PX-CONTRACT-001 | Public DTO contract tests | coding-standards | check-public-dto-pii, manual_gate | PARTIAL | identity (public-mapper-no-pii), media (public-mapper-no-leak), application boundary (contract.test.ts); dedicated check-public-dto-contract-tests.mjs still TODO |
+| PX-ID-001 | Branded ID types | ADR-012 | manual_gate | PARTIAL | shared/contracts/ids.ts + tests + identity/media/outbox adoption; check-branded-id-types.mjs still TODO |
+| PX-ERROR-001 | Result/DomainError boundary | ADR-012 | manual_gate | PARTIAL | shared/contracts/result.ts + tests + identity/media/application boundaries return discriminated results |
+| PX-CURSOR-001 | Opaque cursor | ADR-013, BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns | PARTIAL | shared/contracts/cursor.ts (encode/decode, base64url, Result-typed) used by outbox listPending; offset ban manual on new endpoints |
 | PX-LIFECYCLE-001 | status + deletedAt | active-rules §10 | manual_gate | YES | Aligns PX-LC-001 |
-| PX-IDEMPOTENCY-001 | Idempotency table | ADR-015 | manual_gate | YES | Aligns PX-IDEMP-001 |
-| PX-POLICY-001 | Pure policy functions | ADR-014 | manual_gate | YES | TODO_GUARD: check-policy-pure-functions |
-| PX-UI-001 | Design tokens | PROFILE_BLUEPRINT | manual_gate | YES | Visual review |
-| PX-UI-002 | Presentational/container | coding-standards | manual_gate | YES | TODO_GUARD: presentational boundary |
-| PX-OBS-003 | Correlation ID | active-rules §10 | manual_gate | YES | TODO_GUARD: check-correlation-id-boundary |
-| PX-SEED-001 | Deterministic PII-safe seeds | active-rules §10 | check-test-env-safety, manual_gate | PARTIAL | TODO_GUARD: check-deterministic-seeds |
+| PX-IDEMPOTENCY-001 | Idempotency table | ADR-015 | manual_gate | PARTIAL | idempotency_keys migration (0004, code only) + IdempotencyRepository + in-memory adapter + shared IdempotencyKey contract + tests; live wiring remains manual_gate |
+| PX-POLICY-001 | Pure policy functions | ADR-014 | check-policy-pure-functions | NO | Gate fails when any server/domains-v2 policy.ts imports persistence/transport or performs IO/non-determinism |
+| PX-UI-001 | Design tokens | PROFILE_BLUEPRINT | check-design-tokens, manual_gate | PARTIAL | Central tokens.css imported at app entry; gate verifies presence, import, profile CSS consumption, and `transition: all` ban. Visual parity remains MANUAL_OWNER_REVIEW |
+| PX-UI-002 | Presentational/container | coding-standards | check-presentational-container-boundary | NO | Gate fails when profile sections/ import the data layer, a feature adapter, or call a data hook |
+| PX-OBS-003 | Correlation ID | active-rules §10 | manual_gate | PARTIAL | shared/contracts/correlation.ts (RequestContext + createCorrelationId) with tests; end-to-end wiring still manual_gate, check-correlation-id-boundary.mjs TODO |
+| PX-SEED-001 | Deterministic PII-safe seeds | active-rules §10 | check-deterministic-seeds, check-test-env-safety | NO | Gate enforces PII patterns + non-determinism + stable seed-* IDs across shared/test-seeds and server/seeds |
 
 ## Summary
 
 - **Total rules:** 70
-- **Fully automated:** 38
-- **Automated + manual gate:** 8
-- **Manual gate only / PARTIAL:** 24
-- **Documented governance gaps (TODO_GUARD):** 10 — see rows marked TODO_GUARD; P0 rules retain manual_gate until guards land
+- **Fully automated:** 41 (+3: PX-POLICY-001, PX-UI-002, PX-SEED-001 now have dedicated gates)
+- **Automated + manual gate:** 14 (+6: PX-APP-001, PX-CONTRACT-001, PX-ID-001, PX-ERROR-001, PX-UI-001, PX-IDEMPOTENCY-001 gained partial guard or shared contract)
+- **Manual gate only / PARTIAL:** 15
+- **Documented governance gaps (TODO_GUARD):** 5 — remaining gaps: check-application-use-cases-boundary (PX-APP-001 placement), check-public-dto-contract-tests (PX-CONTRACT-001), check-branded-id-types (PX-ID-001), check-correlation-id-boundary (PX-OBS-003), check-backend-ownership-invariants (PX-OWN-001)
 
 ## Gap Analysis
 

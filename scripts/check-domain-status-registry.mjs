@@ -5,12 +5,46 @@ const ROOT = process.cwd();
 const REGISTRY_PATH = join(ROOT, "docs/governance/DOMAIN_STATUS_REGISTRY.yml");
 const DOMAIN_REG_PATH = join(ROOT, "server/domains-v2/domain-registry.ts");
 
+// Human-facing status docs that must not drift from the machine-readable
+// registry (DOMAIN_STATUS_REGISTRY.yml) and code registry (domain-registry.ts).
+const MARKDOWN_STATUS_DOCS = [
+  "docs/architecture/DOMAIN_REGISTRY.md",
+  "docs/architecture/DOMAIN_OWNERSHIP_MATRIX.md",
+  "docs/architecture/PlatformaX-V2-domain-status.md",
+];
+
 const ALLOWED_STATUSES = [
   "NOT_STARTED", "PLANNED", "SCAFFOLD_ONLY", "UI_SHELL_ONLY",
   "MOCK_LOCAL_ONLY", "BACKEND_NOT_STARTED", "PARTIAL",
   "AUTH_RUNTIME_PARTIAL", "UI_VISUAL_SHELL_DONE", "MANUAL_REVIEW_REQUIRED",
   "VISUAL_DONE", "BACKEND_PARTIAL", "IMPLEMENTED", "BLOCKED", "IN_PROGRESS",
 ];
+
+const STATUS_SET = new Set(ALLOWED_STATUSES);
+
+/** Strip surrounding backticks/whitespace from a markdown table cell. */
+function cleanCell(cell) {
+  return cell.trim().replace(/^`+|`+$/g, "").trim();
+}
+
+/**
+ * Parse markdown table rows into [firstCell, [statusCellsFound]] pairs.
+ * A "status cell" is any cell whose exact value is an allowed status token.
+ */
+function parseMarkdownStatusRows(content) {
+  const rows = [];
+  for (const line of content.split("\n")) {
+    if (!line.trim().startsWith("|")) continue;
+    const cells = line.split("|").slice(1, -1).map(cleanCell);
+    if (cells.length < 2) continue;
+    // Skip header/separator rows.
+    if (cells.every((c) => /^:?-+:?$/.test(c) || c === "")) continue;
+    const name = cells[0];
+    const statusCells = cells.filter((c) => STATUS_SET.has(c));
+    rows.push({ name, statusCells });
+  }
+  return rows;
+}
 
 let violations = 0;
 
@@ -115,9 +149,40 @@ for (const domain of domains) {
   }
 }
 
+// Anti-drift: human-facing status docs must agree with the canonical registry.
+const expectedStatusByName = {};
+for (const domain of domains) {
+  if (domain.status) expectedStatusByName[domain.name] = domain.status;
+}
+
+for (const docRel of MARKDOWN_STATUS_DOCS) {
+  const docPath = join(ROOT, docRel);
+  if (!existsSync(docPath)) {
+    console.error(`DOMAIN_STATUS_REGISTRY_VIOLATION: status doc "${docRel}" does not exist`);
+    violations++;
+    continue;
+  }
+  const rows = parseMarkdownStatusRows(readFileSync(docPath, "utf-8"));
+  for (const row of rows) {
+    const expected = expectedStatusByName[row.name];
+    if (!expected) continue;
+    // Canonical status declarations carry exactly one status token in the row.
+    // Rows with two tokens (e.g. a "Previous status | New status" example) are
+    // illustrative and intentionally skipped.
+    const distinct = [...new Set(row.statusCells)];
+    if (distinct.length !== 1) continue;
+    if (distinct[0] !== expected) {
+      console.error(
+        `DOMAIN_STATUS_REGISTRY_VIOLATION: ${docRel} lists domain "${row.name}" as "${distinct[0]}" but DOMAIN_STATUS_REGISTRY.yml says "${expected}"`,
+      );
+      violations++;
+    }
+  }
+}
+
 if (violations > 0) {
   console.error(`\ncheck-domain-status-registry: ${violations} violation(s)`);
   process.exit(1);
 }
 
-console.log(`CHECK_DOMAIN_STATUS_REGISTRY_PASS (${domains.length} domains validated, ${tsDomains.length} code domains covered)`);
+console.log(`CHECK_DOMAIN_STATUS_REGISTRY_PASS (${domains.length} domains validated, ${tsDomains.length} code domains covered, ${MARKDOWN_STATUS_DOCS.length} status docs checked for drift)`);

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { ProfileDataState } from "../data/useProfileData";
+import type { ProfileDataState } from "../types";
 import layout from "../styles/profile-layout.module.css";
 
 type ProfileRuntimeBannerProps = {

@@ -24,7 +24,8 @@ export type ProfileStatus = {
   emoji: string;
   state: string;
   description: string | null;
-  visibility: "public" | "friends";
+  /** Mirrors identity PersonalStatusVisibility 1:1 (no UI lie): public/friends/private. */
+  visibility: "public" | "friends" | "private";
 };
 
 export type ContactCategory =
@@ -47,6 +48,23 @@ export type QuickFeedItem = {
   authorInitial: string;
   authorName: string;
 };
+
+/**
+ * Auth-gated state machine surfaced by the profile data layer and consumed by
+ * presentational sections (e.g. ProfileRuntimeBanner). Lives in the shell types
+ * so presentational components never import the data layer.
+ */
+export type ProfileDataState =
+  | { kind: "loading" }
+  | { kind: "anonymous" }
+  | {
+      kind: "ready";
+      userId: string;
+      view: PersonalProfileView;
+      isPersistent: boolean;
+    }
+  | { kind: "empty"; userId: string }
+  | { kind: "error"; message: string };
 
 /** Owner's personal profile, as rendered in the mobile shell. No private PII. */
 export type PersonalProfileView = {

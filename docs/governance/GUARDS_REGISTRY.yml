@@ -431,3 +431,59 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+
+  # === RUNTIME INVARIANTS CODE-ALIGNMENT GUARDS ===
+
+  - id: GUARD-048
+    command: node scripts/check-client-server-boundary.mjs
+    file: scripts/check-client-server-boundary.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-APP-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-049
+    command: node scripts/check-presentational-container-boundary.mjs
+    file: scripts/check-presentational-container-boundary.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-UI-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-050
+    command: node scripts/check-policy-pure-functions.mjs
+    file: scripts/check-policy-pure-functions.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-POLICY-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-051
+    command: node scripts/check-design-tokens.mjs
+    file: scripts/check-design-tokens.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-UI-001, PX-CODE-004]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-052
+    command: node scripts/check-media-purpose-migration.mjs
+    file: scripts/check-media-purpose-migration.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-MEDIA-004, PX-DB-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-053
+    command: node scripts/check-deterministic-seeds.mjs
+    file: scripts/check-deterministic-seeds.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEED-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active

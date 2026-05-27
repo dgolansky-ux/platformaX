@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { mediaAdapter, type MediaPurpose } from "../../../features-v2/media";
 
 /**
- * Local upload controller for the profile avatar/banner sheet.
+ * Local upload controller for the profile avatar/banner sheet (data layer).
  *
- * Runs real validation/intent through the media boundary and builds a local
- * object-URL preview (revoked on change/unmount). It never inline-encodes the
- * file and never writes to browser storage. With no storage backend wired the
- * intent comes back as env-required, which the sheet surfaces honestly.
+ * Performs lightweight client-side file validation (type/size) purely as a UI
+ * affordance and builds a local object-URL preview (revoked on change/unmount).
+ * It never inline-encodes the file and never writes to browser storage. The
+ * authoritative validation + upload runs server-side in the media domain once a
+ * transport is wired; until then the sheet honestly surfaces "storage not
+ * connected" (`mediaAdapter.isStorageConnected() === false`).
  */
 export type MediaPurposeOption = MediaPurpose;
 
@@ -26,9 +28,29 @@ const EMPTY: UploadState = {
   envRequired: false,
 };
 
-export function useProfileMediaUpload(purpose: MediaPurpose, userId: string) {
+const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MB = 1024 * 1024;
+const MAX_BYTES: Record<MediaPurpose, number> = {
+  avatar: 5 * MB,
+  statusPhoto: 5 * MB,
+  banner: 10 * MB,
+};
+
+function validate(file: File, purpose: MediaPurpose): string | null {
+  if (!ALLOWED_MIME.has(file.type)) {
+    return "Nieobsługiwany format pliku. Dozwolone: JPG, PNG, WEBP.";
+  }
+  if (file.size > MAX_BYTES[purpose]) {
+    const mb = Math.round(MAX_BYTES[purpose] / MB);
+    return `Plik jest za duży. Maksymalny rozmiar: ${mb} MB.`;
+  }
+  return null;
+}
+
+export function useProfileMediaUpload(purpose: MediaPurpose) {
   const [state, setState] = useState<UploadState>(EMPTY);
   const previewRef = useRef<string | null>(null);
+  const storageConnected = mediaAdapter.isStorageConnected();
 
   const revokePreview = useCallback(() => {
     if (previewRef.current) {
@@ -46,16 +68,9 @@ export function useProfileMediaUpload(purpose: MediaPurpose, userId: string) {
         setState(EMPTY);
         return;
       }
-      const meta = { mimeType: file.type, sizeBytes: file.size };
-      const create =
-        purpose === "avatar"
-          ? mediaAdapter.createAvatarUploadIntent
-          : purpose === "banner"
-            ? mediaAdapter.createBannerUploadIntent
-            : mediaAdapter.createStatusPhotoUploadIntent;
-      const result = await create(userId, meta);
-      if (!result.ok) {
-        setState({ ...EMPTY, fileName: file.name, error: result.error.message });
+      const error = validate(file, purpose);
+      if (error) {
+        setState({ ...EMPTY, fileName: file.name, error });
         return;
       }
       const preview = URL.createObjectURL(file);
@@ -64,10 +79,10 @@ export function useProfileMediaUpload(purpose: MediaPurpose, userId: string) {
         fileName: file.name,
         previewUrl: preview,
         error: null,
-        envRequired: result.value.transport === "ENV_REQUIRED",
+        envRequired: !storageConnected,
       });
     },
-    [purpose, userId, revokePreview],
+    [purpose, revokePreview, storageConnected],
   );
 
   const reset = useCallback(() => {
@@ -80,7 +95,7 @@ export function useProfileMediaUpload(purpose: MediaPurpose, userId: string) {
     previewUrl: state.previewUrl,
     error: state.error,
     envRequired: state.envRequired,
-    storageConnected: mediaAdapter.isStorageConnected(),
+    storageConnected,
     selectFile,
     reset,
   };

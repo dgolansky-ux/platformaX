@@ -1,49 +1,28 @@
 /**
  * features-v2/media — typed boundary for app-v2 profile media uploads.
  *
- * app-v2 never imports the media backend domain directly. It depends on the
- * typed adapter exposed here, which translates UI inputs into the media
- * service's `MediaResult`. Backend types come via
- * `@server/domains-v2/media/public-api` (the only cross-domain entry point);
- * both ends share the domain name "media", so this stays within boundaries.
+ * app-v2 depends on the typed adapter exposed here. All media types come from
+ * the neutral wire contract `@shared/contracts/media-view` — the client never
+ * imports `@server/*` (split-ready). The media domain owns the runtime.
  */
 import type {
   MediaAssetDTO,
-  MediaPurpose,
-  MediaRefDTO,
   MediaResult,
-  UploadFileMeta,
+  MediaServicePort,
   UploadIntentDTO,
-} from "@server/domains-v2/media/public-api";
+} from "@shared/contracts/media-view";
 
 export type CreateUploadIntentResult = MediaResult<UploadIntentDTO>;
 export type ConfirmUploadResult = MediaResult<MediaAssetDTO>;
 export type GetMediaUrlResult = MediaResult<MediaAssetDTO>;
 
-export type MediaUploadAdapter = {
-  /**
-   * Whether a real storage backend is wired. The current adapter returns
-   * `false` (env-required) — uploads validate and create an intent, but bytes
-   * cannot actually be stored yet.
-   */
+/**
+ * Frontend media adapter = the media service port plus an honesty flag about
+ * whether a real storage backend is wired.
+ */
+export type MediaUploadAdapter = MediaServicePort & {
+  /** Whether a real storage backend is connected. Transport-less = false. */
   isStorageConnected(): boolean;
-  createAvatarUploadIntent(
-    userId: string,
-    meta: UploadFileMeta,
-  ): Promise<CreateUploadIntentResult>;
-  createBannerUploadIntent(
-    userId: string,
-    meta: UploadFileMeta,
-  ): Promise<CreateUploadIntentResult>;
-  createStatusPhotoUploadIntent(
-    userId: string,
-    meta: UploadFileMeta,
-  ): Promise<CreateUploadIntentResult>;
-  confirmProfileMediaUpload(
-    userId: string,
-    assetId: string,
-  ): Promise<ConfirmUploadResult>;
-  getPublicMediaUrl(ref: MediaRefDTO): Promise<GetMediaUrlResult>;
 };
 
 export type {
@@ -52,4 +31,4 @@ export type {
   MediaAssetDTO,
   MediaRefDTO,
   MediaPurpose,
-};
+} from "@shared/contracts/media-view";

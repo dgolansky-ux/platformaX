@@ -19,6 +19,7 @@ import type {
 } from "./contracts";
 import type { PublicProfileDTO } from "./dto";
 import type { IdentityEvent } from "./events";
+import { identityProfilePublicSummaryChangedEvent } from "./events";
 import { completeOnboardingFlow } from "./internal/onboarding";
 import type { PrivateProfileDTO } from "./internal/private-profile-dto";
 import {
@@ -130,7 +131,7 @@ export function createIdentityService(
     const now = clock();
     const record = await repo.update(userId, patch, now);
     if (!record) return { ok: false, error: errNotFound() };
-    publish({ type: "identity.profile.public_summary_changed", userId, at: now });
+    publish(identityProfilePublicSummaryChangedEvent(userId, { occurredAt: now }));
     return { ok: true, value: toPrivateProfileDTO(record) };
   }
 

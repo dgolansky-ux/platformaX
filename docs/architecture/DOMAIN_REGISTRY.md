@@ -16,7 +16,7 @@ Source of truth for all V2 domains, their types, ownership, and status.
 
 | Domain | Type | Owns | Does NOT own | Public surface | Status | Required files |
 |---|---|---|---|---|---|---|
-| identity | OWNER_DOMAIN | profile, auth subject, public/private profile DTO, professions | feed, friendships, communities, posts | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
+| identity | OWNER_DOMAIN | profile, auth subject, public/private profile DTO, professions | feed, friendships, communities, posts | public-api, contracts, events | PARTIAL | README, public-api, contracts, events, dto, policy, index, test |
 | social | OWNER_DOMAIN | friends/contact graph, relationship state, contact access | profile PII, posts, feed engine | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 | communities-v2 | OWNER_DOMAIN | community profile, members, roles, settings, invites, join requests, feed settings | posts, comments, chat, events, modules | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 | content-v2 | OWNER_DOMAIN | posts, feeds, comments, reactions, topics, read-models | memberships, roles, profiles, friendships | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
@@ -24,7 +24,7 @@ Source of truth for all V2 domains, their types, ownership, and status.
 | chat | OWNER_DOMAIN | messages, conversations, read state, typing indicators | channels, community roles, profiles | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 | events | OWNER_DOMAIN | event definitions, RSVPs, event lifecycle, visibility | community membership, profiles, posts | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 | modules | OWNER_DOMAIN | ModuleDefinition, registry, enablement | actual module business data | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
-| media | OWNER_DOMAIN | media assets, upload contracts, validation, refs | base64/dataUrl payloads | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
+| media | OWNER_DOMAIN | media assets, upload contracts, validation, refs | base64/dataUrl payloads | public-api, contracts, events | PARTIAL | README, public-api, contracts, events, dto, policy, index, test |
 | public-hub | COMPOSITION_DOMAIN | composition/read view of public profiles and communities | source-of-truth data | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 | notifications | OPERATIONAL_DOMAIN | notification delivery, templates, preferences | content creation, profiles | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 | search | OPERATIONAL_DOMAIN | search indexing, query engine, relevance | source data | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |

@@ -1309,12 +1309,17 @@ rules:
       - "router coordinating two domain repositories directly"
     required_patterns:
       - "use-case module under server/application-v2/use-cases"
+      - "client/src never imports @server/* — only @shared/contracts"
     enforced_by:
+      - scripts/check-client-server-boundary.mjs
       - manual_gate
-    evidence_required: use-case file + import graph review
+    evidence_required: client/server boundary gate log + use-case placement review
     status: active
     owner: architecture
-    notes: check-application-use-cases-boundary.mjs TODO
+    notes: >
+      check-client-server-boundary.mjs enforces the client/server split (zero
+      @server imports under client/src). use-cases placement for 2+ domains
+      remains manual_gate (check-application-use-cases-boundary.mjs TODO).
 
   - id: PX-READMODEL-001
     title: Every read model projection has exactly one owner domain
@@ -1354,7 +1359,11 @@ rules:
     evidence_required: __tests__ public-api or dto contract suite
     status: active
     owner: architecture
-    notes: Dedicated check-public-dto-contract-tests.mjs TODO
+    notes: >
+      Contract/shape tests exist for identity (public-mapper-no-pii), media
+      (public-mapper-no-leak) and the profile application boundary
+      (application-v2/profile/__tests__/contract.test.ts). Dedicated
+      check-public-dto-contract-tests.mjs still TODO.
 
   - id: PX-ID-001
     title: Domain IDs use branded types not raw string at boundaries
@@ -1370,10 +1379,13 @@ rules:
       - "UserId PostId MediaAssetId CommunityId branded types at domain boundary"
     enforced_by:
       - manual_gate
-    evidence_required: shared/types or domain contracts
+    evidence_required: shared/contracts/ids.ts + tests
     status: active
     owner: engineering
-    notes: check-branded-id-types.mjs TODO
+    notes: >
+      Branded ID types + constructors live in shared/contracts/ids.ts with
+      compile-level smoke tests; adopted in identity/media events and outbox.
+      check-branded-id-types.mjs still TODO.
 
   - id: PX-ERROR-001
     title: Domain boundaries return typed Result not raw thrown errors
@@ -1388,10 +1400,12 @@ rules:
       - "Result or DomainError at domain public boundary"
     enforced_by:
       - manual_gate
-    evidence_required: public-api return types + tests
+    evidence_required: shared/contracts/result.ts + public-api return types + tests
     status: active
     owner: engineering
-    notes: null
+    notes: >
+      Shared Result/DomainError contract in shared/contracts/result.ts with tests;
+      identity/media/application boundaries already return discriminated results.
 
   - id: PX-CURSOR-001
     title: Runtime list feed search uses opaque cursor not offset pagination
@@ -1409,10 +1423,13 @@ rules:
     enforced_by:
       - scripts/check-pagination.mjs
       - scripts/check-scalability-patterns.mjs
-    evidence_required: gate log + repository cursor contract
+    evidence_required: shared/contracts/cursor.ts + gate log + repository cursor contract
     status: active
     owner: architecture
-    notes: Extends PX-LIST-004; offset ban manual on new endpoints
+    notes: >
+      Opaque cursor utility (encode/decode, base64url, Result-typed) in
+      shared/contracts/cursor.ts with tests; used by the outbox listPending
+      skeleton. Extends PX-LIST-004; offset ban manual on new endpoints.
 
   - id: PX-LIFECYCLE-001
     title: Deletable entities use lifecycle status and deletedAt soft delete
@@ -1448,10 +1465,14 @@ rules:
       - "idempotency key storage for create publish upload finalize"
     enforced_by:
       - manual_gate
-    evidence_required: migration + repository idempotency check
+    evidence_required: migration 0004 + repository idempotency contract + tests
     status: active
     owner: architecture
-    notes: Aligns with PX-IDEMP-001; table guard TODO
+    notes: >
+      idempotency_keys table in supabase/migrations/0004 (code only, not pushed),
+      IdempotencyRepository contract + in-memory adapter in
+      server/application-v2/runtime/idempotency.ts, shared IdempotencyKey contract,
+      all tested. Live wiring into create/publish/upload remains manual_gate.
 
   - id: PX-POLICY-001
     title: Policies are pure testable functions canView canEdit canAttach canDelete
@@ -1467,11 +1488,14 @@ rules:
     required_patterns:
       - "pure policy functions with unit tests"
     enforced_by:
+      - scripts/check-policy-pure-functions.mjs
       - manual_gate
-    evidence_required: policy.ts tests without mocks for IO
+    evidence_required: policy.ts tests without mocks for IO + purity gate log
     status: active
     owner: architecture
-    notes: check-policy-pure-functions.mjs TODO
+    notes: >
+      check-policy-pure-functions.mjs fails when any server/domains-v2 policy.ts
+      imports persistence/transport or performs IO/non-determinism.
 
   - id: PX-UI-001
     title: Design tokens are source of truth for profile visual parity
@@ -1486,11 +1510,16 @@ rules:
     required_patterns:
       - "design tokens drive profile legacy parity"
     enforced_by:
+      - scripts/check-design-tokens.mjs
       - manual_gate
-    evidence_required: token usage review + screenshots
+    evidence_required: central tokens file + token usage gate log; visual parity is MANUAL_OWNER_REVIEW
     status: active
     owner: product
-    notes: check-design-tokens-usage.mjs TODO
+    notes: >
+      Central tokens in client/src/app-v2/styles/tokens.css (imported once at
+      app entry); check-design-tokens.mjs verifies the file exists, is imported,
+      profile CSS consumes core tokens and no transition:all. Visual parity stays
+      PROFILE_VISUAL_MANUAL_OWNER_REVIEW (no screenshots required by this rule).
 
   - id: PX-UI-002
     title: Presentational components must not import data hooks or adapters
@@ -1505,11 +1534,14 @@ rules:
     required_patterns:
       - "container owns data presentational owns markup"
     enforced_by:
-      - manual_gate
-    evidence_required: import review or lint rule future
+      - scripts/check-presentational-container-boundary.mjs
+    evidence_required: presentational/container boundary gate log
     status: active
     owner: engineering
-    notes: check-presentational-container-boundary.mjs TODO
+    notes: >
+      check-presentational-container-boundary.mjs fails when a profile sections/
+      component imports the data layer, a feature adapter, or calls a data hook.
+      Containers live in client/src/app-v2/profile/containers; data in data/.
 
   - id: PX-OBS-003
     title: Correlation ID flows through request use-case log error boundaries
@@ -1525,10 +1557,13 @@ rules:
       - "correlationId end to end"
     enforced_by:
       - manual_gate
-    evidence_required: middleware/use-case log fields
+    evidence_required: shared/contracts/correlation.ts skeleton + middleware/use-case log fields
     status: active
     owner: engineering
-    notes: check-correlation-id-boundary.mjs TODO
+    notes: >
+      RequestContext + createCorrelationId skeleton in shared/contracts/correlation.ts
+      with tests (CORRELATION_CONTEXT_SKELETON_READY). End-to-end wiring through
+      middleware/use-case/log remains manual_gate. check-correlation-id-boundary.mjs TODO.
 
   - id: PX-SEED-001
     title: Dev and test seeds must be deterministic and PII-safe

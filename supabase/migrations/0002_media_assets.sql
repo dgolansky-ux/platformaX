@@ -11,6 +11,11 @@
 --     Inline-encoded payloads are forbidden (see ADR-006).
 --   * The public projection must select only public-safe columns
 --     (no owner_id, no storage_path, no provider, no size_bytes).
+--   * `purpose` CHECK mirrors the MediaPurpose union in
+--     server/domains-v2/media/dto.ts (avatar | banner | statusPhoto). The
+--     guard scripts/check-media-purpose-migration.mjs fails on drift. This file
+--     is unapplied (SHIPPED_AS_CODE), so the CHECK is corrected in place rather
+--     than via a forward ALTER.
 
 CREATE TABLE IF NOT EXISTS media_assets (
   id              uuid PRIMARY KEY,
@@ -18,7 +23,7 @@ CREATE TABLE IF NOT EXISTS media_assets (
                   CHECK (owner_type IN ('user')),
   owner_id        uuid NOT NULL,
   purpose         text NOT NULL
-                  CHECK (purpose IN ('avatar', 'banner')),
+                  CHECK (purpose IN ('avatar', 'banner', 'statusPhoto')),
   provider        text NOT NULL,
   storage_path    text NOT NULL,
   public_url      text,

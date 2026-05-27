@@ -58,6 +58,62 @@ describe("profile-view-model — owner view", () => {
     expect(view.isOwner).toBe(true);
   });
 
+  it("maps location, personal status and social links from the real view", () => {
+    const view = toOwnerPersonalProfileView({
+      ...ownerView,
+      location: "Kraków",
+      personalStatus: {
+        text: "produktywny",
+        emoji: "🚀",
+        description: "skupiona na release",
+        visibility: "friends_only",
+        photo: null,
+      },
+      socialLinks: {
+        linkedin: "https://linkedin.com/in/anna",
+        github: "https://github.com/anna",
+        instagram: null,
+        website: null,
+      },
+    });
+    expect(view.location).toBe("Kraków");
+    expect(view.status).toEqual({
+      emoji: "🚀",
+      state: "produktywny",
+      description: "skupiona na release",
+      visibility: "friends",
+    });
+    expect(view.socialLinks.map((l) => l.kind)).toEqual(["linkedin", "github"]);
+    expect(view.socialLinks[0]!.url).toBe("https://linkedin.com/in/anna");
+  });
+
+  it("maps a private personal-status visibility without lying (private stays private)", () => {
+    const view = toOwnerPersonalProfileView({
+      ...ownerView,
+      personalStatus: {
+        text: "cisza",
+        emoji: null,
+        description: null,
+        visibility: "private",
+        photo: null,
+      },
+    });
+    expect(view.status?.visibility).toBe("private");
+    expect(view.status?.emoji).toBe("");
+  });
+
+  it("projects null status/empty social links when the owner has none set", () => {
+    const view = toOwnerPersonalProfileView({
+      ...ownerView,
+      location: null,
+      personalStatus: null,
+      socialLinks: null,
+    });
+    expect(view.status).toBeNull();
+    expect(view.socialLinks).toEqual([]);
+    expect(view.location).toBeNull();
+  });
+
   it("never leaks private fields into the owner view model", () => {
     const view = toOwnerPersonalProfileView({
       ...ownerView,
@@ -104,9 +160,29 @@ describe("profile-view-model — public view", () => {
     expect(view.socialLinks.length).toBe(0);
   });
 
+  it("maps public-safe location, status and social links the viewer is allowed to see", () => {
+    const view = toPublicPersonalProfileView({
+      ...publicView,
+      location: "Kraków",
+      personalStatus: {
+        text: "otwarty na współpracę",
+        emoji: "🤝",
+        description: null,
+        visibility: "public",
+        photo: null,
+      },
+      socialLinks: { linkedin: "https://linkedin.com/in/anna" },
+    });
+    expect(view.location).toBe("Kraków");
+    expect(view.status?.state).toBe("otwarty na współpracę");
+    expect(view.status?.visibility).toBe("public");
+    expect(view.socialLinks.map((l) => l.kind)).toEqual(["linkedin"]);
+  });
+
   it("never includes PII fields in the public view model", () => {
     const view = toPublicPersonalProfileView(publicView);
     expect(Object.keys(view)).not.toContain("phone");
     expect(Object.keys(view)).not.toContain("dateOfBirth");
+    expect(Object.keys(view)).not.toContain("civilStatus");
   });
 });

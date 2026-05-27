@@ -8,9 +8,10 @@
  * SDK is isolated to auth/supabase-client.ts and must not be imported
  * elsewhere.
  *
- * app-v2 onboarding/profile screens consume `profileAdapter` from here. The
- * backend domain (server/domains-v2/identity) is only reachable via this
- * adapter.
+ * app-v2 onboarding/profile screens consume `profileAdapter` from here. Profile
+ * types come from `@shared/contracts/profile-view`; the client never imports
+ * `@server/*`. The backend identity composition lives server-side and is reached
+ * only through a (future) transport wired into the adapter.
  */
 import { createIdentityAuthAdapter } from "./auth/auth-adapter";
 import { createSupabaseAuthBackend } from "./auth/supabase-client";

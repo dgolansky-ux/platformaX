@@ -13,9 +13,9 @@ type ProfileBioSheetProps = {
 };
 
 /**
- * Mobile-first owner-only sheet for editing the personal bio. Wires through the
- * identity profile adapter's `updateMyProfile` use-case; the shell stays UI-only
- * and never reaches into the identity service directly.
+ * Container: owner-only sheet for editing the personal bio. Owns the bio-edit
+ * data hook (wired through the profile adapter's `updateMyProfile`) and renders
+ * the form. The shell stays UI-only and never reaches a service directly.
  */
 export function ProfileBioSheet({
   userId,

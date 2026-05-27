@@ -1,93 +1,86 @@
 /**
- * features-v2/identity/profile — runtime adapter.
+ * features-v2/identity/profile — runtime adapter (client-only, split-ready).
  *
- * Thin wrapper over the `ProfileApplicationService`
- * (`server/application-v2/profile`). The application service is the only place
- * that composes identity + media; this adapter forwards the typed calls and
- * exposes view DTOs to the frontend.
+ * The frontend MUST NOT bundle server runtime. This module exposes:
+ *  - `createProfileAdapter(port)` — wraps any `ProfileApplicationPort` (e.g. a
+ *    future HTTP transport) into the frontend `OnboardingProfileAdapter`.
+ *  - `profileAdapter` — the default adapter. There is no HTTP transport yet, so
+ *    it is an explicit client-only stub (`CLIENT_PROFILE_TRANSPORT_NOT_CONNECTED`)
+ *    that returns a typed `PROFILE_TRANSPORT_NOT_CONNECTED` result and reports
+ *    `isPersistent() === false`. It never composes identity/media services in the
+ *    browser and never fakes persistence.
  *
- * Persistence is currently an in-memory boundary (no HTTP transport, no
- * Supabase repository yet — see BLOCKER_REQUIRES_PERSISTENCE_ADAPTER), so state
- * is volatile across reloads. The adapter is honest about this via
- * `isPersistent() === false`.
- *
- * When a real transport or persistence layer is wired, replace the in-memory
- * factories below with the connected adapters; the frontend contract does not
- * change.
+ * The real identity + media composition lives server-side in
+ * `server/application-v2/profile` and is tested there.
  */
-import {
-  createProfileApplicationService,
-  type ProfileApplicationService,
-} from "@server/application-v2/profile/public-api";
-import {
-  createIdentityService,
-  createInMemoryIdentityProfileRepository,
-} from "@server/domains-v2/identity/public-api";
-import {
-  createEnvRequiredStoragePort,
-  createInMemoryMediaRepository,
-  createMediaService,
-  type MediaStoragePort,
-} from "@server/domains-v2/media/public-api";
 import type {
-  CompleteOnboardingInput,
-  OnboardingProfileAdapter,
-  UpdatePersonalStatusInput,
-  UpdatePrivateProfileInput,
-} from "./types";
+  ProfileApplicationPort,
+  ProfileApplicationResult,
+} from "@shared/contracts/profile-view";
+import type { OnboardingProfileAdapter } from "./types";
 
 export type ProfileAdapterDeps = {
-  service: ProfileApplicationService;
+  port: ProfileApplicationPort;
   isPersistent: boolean;
 };
 
 export function createProfileAdapter(
   deps: ProfileAdapterDeps,
 ): OnboardingProfileAdapter {
+  const { port } = deps;
   return {
     isPersistent: () => deps.isPersistent,
-    completeOnboarding: (userId: string, input: CompleteOnboardingInput) =>
-      deps.service.completeOnboarding(userId, input),
-    getMyProfileView: (userId: string) => deps.service.getMyProfileView(userId),
-    getPublicProfileView: (viewerId: string | null, profileUserId: string) =>
-      deps.service.getPublicProfileView(viewerId, profileUserId),
-    updateMyProfile: (userId: string, input: UpdatePrivateProfileInput) =>
-      deps.service.updateMyProfile(userId, input),
-    updatePersonalStatus: (userId: string, input: UpdatePersonalStatusInput) =>
-      deps.service.updatePersonalStatus(userId, input),
-    clearPersonalStatus: (userId: string) =>
-      deps.service.clearPersonalStatus(userId),
-    attachProfileAvatarRef: (userId: string, assetId: string) =>
-      deps.service.attachProfileAvatarRef(userId, assetId),
-    attachProfileBannerRef: (userId: string, assetId: string) =>
-      deps.service.attachProfileBannerRef(userId, assetId),
-    attachProfileStatusPhotoRef: (userId: string, assetId: string) =>
-      deps.service.attachProfileStatusPhotoRef(userId, assetId),
+    completeOnboarding: (userId, input) => port.completeOnboarding(userId, input),
+    getMyProfileView: (userId) => port.getMyProfileView(userId),
+    getPublicProfileView: (viewerId, profileUserId) =>
+      port.getPublicProfileView(viewerId, profileUserId),
+    updateMyProfile: (userId, input) => port.updateMyProfile(userId, input),
+    updatePersonalStatus: (userId, input) =>
+      port.updatePersonalStatus(userId, input),
+    clearPersonalStatus: (userId) => port.clearPersonalStatus(userId),
+    attachProfileAvatarRef: (userId, assetId) =>
+      port.attachProfileAvatarRef(userId, assetId),
+    attachProfileBannerRef: (userId, assetId) =>
+      port.attachProfileBannerRef(userId, assetId),
+    attachProfileStatusPhotoRef: (userId, assetId) =>
+      port.attachProfileStatusPhotoRef(userId, assetId),
+  };
+}
+
+/** Marker for the disconnected default — there is no HTTP transport wired yet. */
+export const CLIENT_PROFILE_TRANSPORT_NOT_CONNECTED =
+  "CLIENT_PROFILE_TRANSPORT_NOT_CONNECTED" as const;
+
+function notConnected(): ProfileApplicationResult<never> {
+  return {
+    ok: false,
+    error: {
+      code: "PROFILE_TRANSPORT_NOT_CONNECTED",
+      message:
+        "Profil nie jest jeszcze połączony z serwerem. Transport zostanie podłączony w kolejnym kroku.",
+    },
   };
 }
 
 /**
- * Default in-memory boundary shared across the app. Volatile — wipes on reload.
- * This is the explicit boundary while no transport/persistence exists.
- * Onboarding and the profile view share this default so a completed onboarding
- * round-trips into `/profile` within the same session.
+ * Client-only port stub. Every call honestly reports that the profile transport
+ * is not connected — no server runtime is bundled and nothing is persisted.
  */
-const defaultIdentity = createIdentityService({
-  repository: createInMemoryIdentityProfileRepository(),
-});
-
-const defaultStorage: MediaStoragePort = createEnvRequiredStoragePort();
-const defaultMedia = createMediaService({
-  repository: createInMemoryMediaRepository(),
-  storage: defaultStorage,
-});
-
-const defaultApplicationService = createProfileApplicationService({
-  identity: defaultIdentity,
-  media: defaultMedia,
-});
+export function createNotConnectedProfilePort(): ProfileApplicationPort {
+  return {
+    getMyProfileView: async () => notConnected(),
+    getPublicProfileView: async () => notConnected(),
+    completeOnboarding: async () => notConnected(),
+    updateMyProfile: async () => notConnected(),
+    updatePersonalStatus: async () => notConnected(),
+    clearPersonalStatus: async () => notConnected(),
+    attachProfileAvatarRef: async () => notConnected(),
+    attachProfileBannerRef: async () => notConnected(),
+    attachProfileStatusPhotoRef: async () => notConnected(),
+  };
+}
 
 export const profileAdapter: OnboardingProfileAdapter = createProfileAdapter({
-  service: defaultApplicationService,
+  port: createNotConnectedProfilePort(),
   isPersistent: false,
 });
