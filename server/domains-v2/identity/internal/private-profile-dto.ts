@@ -8,7 +8,13 @@
  *
  * Private fields included here are never mapped into PublicProfileDTO.
  */
-import type { MediaAssetRef, ProfileVisibility } from "../dto";
+import type {
+  CivilStatus,
+  MediaAssetRef,
+  PersonalStatusDTO,
+  ProfileVisibility,
+  SocialLinks,
+} from "../dto";
 
 export type PrivateProfileDTO = {
   userId: string;
@@ -21,6 +27,14 @@ export type PrivateProfileDTO = {
   avatarMediaRef: MediaAssetRef | null;
   bannerMediaRef: MediaAssetRef | null;
   bio: string | null;
+  /** City / region — exposed publicly when profile visibility allows. */
+  location: string | null;
+  /** Public stable handle (unique). Owner can rotate, others see it. */
+  profileSlug: string | null;
+  civilStatus: CivilStatus | null;
+  socialLinks: SocialLinks | null;
+  /** Composed personal status; null when cleared. Owner always sees it raw. */
+  personalStatus: PersonalStatusDTO | null;
   visibility: ProfileVisibility;
   onboardingCompleted: boolean;
   createdAt: string;

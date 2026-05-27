@@ -11,6 +11,15 @@ const FULL_RECORD: PrivateProfileRecord = {
   avatarAssetId: "asset-avatar",
   bannerAssetId: "asset-banner",
   bio: "Bio liner",
+  location: "Kraków",
+  profileSlug: "anna-k",
+  statusText: "produktywny",
+  statusEmoji: "🚀",
+  statusDescription: "skupiona na release",
+  statusVisibility: "public",
+  statusPhotoAssetId: "asset-status",
+  civilStatus: "partnered",
+  socialLinks: { linkedin: "https://linkedin.com/in/anna" },
   visibility: "public",
   onboardingCompleted: true,
   createdAt: "2026-05-25T10:00:00.000Z",
@@ -51,10 +60,54 @@ describe("identity public mapper — PII safety", () => {
     expect(dto.bannerMediaRef).toEqual({ assetId: "asset-banner" });
   });
 
-  it("private DTO retains owner-only fields", () => {
+  it("public DTO carries the public personal-status to a stranger when visibility is public", () => {
+    const dto = toPublicProfileDTO(FULL_RECORD, "stranger");
+    expect(dto.personalStatus).toEqual({
+      text: "produktywny",
+      emoji: "🚀",
+      description: "skupiona na release",
+      visibility: "public",
+      photoMediaRef: { assetId: "asset-status" },
+    });
+  });
+
+  it("public DTO drops a friends_only personal-status for a stranger", () => {
+    const dto = toPublicProfileDTO(
+      { ...FULL_RECORD, statusVisibility: "friends_only" },
+      "stranger",
+    );
+    expect(dto.personalStatus).toBeNull();
+  });
+
+  it("public DTO drops a private personal-status even for a friend", () => {
+    const dto = toPublicProfileDTO(
+      { ...FULL_RECORD, statusVisibility: "private" },
+      "friend",
+    );
+    expect(dto.personalStatus).toBeNull();
+  });
+
+  it("public DTO returns a friends_only personal-status to a resolved friend", () => {
+    const dto = toPublicProfileDTO(
+      { ...FULL_RECORD, statusVisibility: "friends_only" },
+      "friend",
+    );
+    expect(dto.personalStatus?.visibility).toBe("friends_only");
+  });
+
+  it("public DTO carries non-PII personal-profile fields (location, slug, civilStatus, socialLinks)", () => {
+    const dto = toPublicProfileDTO(FULL_RECORD);
+    expect(dto.location).toBe("Kraków");
+    expect(dto.profileSlug).toBe("anna-k");
+    expect(dto.civilStatus).toBe("partnered");
+    expect(dto.socialLinks).toEqual({ linkedin: "https://linkedin.com/in/anna" });
+  });
+
+  it("private DTO retains owner-only fields and exposes the composed personal status", () => {
     const dto = toPrivateProfileDTO(FULL_RECORD);
     expect(dto.phone).toBe("+48600999111");
     expect(dto.dateOfBirth).toBe("1990-03-15");
     expect(dto.onboardingCompleted).toBe(true);
+    expect(dto.personalStatus?.text).toBe("produktywny");
   });
 });

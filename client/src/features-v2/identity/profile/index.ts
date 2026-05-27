@@ -16,6 +16,7 @@ export type {
   AttachProfileMediaRefResult,
   CompleteOnboardingInput,
   UpdatePrivateProfileInput,
+  UpdatePersonalStatusInput,
   OwnerProfileView,
   PublicProfileView,
 } from "./types";

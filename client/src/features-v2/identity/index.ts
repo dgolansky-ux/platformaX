@@ -40,6 +40,7 @@ export type {
   UpdateMyProfileResult,
   AttachProfileMediaRefResult,
   UpdatePrivateProfileInput,
+  UpdatePersonalStatusInput,
   OwnerProfileView,
   PublicProfileView,
 } from "./profile";

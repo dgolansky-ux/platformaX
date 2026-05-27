@@ -14,6 +14,11 @@
  * `url` may be null while the storage backend is env-required — the UI must
  * surface "no image" instead of faking one.
  */
+import type {
+  CivilStatus,
+  PersonalStatusVisibility,
+  SocialLinks,
+} from "@server/domains-v2/identity/public-api";
 
 export type ProfileVisibility = "public" | "friends" | "private";
 
@@ -24,12 +29,22 @@ export type ProfileMediaRefView = {
   url: string | null;
 };
 
+/** Composed view of the personal status. Photo URL is pre-resolved. */
+export type PersonalStatusView = {
+  text: string;
+  emoji: string | null;
+  description: string | null;
+  visibility: PersonalStatusVisibility;
+  photo: ProfileMediaRefView | null;
+};
+
 /**
  * Owner-only view (Private). Composed from PrivateProfileDTO + resolved media.
  * Includes private contact fields and date of birth. Never used for non-owner viewers.
  */
 export type OwnerProfileView = {
   userId: string;
+  profileSlug: string | null;
   firstName: string | null;
   lastName: string | null;
   displayName: string;
@@ -38,6 +53,10 @@ export type OwnerProfileView = {
   /** Private. Owner-only. */
   phone: string | null;
   bio: string | null;
+  location: string | null;
+  civilStatus: CivilStatus | null;
+  socialLinks: SocialLinks | null;
+  personalStatus: PersonalStatusView | null;
   visibility: ProfileVisibility;
   onboardingCompleted: boolean;
   avatar: ProfileMediaRefView | null;
@@ -53,8 +72,13 @@ export type OwnerProfileView = {
  */
 export type PublicProfileView = {
   userId: string;
+  profileSlug: string | null;
   displayName: string;
   bio: string | null;
+  location: string | null;
+  civilStatus: CivilStatus | null;
+  socialLinks: SocialLinks | null;
+  personalStatus: PersonalStatusView | null;
   visibility: ProfileVisibility;
   onboardingCompleted: boolean;
   avatar: ProfileMediaRefView | null;

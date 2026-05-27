@@ -10,12 +10,17 @@ import {
 
 const ownerView: OwnerProfileView = {
   userId: "u-1",
+  profileSlug: null,
   firstName: "Anna",
   lastName: "Kowalska",
   displayName: "Anna Kowalska",
   dateOfBirth: "1990-03-15",
   phone: "+48600999111",
   bio: "Hello world",
+  location: null,
+  civilStatus: null,
+  socialLinks: null,
+  personalStatus: null,
   visibility: "public",
   onboardingCompleted: true,
   avatar: { assetId: "asset-avatar", url: "https://cdn.example/avatar.jpg" },
@@ -27,8 +32,13 @@ const ownerView: OwnerProfileView = {
 
 const publicView: PublicProfileView = {
   userId: "u-1",
+  profileSlug: null,
   displayName: "Anna Kowalska",
   bio: "Hello world",
+  location: null,
+  civilStatus: null,
+  socialLinks: null,
+  personalStatus: null,
   visibility: "public",
   onboardingCompleted: true,
   avatar: null,

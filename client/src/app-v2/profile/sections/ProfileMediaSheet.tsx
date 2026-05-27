@@ -18,6 +18,10 @@ const COPY: Record<MediaPurpose, { title: string; hint: string }> = {
     title: "Zmień baner",
     hint: "Wybierz grafikę banera (JPG, PNG lub WEBP, maks. 10 MB). Podgląd jest lokalny.",
   },
+  statusPhoto: {
+    title: "Zdjęcie statusowe",
+    hint: "Wybierz zdjęcie (JPG, PNG lub WEBP, maks. 5 MB). Podgląd jest lokalny.",
+  },
 };
 
 /**

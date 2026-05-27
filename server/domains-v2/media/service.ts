@@ -46,6 +46,10 @@ export interface MediaService {
     userId: string,
     meta: UploadFileMeta,
   ): Promise<MediaResult<UploadIntentDTO>>;
+  createStatusPhotoUploadIntent(
+    userId: string,
+    meta: UploadFileMeta,
+  ): Promise<MediaResult<UploadIntentDTO>>;
   confirmProfileMediaUpload(
     userId: string,
     assetId: string,
@@ -150,6 +154,9 @@ export function createMediaService(deps: MediaServiceDeps): MediaService {
 
     createBannerUploadIntent: (userId, meta) =>
       buildUploadIntent(ctx, userId, "banner", meta),
+
+    createStatusPhotoUploadIntent: (userId, meta) =>
+      buildUploadIntent(ctx, userId, "statusPhoto", meta),
 
     async confirmProfileMediaUpload(userId, assetId) {
       const record = await ctx.repo.findById(assetId);

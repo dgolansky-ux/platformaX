@@ -265,3 +265,119 @@ describe("profile application service — attachProfileAvatarRef / attachProfile
     if (!result.ok) expect(result.error.code).toBe("MEDIA_ASSET_NOT_FOUND");
   });
 });
+
+describe("profile application service — personal status", () => {
+  async function ready() {
+    const { app, media } = buildService();
+    await app.completeOnboarding(OWNER, ONBOARDING_INPUT);
+    return { app, media };
+  }
+
+  it("updatePersonalStatus persists text/visibility and composes them into the owner view", async () => {
+    const { app } = await ready();
+    const result = await app.updatePersonalStatus(OWNER, {
+      text: "produktywna",
+      emoji: "🚀",
+      description: "skupiona na release",
+      visibility: "public",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.personalStatus?.text).toBe("produktywna");
+    expect(result.value.personalStatus?.visibility).toBe("public");
+    expect(result.value.personalStatus?.photo).toBeNull();
+  });
+
+  it("updatePersonalStatus maps text validation failure to PROFILE_VALIDATION_FAILED", async () => {
+    const { app } = await ready();
+    const result = await app.updatePersonalStatus(OWNER, {
+      text: "",
+      visibility: "public",
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("PROFILE_VALIDATION_FAILED");
+    expect(result.error.fields?.text).toBeTruthy();
+  });
+
+  it("clearPersonalStatus removes the status block from the owner view", async () => {
+    const { app } = await ready();
+    await app.updatePersonalStatus(OWNER, { text: "tymczasowy", visibility: "public" });
+    const cleared = await app.clearPersonalStatus(OWNER);
+    expect(cleared.ok).toBe(true);
+    if (!cleared.ok) return;
+    expect(cleared.value.personalStatus).toBeNull();
+  });
+
+  it("attachProfileStatusPhotoRef verifies media owner + purpose + ready, then stores the ref", async () => {
+    const { app, media } = await ready();
+    await app.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
+    const intent = await media.createStatusPhotoUploadIntent(OWNER, {
+      mimeType: "image/png",
+      sizeBytes: 1024,
+    });
+    if (!intent.ok) throw new Error("intent failed");
+    const confirmed = await media.confirmProfileMediaUpload(OWNER, intent.value.assetId);
+    if (!confirmed.ok) throw new Error("confirm failed");
+    const result = await app.attachProfileStatusPhotoRef(OWNER, intent.value.assetId);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.personalStatus?.photo?.assetId).toBe(intent.value.assetId);
+    expect(result.value.personalStatus?.photo?.url).toContain("cdn.test");
+  });
+
+  it("attachProfileStatusPhotoRef rejects a foreign asset (MEDIA_ASSET_FORBIDDEN)", async () => {
+    const { app, media } = await ready();
+    await app.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
+    const intent = await media.createStatusPhotoUploadIntent(STRANGER, {
+      mimeType: "image/png",
+      sizeBytes: 1024,
+    });
+    if (!intent.ok) throw new Error("intent failed");
+    const confirmed = await media.confirmProfileMediaUpload(STRANGER, intent.value.assetId);
+    if (!confirmed.ok) throw new Error("confirm failed");
+    const result = await app.attachProfileStatusPhotoRef(OWNER, intent.value.assetId);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe("MEDIA_ASSET_FORBIDDEN");
+  });
+
+  it("attachProfileStatusPhotoRef rejects an avatar-purpose asset as MEDIA_ASSET_TYPE_MISMATCH", async () => {
+    const { app, media } = await ready();
+    await app.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
+    const intent = await media.createAvatarUploadIntent(OWNER, {
+      mimeType: "image/png",
+      sizeBytes: 1024,
+    });
+    if (!intent.ok) throw new Error("intent failed");
+    const confirmed = await media.confirmProfileMediaUpload(OWNER, intent.value.assetId);
+    if (!confirmed.ok) throw new Error("confirm failed");
+    const result = await app.attachProfileStatusPhotoRef(OWNER, intent.value.assetId);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe("MEDIA_ASSET_TYPE_MISMATCH");
+  });
+
+  it("getPublicProfileView hides a private status from strangers", async () => {
+    const { app } = await ready();
+    await app.updatePersonalStatus(OWNER, { text: "ukryte", visibility: "private" });
+    const result = await app.getPublicProfileView(STRANGER, OWNER);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.personalStatus).toBeNull();
+  });
+
+  it("updateMyProfile patches the new core fields (location, slug, civilStatus, socialLinks)", async () => {
+    const { app } = await ready();
+    const result = await app.updateMyProfile(OWNER, {
+      location: "Kraków",
+      profileSlug: "anna-k",
+      civilStatus: "partnered",
+      socialLinks: { linkedin: "https://linkedin.com/in/anna" },
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.location).toBe("Kraków");
+    expect(result.value.profileSlug).toBe("anna-k");
+    expect(result.value.civilStatus).toBe("partnered");
+    expect(result.value.socialLinks?.linkedin).toBe("https://linkedin.com/in/anna");
+  });
+});

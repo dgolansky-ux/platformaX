@@ -32,6 +32,7 @@ import {
 import type {
   CompleteOnboardingInput,
   OnboardingProfileAdapter,
+  UpdatePersonalStatusInput,
   UpdatePrivateProfileInput,
 } from "./types";
 
@@ -52,10 +53,16 @@ export function createProfileAdapter(
       deps.service.getPublicProfileView(viewerId, profileUserId),
     updateMyProfile: (userId: string, input: UpdatePrivateProfileInput) =>
       deps.service.updateMyProfile(userId, input),
+    updatePersonalStatus: (userId: string, input: UpdatePersonalStatusInput) =>
+      deps.service.updatePersonalStatus(userId, input),
+    clearPersonalStatus: (userId: string) =>
+      deps.service.clearPersonalStatus(userId),
     attachProfileAvatarRef: (userId: string, assetId: string) =>
       deps.service.attachProfileAvatarRef(userId, assetId),
     attachProfileBannerRef: (userId: string, assetId: string) =>
       deps.service.attachProfileBannerRef(userId, assetId),
+    attachProfileStatusPhotoRef: (userId: string, assetId: string) =>
+      deps.service.attachProfileStatusPhotoRef(userId, assetId),
   };
 }
 

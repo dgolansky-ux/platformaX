@@ -7,11 +7,17 @@
  * without committing to a database client until BLOCKER_REQUIRES_PERSISTENCE_
  * ADAPTER is resolved (see README "Not done yet" and STEP_27 report).
  *
- * A SQL schema mirror is provided in `supabase/migrations/0001_identity_
- * private_profiles.sql` for future Supabase wiring — that migration is NOT
- * applied automatically anywhere. No live db push.
+ * SQL schema mirrors live in `supabase/migrations/0001_identity_private_
+ * profiles.sql` (base) and `supabase/migrations/0003_identity_personal_
+ * profile_fields.sql` (forward-additive: location/profile_slug/status/civil/
+ * social columns). Neither is applied automatically. No live db push.
  */
-import type { ProfileVisibility } from "./dto";
+import type {
+  CivilStatus,
+  PersonalStatusVisibility,
+  ProfileVisibility,
+  SocialLinks,
+} from "./dto";
 import type { PrivateProfileRecord } from "./internal/record";
 
 export type CreateProfileRecordInput = {
@@ -23,6 +29,15 @@ export type CreateProfileRecordInput = {
   avatarAssetId: string | null;
   bannerAssetId: string | null;
   bio: string | null;
+  location: string | null;
+  profileSlug: string | null;
+  statusText: string | null;
+  statusEmoji: string | null;
+  statusDescription: string | null;
+  statusVisibility: PersonalStatusVisibility | null;
+  statusPhotoAssetId: string | null;
+  civilStatus: CivilStatus | null;
+  socialLinks: SocialLinks | null;
   visibility: ProfileVisibility;
   onboardingCompleted: boolean;
 };
@@ -35,12 +50,22 @@ export type UpdateProfileRecordPatch = {
   avatarAssetId?: string | null;
   bannerAssetId?: string | null;
   bio?: string | null;
+  location?: string | null;
+  profileSlug?: string | null;
+  statusText?: string | null;
+  statusEmoji?: string | null;
+  statusDescription?: string | null;
+  statusVisibility?: PersonalStatusVisibility | null;
+  statusPhotoAssetId?: string | null;
+  civilStatus?: CivilStatus | null;
+  socialLinks?: SocialLinks | null;
   visibility?: ProfileVisibility;
   onboardingCompleted?: boolean;
 };
 
 export interface IdentityProfileRepository {
   findByUserId(userId: string): Promise<PrivateProfileRecord | null>;
+  findBySlug(slug: string): Promise<PrivateProfileRecord | null>;
   create(
     input: CreateProfileRecordInput,
     now: string,
@@ -62,10 +87,22 @@ export function createInMemoryIdentityProfileRepository(
   const byUserId = new Map<string, PrivateProfileRecord>();
   for (const r of seed) byUserId.set(r.userId, { ...r });
 
+  function findBySlugSync(slug: string): PrivateProfileRecord | null {
+    for (const r of byUserId.values()) {
+      if (r.profileSlug === slug) return { ...r };
+    }
+    return null;
+  }
+
   return {
     async findByUserId(userId) {
       const record = byUserId.get(userId);
       return record ? { ...record } : null;
+    },
+
+    async findBySlug(slug) {
+      if (!slug) return null;
+      return findBySlugSync(slug);
     },
 
     async create(input, now) {
@@ -78,6 +115,15 @@ export function createInMemoryIdentityProfileRepository(
         avatarAssetId: input.avatarAssetId,
         bannerAssetId: input.bannerAssetId,
         bio: input.bio,
+        location: input.location,
+        profileSlug: input.profileSlug,
+        statusText: input.statusText,
+        statusEmoji: input.statusEmoji,
+        statusDescription: input.statusDescription,
+        statusVisibility: input.statusVisibility,
+        statusPhotoAssetId: input.statusPhotoAssetId,
+        civilStatus: input.civilStatus,
+        socialLinks: input.socialLinks,
         visibility: input.visibility,
         onboardingCompleted: input.onboardingCompleted,
         createdAt: now,
@@ -90,11 +136,14 @@ export function createInMemoryIdentityProfileRepository(
     async update(userId, patch, now) {
       const existing = byUserId.get(userId);
       if (!existing) return null;
-      const next: PrivateProfileRecord = {
-        ...existing,
-        ...patch,
-        updatedAt: now,
-      };
+      // Only assign keys that are explicitly present in the patch, so omitted
+      // fields keep their prior value (vs. being silently nulled).
+      const next: PrivateProfileRecord = { ...existing, updatedAt: now };
+      for (const key of Object.keys(patch) as Array<keyof UpdateProfileRecordPatch>) {
+        if (patch[key] !== undefined) {
+          (next as unknown as Record<string, unknown>)[key] = patch[key];
+        }
+      }
       byUserId.set(userId, next);
       return { ...next };
     },
