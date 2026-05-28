@@ -129,8 +129,8 @@ export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {})
             onSelectPersonal={() => setMode("personal")}
             onSelectProfessional={() => setMode("professional")}
             onShare={shareProfile}
-            onEditAvatar={profile.isOwner ? () => setMediaTarget("avatar") : undefined}
-            onEditBanner={profile.isOwner ? () => setMediaTarget("banner") : undefined}
+            onEditAvatar={editEnabled ? () => setMediaTarget("avatar") : undefined}
+            onEditBanner={editEnabled ? () => setMediaTarget("banner") : undefined}
           />
 
           {activePreview ? (

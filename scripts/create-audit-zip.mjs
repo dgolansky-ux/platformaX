@@ -58,6 +58,10 @@ const POSITIONAL = RAW_ARGS.filter((a) => !a.startsWith("--"));
 const OUT_DIR = POSITIONAL[0] ? POSITIONAL[0] : join(ROOT, "audit-out");
 
 // Directories never worth bundling (build output, deps, VCS internals).
+// `audit-out` is excluded so a final audit bundle never carries old generated
+// audit artifacts (previous ZIPs, validation JSONs, sha256 sidecars) from
+// earlier commits — those would let stale or contradictory audit evidence
+// ride along inside the current ZIP and silently weaken its trust.
 const EXCLUDE_DIRS = new Set([
   "node_modules",
   "dist",
@@ -66,6 +70,7 @@ const EXCLUDE_DIRS = new Set([
   ".git",
   ".cache",
   ".turbo",
+  "audit-out",
 ]);
 
 // Files that must NEVER appear in an audit bundle — secrets or local-only state.
@@ -285,6 +290,18 @@ function main() {
   const bannedFound = [...BANNED_RELS].filter((b) => entrySet.has(b));
   const backslashPaths = entries.filter((e) => e.includes("\\"));
 
+  // Defence-in-depth: even if collectFiles ever stops excluding audit-out, no
+  // generated audit artifact from a previous run (validation JSON, ZIP, sha256)
+  // may appear inside the bundle — that would let stale audit evidence ride
+  // along inside the current ZIP and contradict its own validation report.
+  const staleAuditArtifacts = entries.filter(
+    (e) =>
+      e.startsWith("audit-out/") ||
+      /\.validation\.json$/.test(e) ||
+      /\.zip\.sha256$/.test(e) ||
+      (/\.zip$/.test(e) && !e.startsWith("AUDIT_")),
+  );
+
   let secretScanPass = true;
   try {
     execSync("node scripts/check-secret-scan.mjs", { cwd: ROOT, stdio: "pipe" });
@@ -297,6 +314,7 @@ function main() {
     requiredDirsPresent: missingDirs.length === 0,
     bannedFilesAbsent: bannedFound.length === 0,
     forwardSlashPathsOnly: backslashPaths.length === 0,
+    noStaleAuditArtifacts: staleAuditArtifacts.length === 0,
     secretScanPass,
     treeClean,
     unstagedDiffEmpty,
@@ -320,6 +338,7 @@ function main() {
     missingDirs,
     bannedFound,
     backslashPaths,
+    staleAuditArtifacts,
   };
   writeFileSync(jsonPath, JSON.stringify(report, null, 2) + "\n", "utf-8");
 
@@ -334,6 +353,7 @@ function main() {
   if (missingDirs.length) console.error(`Missing dirs: ${missingDirs.join(", ")}`);
   if (bannedFound.length) console.error(`Banned found: ${bannedFound.join(", ")}`);
   if (backslashPaths.length) console.error(`Backslash paths: ${backslashPaths.slice(0, 10).join(", ")}`);
+  if (staleAuditArtifacts.length) console.error(`Stale audit artifacts in ZIP: ${staleAuditArtifacts.slice(0, 10).join(", ")}`);
 
   if (checksPass) {
     console.log("CREATE_AUDIT_ZIP_PASS");

@@ -344,4 +344,20 @@ describe("ProfilePage — personal profile mobile shell", () => {
       screen.queryByRole("button", { name: /podgląd profilu/i }),
     ).toBeNull();
   });
+
+  test("owner fixture without ready runtime still hides avatar/banner edit (editEnabled gate)", () => {
+    // Even though the explicit profile fixture has isOwner=true, the runtime
+    // useProfileData hook starts in "loading" (no real auth wired in jsdom).
+    // editEnabled = ownerUserId !== null AND profile.isOwner — so owner-only
+    // mutate controls MUST stay hidden until the runtime actually confirms
+    // ownership. This regression-test pins that we never route an explicit
+    // owner profile straight through to mutate CTAs.
+    renderProfile(ownerPersonalProfile);
+    expect(
+      screen.queryByRole("button", { name: /zmień zdjęcie profilowe/i }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /^zmień baner$/i }),
+    ).toBeNull();
+  });
 });

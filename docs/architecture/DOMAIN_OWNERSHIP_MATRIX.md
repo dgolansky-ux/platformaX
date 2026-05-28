@@ -3,11 +3,17 @@
 > **Canonical governance entrypoint:** `docs/governance/README.md` · `docs/governance/GOVERNANCE_INDEX.md` · `docs/governance/RULES_REGISTRY.yml`  
 > This document remains the authoritative source of its specific content. The enforceable rule registry is `docs/governance/RULES_REGISTRY.yml`.
 
+> **Status source of truth:** `docs/governance/DOMAIN_STATUS_REGISTRY.yml`
+> + `server/domains-v2/domain-registry.ts`. The `Status` column below is a
+> read-through and MUST equal those two — `scripts/check-domain-status-registry.mjs`
+> fails the build on drift between this matrix, the YAML registry and the
+> TypeScript registry.
+
 ## Owner domains
 
 | Domain | Owns | Does NOT own | Reads from | Public surface | Status |
 |---|---|---|---|---|---|
-| identity | profile, auth subject, public/private profile DTO, professions | feed, friendships, communities, posts | — | public-api, contracts, events | SCAFFOLD_ONLY |
+| identity | profile, auth subject, public/private profile DTO, professions | feed, friendships, communities, posts | — | public-api, contracts, events | PARTIAL |
 | social | friends/contact graph, relationship state, contact access | profile PII, posts, feed engine | identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | communities-v2 | community profile, members, roles, settings, invites, join requests, feed settings | posts, comments, chat, events, modules | identity, social (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | content-v2 | posts, feeds, comments, reactions, topics, read-models | memberships, roles, profiles, friendships | identity, communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
@@ -15,7 +21,7 @@
 | chat | messages, conversations, read state, typing indicators | channels, community roles, profiles | channels, identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | events | event definitions, RSVPs, event lifecycle, visibility | community membership, profiles, posts | identity, communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | modules | ModuleDefinition, registry, enablement | actual module business data | communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
-| media | media assets, upload contracts, validation, refs | base64/dataUrl payloads (FORBIDDEN) | identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| media | media assets, upload contracts, validation, refs | base64/dataUrl payloads (FORBIDDEN) | identity (public-api) | public-api, contracts, events | PARTIAL |
 
 ## Composition domains
 

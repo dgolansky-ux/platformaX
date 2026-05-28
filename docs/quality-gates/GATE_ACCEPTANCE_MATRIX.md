@@ -1,89 +1,62 @@
 # PlatformaX V2 — Gate Acceptance Matrix
 
-Status: `ACTIVE`  
+Status: `HISTORICAL_REPORT_ONLY` — superseded
 Owner: Governance / BRAMKA Acceptance
+Superseded: 2026-05-28
 
-## 1. Purpose
+## 1. Why this doc is historical
 
-This file is the acceptance checklist for BRAMKA completeness.
+This file was the Step-01 acceptance checklist used to bootstrap BRAMKA. Every
+row was marked `TODO` because the guards, hooks, CI workflow and rule registry
+did not yet exist. They do now — the canonical truth has moved to the
+artifacts listed in §2.
 
-If any P0 item is missing, status is:
+Leaving the original `TODO` matrix as `ACTIVE` was actively misleading: it
+implied the gates were unimplemented while the rest of governance (this
+repo's CI, `pnpm rules:check`, `pnpm guards:all-local`, the bramka acceptance
+script) was already failing closed.
 
-```txt
-BRAMKA_IMPLEMENTATION_IN_PROGRESS
-```
+This file is retained only as historical context. Do NOT use it as a current
+gate map.
 
-Only when every P0 item passes:
+## 2. Where gate truth lives now
 
-```txt
-BRAMKA_COMPLETE
-```
+| What you need | Look here |
+|---|---|
+| Authoritative list of guards | `docs/governance/GUARDS_REGISTRY.yml` |
+| Which rule each guard enforces | `docs/governance/RULES_TO_GUARDS_MATRIX.md` |
+| Guard implementation | `scripts/check-*.mjs` (each guard fails closed) |
+| CI execution | `.github/workflows/v2-gates.yml` (umbrella `pnpm guards:all-local`) |
+| Local pre-commit / pre-push hooks | `.husky/pre-commit`, `.husky/pre-push` |
+| BRAMKA acceptance runner | `scripts/check-bramka-acceptance.mjs` (50/50 wired into `pnpm guards:bramka`) |
+| Integration model (how the layers stay in sync) | `docs/architecture/PlatformaX-V2-coding-standards.md` §23 |
+| Status taxonomy | `docs/governance/STATUS_TAXONOMY.md` |
+| Domain status (PARTIAL / SCAFFOLD_ONLY / …) | `docs/governance/DOMAIN_STATUS_REGISTRY.yml` + `server/domains-v2/domain-registry.ts` |
 
-## 2. Acceptance matrix
+## 3. Why the rows were removed
 
-| ID | Gate / artifact | Required | Status | Evidence |
-|---|---|---:|---|---|
-| G-001 | BRAMKA document exists and is current | P0 | TODO | |
-| G-002 | active-rules.md exists | P0 | TODO | |
-| G-003 | coding-standards.md exists | P0 | TODO | |
-| G-004 | architecture-enforcement.md exists | P0 | TODO | |
-| G-005 | domain-status.md exists | P0 | TODO | |
-| G-006 | legacy-containment.md exists | P0 | TODO | |
-| G-007 | execution-map.md exists | P0 | TODO | |
-| G-008 | DOMAIN_OWNERSHIP_MATRIX.md exists | P0 | TODO | |
-| G-009 | ADR folder and template exist | P0 | TODO | |
-| G-010 | REVIEW_REPORTS_INDEX.md exists | P0 | TODO | |
-| G-011 | AI operating standard exists | P0 | TODO | |
-| G-012 | AI forbidden actions exist | P0 | TODO | |
-| G-013 | rules:check is real umbrella gate | P0 | TODO | |
-| G-014 | check-diff-safety exists | P0 | TODO | |
-| G-015 | no-commit-if-dirty-gates exists | P0 | TODO | |
-| G-016 | check-removed-product-areas scans routes/nav/build chunks | P0 | TODO | |
-| G-017 | check-no-legacy-imports exists | P0 | TODO | |
-| G-018 | audit-domain-boundaries exists | P0 | TODO | |
-| G-019 | check-domain-status exists | P0 | TODO | |
-| G-020 | check-fake-done/status truth exists | P0 | TODO | |
-| G-021 | check-test-env-safety exists | P0 | TODO | |
-| G-022 | check-env-safety exists | P0 | TODO | |
-| G-023 | public DTO PII checker exists | P0 | TODO | |
-| G-024 | media base64/dataUrl checker exists | P0 | TODO | |
-| G-025 | pagination checker exists | P0 | TODO | |
-| G-026 | file complexity checker exists | P1 | TODO | |
-| G-027 | bundle validator catches raw backslash paths | P0 | TODO | |
-| G-028 | bundle validator catches nested ZIP | P0 | TODO | |
-| G-029 | bundle validator catches secrets | P0 | TODO | |
-| G-030 | build artifact/removed chunk gate exists | P0 | TODO | |
-| G-031 | Supabase migration safety gate exists | P0 before DB | TODO | |
-| G-032 | Husky pre-commit exists | P0 | TODO | |
-| G-033 | Husky pre-push exists | P0 | TODO | |
-| G-034 | lint-staged configured | P1 | TODO | |
-| G-035 | commitlint configured | P1 | TODO | |
-| G-036 | secret scanner configured | P0 | TODO | |
-| G-037 | GitHub CI runs rules/check/arch/lint/test/build | P0 | TODO | |
-| G-038 | branch protection/rulesets configured | P0 | TODO | |
-| G-039 | CODEOWNERS exists | P0 | TODO | |
-| G-040 | PR template has Architecture Impact Statement | P0 | TODO | |
-| G-041 | dependency boundary checker exists | P1 | TODO | |
-| G-042 | contract tests pattern exists | P1 | TODO | |
-| G-043 | generator/template system exists | P1 | TODO | |
-| G-044 | observability/logging policy exists | P1 | TODO | |
-| G-045 | accessibility baseline exists | P1 | TODO | |
-| G-046 | release/backup/rollback checklist exists | P1 | TODO | |
-| G-047 | evidence bundle template exists | P0 | TODO | |
-| G-048 | independent audit cycle exists | P1 | TODO | |
-| G-049 | commit blocked when gates fail | P0 | TODO | |
-| G-050 | merge blocked when CI fails | P0 | TODO | |
+Each row in the old TODO matrix has at least one of these replacements:
 
-## 3. Final decision
+- A guard script under `scripts/check-*.mjs` (rows G-013 .. G-031, G-036, G-047, G-049–050) — listed in `GUARDS_REGISTRY.yml`.
+- A repo policy artifact already shipped (CODEOWNERS, PR template, ADR folder, REVIEW_REPORTS_INDEX, dependency policy, observability policy, accessibility baseline — see §2 pointers).
+- An item that cannot be proven from inside the repo (branch protection / GitHub rulesets — see §4).
 
-Current BRAMKA status:
+Keeping per-row `TODO` here while the actual implementation has shipped
+violates **PX-GOV-001** (no fake DONE / no fake TODO) by inverse: the doc
+asserts work is unfinished while it is, in fact, finished and enforced
+elsewhere.
+
+## 4. The one row that cannot be proven from inside the repo
+
+`G-038 — branch protection / rulesets configured` is **NEEDS_EXTERNAL_VERIFICATION**.
+Branch protection lives in GitHub repository settings, not in the working
+tree. Until an exported GitHub ruleset is committed, neither this doc nor
+`check-bramka-acceptance.mjs` can claim a PASS — the presence of a
+`pull_request` workflow trigger does not prove that the `main` branch
+actually requires it.
+
+## 5. Final decision
 
 ```txt
-BRAMKA_IMPLEMENTATION_IN_PROGRESS
-```
-
-Reason:
-
-```txt
-Step 01 provides governance artifacts only. Scripts, hooks, CI and repo protection are implemented in later steps.
+GATE_MATRIX_SUPERSEDED — current truth: see §2.
 ```
