@@ -9,10 +9,10 @@
  *
  * The tool surface is intentionally minimal: we walk the working tree and
  * parse `import` / `from "…"` statements with a small regex helper, so the
- * test file is self-contained and survives toolchain drift. tsarch is
- * available in devDependencies but its Jest matcher integration does not
- * round-trip cleanly to Vitest — we keep tsarch reserved for cycle / slice
- * exploration via the spike's dependency-cruiser graph instead.
+ * test file is self-contained and survives toolchain drift. ArchUnitTS /
+ * tsarch were evaluated and dropped — their Jest matchers do not round-trip
+ * cleanly to Vitest and the value-add over plain assertions was marginal.
+ * Cycle / slice exploration is covered by `dependency-cruiser` instead.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, existsSync } from "node:fs";

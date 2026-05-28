@@ -91,9 +91,23 @@ jobs:
       - name: Dependency-cruiser
         run: pnpm depcruise:check
 
+      - name: Architecture tests
+        run: pnpm arch-tests
+
+      # Authoritative gitleaks step — uses the official action so the
+      # binary is guaranteed present and we get the standard SARIF upload.
       - name: Gitleaks scan
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           config-path: .gitleaks.toml
+
+      # Belt-and-braces: also exercise the project's required-mode wrapper
+      # so a future change that breaks `secrets:gitleaks:required` is
+      # caught here, not in production.
+      - name: Gitleaks wrapper (required mode)
+        run: pnpm secrets:gitleaks:required
+
+      - name: Tooling red-case verifier (proves tools actually enforce)
+        run: pnpm tooling:redcase

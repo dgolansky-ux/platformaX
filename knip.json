@@ -33,8 +33,7 @@
     "globals",
     "husky",
     "lint-staged",
-    "@commitlint/config-conventional",
-    "tsarch"
+    "@commitlint/config-conventional"
   ],
   "ignoreExportsUsedInFile": true,
   "ignoreBinaries": [

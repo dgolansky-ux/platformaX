@@ -144,7 +144,7 @@ row is marked `NO` because of these tools alone.
 |---|---|---|
 | `eslint-plugin-boundaries` (`pnpm boundaries:check` via `pnpm lint`) | PX-ARCH-003, PX-ARCH-004, PX-ARCH-006, PX-ARCH-007 | audit-domain-boundaries |
 | `dependency-cruiser` (`pnpm depcruise:check`) | PX-ARCH-001, PX-ARCH-002, PX-ARCH-003, PX-ARCH-004, PX-ARCH-008, PX-ARCH-009, PX-DB-004 | audit-domain-boundaries, check-architecture-import-graph, check-no-legacy-imports |
-| Vitest architecture tests (`pnpm archunit:check`) | Same set as above + PX-APP-001 | Same custom guards as above |
+| Vitest architecture tests (`pnpm arch-tests`) | Same set as above + PX-APP-001 | Same custom guards as above |
 | `knip` (`pnpm knip:check`, weekly) | New coverage (unused files/exports/deps) | — |
 | `gitleaks` (`pnpm secrets:gitleaks`) | PX-SEC-002 | check-secret-scan, check-local-secret-scan (PlatformaX-specific rules stay) |
 | GitHub CodeQL workflow | PX-SEC-001/002 (security-extended pack) | — (status: `CODEQL_NEEDS_GITHUB_SETUP` until enabled in repo Settings) |
