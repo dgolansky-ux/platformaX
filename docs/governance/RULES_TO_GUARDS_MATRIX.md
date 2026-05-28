@@ -55,7 +55,7 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-SCALE-002 | No unbounded hot-path loops | coding-standards §22 | check-scalability-hot-paths | NO | — |
 | PX-SCALE-003 | No full scans for runtime lists | coding-standards §22 | check-scalability-hot-paths, check-pagination | NO | — |
 | PX-GOV-005 | No governance drift | HIDDEN_RULES_INVENTORY | check-governance-drift | NO | — |
-| PX-OWN-001 | Resource owner model | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | TODO_GUARD: check-backend-ownership-invariants |
+| PX-OWN-001 | Resource owner model | BACKEND_ARCHITECTURE_INVARIANTS | check-backend-ownership-invariants, manual_gate | PARTIAL | Structural shell (record owner fields + policy.ts canX) gate; full owner/viewer matrix stays manual_gate |
 | PX-OWN-002 | viewerContext on public reads | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
 | PX-VIS-001 | Visibility matrix | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate, PX-POLICY-001 | YES | Policy tests per field |
 | PX-DTO-002 | Public DTO zero PII extended | BACKEND_ARCHITECTURE_INVARIANTS | check-public-dto-pii, check-dto-privacy-classification | NO | Extends PX-SEC-001 |
@@ -68,36 +68,43 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-LC-001 | Explicit lifecycle statuses | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
 | PX-IDEMP-001 | Idempotency retry writes | BACKEND_ARCHITECTURE_INVARIANTS, ADR-015 | manual_gate | YES | TODO_GUARD: check-idempotency-flows |
 | PX-AIS-002 | Architecture Impact Statement | BACKEND_ARCHITECTURE_INVARIANTS | check-adr-required, manual_gate | PARTIAL | PR body / step report |
-| PX-APP-001 | application-v2 use-cases | active-rules §10, ADR-010 | check-client-server-boundary, manual_gate | PARTIAL | Client/server split now blocked by gate; use-cases placement for 2+ domains remains manual_gate (check-application-use-cases-boundary.mjs TODO) |
-| PX-READMODEL-001 | Single read-model owner | ADR-011 | manual_gate | YES | MANUAL_GATE_REQUIRED |
-| PX-CONTRACT-001 | Public DTO contract tests | coding-standards | check-public-dto-pii, manual_gate | PARTIAL | identity (public-mapper-no-pii), media (public-mapper-no-leak), application boundary (contract.test.ts); dedicated check-public-dto-contract-tests.mjs still TODO |
-| PX-ID-001 | Branded ID types | ADR-012 | manual_gate | PARTIAL | shared/contracts/ids.ts + tests + identity/media/outbox adoption; check-branded-id-types.mjs still TODO |
+| PX-APP-001 | application-v2 use-cases | active-rules §10, ADR-010 | check-client-server-boundary, check-application-use-cases-boundary, manual_gate | PARTIAL | Client/server split blocked; check-application-use-cases-boundary.mjs additionally fails files outside server/application-v2 importing public-api of 2+ domains. Deeper use-case-placement audit stays manual_gate |
+| PX-READMODEL-001 | Single read-model owner | ADR-011, BACKEND_ARCHITECTURE_INVARIANTS §9.1 | check-read-model-single-owner, manual_gate | PARTIAL | Doc-policy + co-ownership anti-pattern scan; per-projection proof stays manual_gate |
+| PX-CONTRACT-001 | Public DTO contract tests | coding-standards | check-public-dto-contract-tests, check-public-dto-pii | NO | check-public-dto-contract-tests.mjs requires PARTIAL/IMPLEMENTED domains to ship at least one of domain-contract / public-mapper-no-pii / public-mapper-no-leak / public-api / contract test |
+| PX-ID-001 | Branded ID types | ADR-012 | check-branded-id-types, manual_gate | PARTIAL | shared/contracts/ids.ts + tests + identity/media/outbox adoption; check-branded-id-types.mjs blocks raw-string *Id aliases in shared/contracts and domain contracts |
 | PX-ERROR-001 | Result/DomainError boundary | ADR-012 | manual_gate | PARTIAL | shared/contracts/result.ts + tests + identity/media/application boundaries return discriminated results |
 | PX-CURSOR-001 | Opaque cursor | ADR-013, BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns | PARTIAL | shared/contracts/cursor.ts (encode/decode, base64url, Result-typed) used by outbox listPending; offset ban manual on new endpoints |
 | PX-LIFECYCLE-001 | status + deletedAt | active-rules §10 | manual_gate | YES | Aligns PX-LC-001 |
-| PX-IDEMPOTENCY-001 | Idempotency table | ADR-015 | manual_gate | PARTIAL | idempotency_keys migration (0004, code only) + IdempotencyRepository + in-memory adapter + shared IdempotencyKey contract + tests; live wiring remains manual_gate |
+| PX-IDEMPOTENCY-001 | Idempotency table | ADR-015 | check-idempotency-flows, manual_gate | PARTIAL | check-idempotency-flows.mjs blocks regressions of shared contract + runtime adapter + migration + branded key + no Math.random; live wiring remains manual_gate |
 | PX-POLICY-001 | Pure policy functions | ADR-014 | check-policy-pure-functions | NO | Gate fails when any server/domains-v2 policy.ts imports persistence/transport or performs IO/non-determinism |
 | PX-UI-001 | Design tokens | PROFILE_BLUEPRINT | check-design-tokens, manual_gate | PARTIAL | Central tokens.css imported at app entry; gate verifies presence, import, profile CSS consumption, and `transition: all` ban. Visual parity remains MANUAL_OWNER_REVIEW |
 | PX-UI-002 | Presentational/container | coding-standards | check-presentational-container-boundary | NO | Gate fails when profile sections/ import the data layer, a feature adapter, or call a data hook |
-| PX-OBS-003 | Correlation ID | active-rules §10 | manual_gate | PARTIAL | shared/contracts/correlation.ts (RequestContext + createCorrelationId) with tests; end-to-end wiring still manual_gate, check-correlation-id-boundary.mjs TODO |
-| PX-SEED-001 | Deterministic PII-safe seeds | active-rules §10 | check-deterministic-seeds, check-test-env-safety | NO | Both gates run via rules:check and guards:runtime-invariants; enforces PII patterns + non-determinism + stable seed-* IDs across shared/test-seeds and server/seeds |
+| PX-OBS-003 | Correlation ID | active-rules §10 | check-correlation-id-boundary, check-no-unsafe-randomness, manual_gate | PARTIAL | check-correlation-id-boundary.mjs verifies skeleton (RequestContext.correlationId/actorId, no Math.random) and matrix honesty; end-to-end wiring still manual_gate |
+| PX-SEED-001 | Deterministic PII-safe seeds | active-rules §10 | check-deterministic-seeds, check-test-env-safety, check-no-unsafe-randomness | NO | All three gates run via rules:check and guards:runtime-invariants; check-no-unsafe-randomness.mjs additionally blocks Math.random in runtime code paths (opt-out per line with `// allow: Math.random — <reason>`) |
 | PX-GOV-FINALIZE-001 | Successful tasks must commit + push + PR | AGENT_COMMAND_STANDARD §11, AI_AGENT_PERMISSIONS_POLICY | check-successful-task-finalization-docs, manual_gate | PARTIAL | Docs guard keeps policy aligned across AGENT_COMMAND_STANDARD §11, AI_AGENT_PERMISSIONS_POLICY, RULES_REGISTRY and this matrix. Per-task finalization itself is manual_gate (FINALIZATION block in agent response). |
 
 ## Summary
 
 - **Total rules:** 70
-- **Fully automated:** 41 (+3: PX-POLICY-001, PX-UI-002, PX-SEED-001 now have dedicated gates)
-- **Automated + manual gate:** 14 (+6: PX-APP-001, PX-CONTRACT-001, PX-ID-001, PX-ERROR-001, PX-UI-001, PX-IDEMPOTENCY-001 gained partial guard or shared contract)
-- **Manual gate only / PARTIAL:** 15
-- **Documented governance gaps (TODO_GUARD):** 5 — remaining gaps: check-application-use-cases-boundary (PX-APP-001 placement), check-public-dto-contract-tests (PX-CONTRACT-001), check-branded-id-types (PX-ID-001), check-correlation-id-boundary (PX-OBS-003), check-backend-ownership-invariants (PX-OWN-001)
+- **Fully automated:** 42 (+1: PX-CONTRACT-001 now has a dedicated gate)
+- **Automated + manual gate:** 19 (+5 since step-50: PX-OWN-001, PX-APP-001, PX-ID-001, PX-OBS-003, PX-IDEMPOTENCY-001, PX-READMODEL-001 all gained dedicated structural guards)
+- **Manual gate only / PARTIAL:** 9
+- **Documented governance gaps (TODO_GUARD):** 0 remaining from the step-50 list. Step-52 closed: check-application-use-cases-boundary, check-public-dto-contract-tests, check-branded-id-types, check-correlation-id-boundary, check-backend-ownership-invariants, check-read-model-single-owner, check-idempotency-flows, check-public-api-surface, check-no-unsafe-randomness.
 - **Mandatory task finalization (PX-GOV-FINALIZE-001):** active — agent must end every successful task with commit + push + PR (create or update). Docs guard keeps the policy aligned across AGENT_COMMAND_STANDARD §11, AI_AGENT_PERMISSIONS_POLICY, RULES_REGISTRY and this matrix.
 
 ## Gap Analysis
 
-The 4 gaps are inherently non-automatable:
+The 4 inherent non-automatable gaps remain:
 1. **PX-PROFILE-001**: Visual parity requires screenshots — no code can verify pixel match.
 2. **PX-PROFILE-002**: Domain structure review — partially coverable by domain-scaffold but needs human judgment.
 3. **PX-AI-001**: Agent reading docs — agent self-reports in baseline section.
 4. **PX-AI-003**: Agent stopping when blocked — agent must demonstrate honest behavior.
 
 These are appropriately covered by `manual_gate` and report requirements.
+
+The PARTIAL rules (PX-OWN-001/002, PX-VIS-001, PX-CTX-001, PX-MEDIA-004,
+PX-EVENT-001/002, PX-LC-001/PX-LIFECYCLE-001, PX-IDEMP-001/IDEMPOTENCY-001,
+PX-AIS-002, PX-APP-001, PX-READMODEL-001, PX-ID-001, PX-ERROR-001, PX-CURSOR-001,
+PX-UI-001, PX-OBS-003) now each have a structural guard that prevents regression
+even though the deeper proof (full owner matrix, live outbox transaction, etc.)
+remains manual_gate.

@@ -60,6 +60,16 @@ const GUARDS = [
   "check-event-envelope-contract.mjs",
   // Documentation guard for the mandatory successful-task finalization policy.
   "check-successful-task-finalization-docs.mjs",
+  // Step-52 governance-map-enforcement guards (structural skeleton checks).
+  "check-public-api-surface.mjs",
+  "check-application-use-cases-boundary.mjs",
+  "check-public-dto-contract-tests.mjs",
+  "check-branded-id-types.mjs",
+  "check-correlation-id-boundary.mjs",
+  "check-backend-ownership-invariants.mjs",
+  "check-read-model-single-owner.mjs",
+  "check-idempotency-flows.mjs",
+  "check-no-unsafe-randomness.mjs",
 ];
 
 let failed = 0;

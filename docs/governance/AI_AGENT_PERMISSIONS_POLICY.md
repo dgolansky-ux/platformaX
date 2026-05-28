@@ -123,3 +123,30 @@ Use `IN_PROGRESS` or `BLOCKED` with concrete blockers. See `docs/governance/BACK
 
 See `AGENT_COMMAND_STANDARD.md` §11 for the mandatory `FINALIZATION:` block
 that every closing agent response must contain.
+
+## `.claude/` settings — tracked example vs local override
+
+`.claude/settings.example.json` is the **audit-tracked reference** for the AI
+agent allow-list. It is checked into git, reviewed in PRs, and enforced by
+`scripts/check-ai-agent-permissions.mjs` (GUARD-037).
+
+`.claude/settings.local.json` is the **local-only** override and stays
+gitignored (`.gitignore` excludes `.claude/*` except `settings.example.json`).
+When present locally it is also scanned by the guard with the same rule set,
+so a developer cannot widen permissions only on their machine.
+
+Forbidden in either file:
+
+- `git push *`, `git push origin *`, `git push -u origin *`, `git push origin HEAD*`
+  (broad wildcards that could push to `main` or any branch). Only
+  `git push origin HEAD` and `git push -u origin HEAD` are allowed.
+- `git push --force`, `git push -f`, `git push origin main`.
+- `--no-verify` anywhere.
+- `git reset --hard`, `git clean *`, `git checkout -- *`, `git checkout *`.
+- `git pull *` without `--ff-only`.
+- `gh api *` (broad mutable bypass), `gh pr merge`.
+- `node *` (broad arbitrary execution); only `node scripts/<file>` is allowed.
+- `railway`, `supabase db push`, `rm -rf *`.
+
+Every guard scope expansion or new permission entry MUST go through the
+tracked example so it is reviewable.

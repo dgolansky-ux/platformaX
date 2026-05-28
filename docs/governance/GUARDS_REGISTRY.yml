@@ -505,3 +505,86 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+
+  # === STEP-52 GOVERNANCE-MAP-ENFORCEMENT GUARDS ===
+
+  - id: GUARD-056
+    command: node scripts/check-public-api-surface.mjs
+    file: scripts/check-public-api-surface.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ARCH-003, PX-ARCH-004]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-057
+    command: node scripts/check-application-use-cases-boundary.mjs
+    file: scripts/check-application-use-cases-boundary.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-APP-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-058
+    command: node scripts/check-public-dto-contract-tests.mjs
+    file: scripts/check-public-dto-contract-tests.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CONTRACT-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-059
+    command: node scripts/check-branded-id-types.mjs
+    file: scripts/check-branded-id-types.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ID-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-060
+    command: node scripts/check-correlation-id-boundary.mjs
+    file: scripts/check-correlation-id-boundary.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-OBS-003]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-061
+    command: node scripts/check-backend-ownership-invariants.mjs
+    file: scripts/check-backend-ownership-invariants.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-OWN-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-062
+    command: node scripts/check-read-model-single-owner.mjs
+    file: scripts/check-read-model-single-owner.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-READMODEL-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-063
+    command: node scripts/check-idempotency-flows.mjs
+    file: scripts/check-idempotency-flows.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-IDEMPOTENCY-001, PX-IDEMP-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-064
+    command: node scripts/check-no-unsafe-randomness.mjs
+    file: scripts/check-no-unsafe-randomness.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEED-001, PX-OBS-003, PX-ID-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active

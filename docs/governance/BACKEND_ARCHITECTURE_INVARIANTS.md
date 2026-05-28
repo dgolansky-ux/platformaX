@@ -155,6 +155,21 @@ write source of truth + outbox event (same transaction) → worker / read model
 
 **Enforced by:** `scripts/check-scalability-hot-paths.mjs` (PX-EVENT-001, PX-SCALE-001).
 
+### 9.1 Single read-model owner (PX-READMODEL-001)
+
+Every read model projection has exactly one owner domain. Other domains may
+emit events that feed the projection, but only the owner domain writes the
+read model and is the source of truth for its shape.
+
+- Feed / content projections are owned by `content-v2`.
+- `social` emits events (follow, reaction) but does NOT co-own the feed
+  read model — describing both as authoritative write-side owners of the
+  same projection is forbidden.
+- Search indexing is fed by events; the search domain owns its projection.
+
+**Enforced by:** `scripts/check-read-model-single-owner.mjs` (structural)
+and ADR-011 (architecture).
+
 ---
 
 ## 10. Status lifecycle

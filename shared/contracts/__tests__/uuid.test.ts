@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { createUuid, isUuid } from "../uuid";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { createUuid, isUuid, UuidGeneratorUnavailableError } from "../uuid";
 
 describe("uuid helper", () => {
   it("createUuid returns a UUID-formatted string", () => {
@@ -25,5 +25,49 @@ describe("uuid helper", () => {
     expect(isUuid("media_xyz")).toBe(false);
     expect(isUuid("")).toBe(false);
     expect(isUuid(undefined as unknown as string)).toBe(false);
+  });
+
+  describe("WebCrypto fallback / unavailable", () => {
+    const originalCrypto = (globalThis as { crypto?: unknown }).crypto;
+
+    afterEach(() => {
+      // restore native crypto
+      Object.defineProperty(globalThis, "crypto", {
+        value: originalCrypto,
+        configurable: true,
+        writable: true,
+      });
+    });
+
+    it("falls back to getRandomValues when randomUUID is absent", () => {
+      Object.defineProperty(globalThis, "crypto", {
+        value: {
+          getRandomValues: (buf: Uint8Array) => {
+            for (let i = 0; i < buf.length; i++) buf[i] = (i * 17 + 3) & 0xff;
+            return buf;
+          },
+        },
+        configurable: true,
+        writable: true,
+      });
+      const id = createUuid();
+      expect(isUuid(id)).toBe(true);
+    });
+
+    it("throws controlled UuidGeneratorUnavailableError when no crypto available", () => {
+      Object.defineProperty(globalThis, "crypto", {
+        value: undefined,
+        configurable: true,
+        writable: true,
+      });
+      expect(() => createUuid()).toThrow(UuidGeneratorUnavailableError);
+    });
+
+    it("never invokes Math.random in either path", () => {
+      const spy = vi.spyOn(Math, "random");
+      createUuid();
+      expect(spy).not.toHaveBeenCalled();
+      spy.mockRestore();
+    });
   });
 });

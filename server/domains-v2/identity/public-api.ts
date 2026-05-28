@@ -44,7 +44,7 @@ export type {
   MediaAssetRef,
 } from "./dto";
 
-export type { PrivateProfileDTO } from "./internal/private-profile-dto";
+export type { PrivateProfileDTO } from "./private-dto";
 
 export type {
   UserId,
@@ -64,7 +64,7 @@ export {
   canCompleteOnboarding,
 } from "./policy";
 
-export { IDENTITY_VALIDATION_LIMITS } from "./internal/validation";
+export { IDENTITY_VALIDATION_LIMITS } from "./validation-limits";
 
 export type {
   IdentityEvent,

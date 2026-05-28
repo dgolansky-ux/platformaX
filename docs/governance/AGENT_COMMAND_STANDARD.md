@@ -199,6 +199,22 @@ The finalization requirement does not apply when:
 - The working tree contains unrelated changes that did not originate from this
   task (BLOCKED — owner decision required).
 
+### Audit ZIP exports
+
+When producing an audit ZIP (operator workflow or `scripts/create-evidence-zip.mjs`):
+
+- Use forward slash `/` for ZIP entry paths — never Windows `\\`. Cross-platform
+  ZIP readers treat `\\` as a literal filename character, not a separator.
+- Include `.env*.example` so the example secret shape is reviewable.
+- Exclude real `.env*` files (DATABASE_URL, service_role, JWT secrets, etc.).
+- Exclude `node_modules/`, `dist/`, `build/`, `coverage/`, `.git/`, prior
+  `*.zip` / `*.sha256` artefacts.
+- `.claude/settings.local.json` is gitignored and excluded from the evidence
+  ZIP by `scripts/create-evidence-zip.mjs`. The tracked example
+  (`.claude/settings.example.json`) is the audit reference.
+- The ZIP itself must never carry secrets, logs, build artefacts, or
+  `node_modules`.
+
 ### Mandatory final-response block
 
 Every agent response that closes a task must include this block:

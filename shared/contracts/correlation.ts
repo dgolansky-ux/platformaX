@@ -7,6 +7,7 @@
  * through middleware/use-cases — full observability remains a follow-up.
  */
 import type { UserId } from "./ids";
+import { createUuid } from "./uuid";
 
 export const CORRELATION_CONTEXT_SKELETON_READY =
   "CORRELATION_CONTEXT_SKELETON_READY" as const;
@@ -16,15 +17,14 @@ export interface RequestContext {
   actorId: UserId | null;
 }
 
-type CryptoLike = { randomUUID?: () => string };
-
-/** Generate a correlation id; injectable generator, else crypto.randomUUID. */
+/**
+ * Generate a correlation id. Pluggable for tests (`generateId`); otherwise
+ * defers to `createUuid()` which is strictly WebCrypto-backed
+ * (no `Math.random` fallback — PX-OBS-003 / PX-SEED-001 / no-unsafe-randomness).
+ */
 export function createCorrelationId(generateId?: () => string): string {
   if (generateId) return generateId();
-  const cryptoObj = (globalThis as { crypto?: CryptoLike }).crypto;
-  if (cryptoObj?.randomUUID) return `cid_${cryptoObj.randomUUID()}`;
-  const rand = Math.floor(Math.random() * 0xffffffff).toString(16);
-  return `cid_${Date.now().toString(36)}_${rand}`;
+  return `cid_${createUuid()}`;
 }
 
 /** Build a RequestContext. `actorId` is explicit (null for anonymous). */

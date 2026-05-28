@@ -1,42 +1,9 @@
 /**
- * identity — private profile DTO (owner-only, internal)
+ * identity — private profile DTO re-export (internal-only thin shim)
  *
- * This file deliberately lives under `/internal/` so the PII guard treats it as
- * a private context. It is exported through the identity domain's public API
- * ONLY as a return type of owner-gated use-cases (e.g. `getMyProfile`); other
- * domains must never branch on it directly.
- *
- * Private fields included here are never mapped into PublicProfileDTO.
+ * The canonical location is `../private-dto.ts`. This file remains under
+ * `/internal/` because earlier callers imported from here and the public-api
+ * boundary guard now forbids public-api re-exporting from internal/*.
+ * Keep this file as the internal alias for internal consumers (mapper, service).
  */
-import type {
-  CivilStatus,
-  MediaAssetRef,
-  PersonalStatusDTO,
-  ProfileVisibility,
-  SocialLinks,
-} from "../dto";
-
-export type PrivateProfileDTO = {
-  userId: string;
-  firstName: string | null;
-  lastName: string | null;
-  /** ISO date string (YYYY-MM-DD). Owner-only. */
-  dateOfBirth: string | null;
-  /** Owner-only contact field. Normalised to E.164-like format on write. */
-  phone: string | null;
-  avatarMediaRef: MediaAssetRef | null;
-  bannerMediaRef: MediaAssetRef | null;
-  bio: string | null;
-  /** City / region — exposed publicly when profile visibility allows. */
-  location: string | null;
-  /** Public stable handle (unique). Owner can rotate, others see it. */
-  profileSlug: string | null;
-  civilStatus: CivilStatus | null;
-  socialLinks: SocialLinks | null;
-  /** Composed personal status; null when cleared. Owner always sees it raw. */
-  personalStatus: PersonalStatusDTO | null;
-  visibility: ProfileVisibility;
-  onboardingCompleted: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+export type { PrivateProfileDTO } from "../private-dto";

@@ -155,6 +155,7 @@ rules:
       - "cross-domain via public-api.ts or contracts.ts or events.ts"
     enforced_by:
       - scripts/audit-domain-boundaries.mjs
+      - scripts/check-public-api-surface.mjs
     evidence_required: gate log
     status: active
     owner: architecture
@@ -169,9 +170,11 @@ rules:
     applies_to: [server/domains-v2, client/src/features-v2]
     forbidden_patterns:
       - "deep import to another domain's internals"
+      - "public-api re-export from ./internal/*"
     required_patterns: []
     enforced_by:
       - scripts/audit-domain-boundaries.mjs
+      - scripts/check-public-api-surface.mjs
     evidence_required: gate log
     status: active
     owner: architecture
@@ -1026,14 +1029,20 @@ rules:
       - "update/delete/attach without owner check"
       - "mixing ownerUserId with viewerUserId in one field"
     required_patterns:
-      - "ownerUserId or ownerId on owned resources"
+      - "ownerUserId or ownerType+ownerId on owned resources"
       - "slug or publicId for public URL resources when applicable"
+      - "policy.ts canX functions exist for owner-domain"
     enforced_by:
+      - scripts/check-backend-ownership-invariants.mjs
       - manual_gate
-    evidence_required: policy/service tests or Architecture Impact Statement owner matrix
+    evidence_required: policy/service tests + structural owner-shape gate log
     status: active
     owner: architecture
-    notes: Partial automation via domain-scaffold and policy tests; dedicated guard TODO
+    notes: >
+      check-backend-ownership-invariants.mjs verifies the structural shell for
+      PARTIAL/IMPLEMENTED owner domains: identity record carries userId; media
+      record carries ownerUserId OR (ownerType+ownerId); policy.ts file exists
+      with canX functions. Full owner/viewer matrix proof stays manual_gate.
 
   - id: PX-OWN-002
     title: Public reads require viewerContext or explicit public-only policy
@@ -1324,14 +1333,18 @@ rules:
       - "client/src never imports @server/* — only @shared/contracts"
     enforced_by:
       - scripts/check-client-server-boundary.mjs
+      - scripts/check-application-use-cases-boundary.mjs
       - manual_gate
-    evidence_required: client/server boundary gate log + use-case placement review
+    evidence_required: client/server boundary gate log + application/use-case placement gate log
     status: active
     owner: architecture
     notes: >
       check-client-server-boundary.mjs enforces the client/server split (zero
-      @server imports under client/src). use-cases placement for 2+ domains
-      remains manual_gate (check-application-use-cases-boundary.mjs TODO).
+      @server imports under client/src). check-application-use-cases-boundary.mjs
+      additionally fails when a file outside server/application-v2 imports the
+      public-api of 2+ domains (orchestration must live in use-cases). Tests
+      and governance scripts are excluded. Deeper use-case-placement audit
+      (which use-cases exist, which are pure) remains manual_gate.
 
   - id: PX-READMODEL-001
     title: Every read model projection has exactly one owner domain
@@ -1340,6 +1353,7 @@ rules:
     source_docs:
       - docs/architecture/adr/ADR-011-single-read-model-owner.md
       - docs/architecture/adr/ADR-007-feed-ownership-no-global-social-feed.md
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
     applies_to: [server/domains-v2, server/application-v2]
     forbidden_patterns:
       - "shared global feed table without owner domain"
@@ -1347,11 +1361,16 @@ rules:
     required_patterns:
       - "single owner domain per read model"
     enforced_by:
+      - scripts/check-read-model-single-owner.mjs
       - manual_gate
-    evidence_required: DOMAIN_OWNERSHIP_MATRIX + read model README
+    evidence_required: DOMAIN_OWNERSHIP_MATRIX + BACKEND_ARCHITECTURE_INVARIANTS §9.1 + gate log
     status: active
     owner: architecture
-    notes: null
+    notes: >
+      check-read-model-single-owner.mjs verifies the rule is documented and
+      scans docs for co-ownership anti-patterns (e.g. "content-v2 + social"
+      both owning the feed projection). Full architecture proof per projection
+      stays manual_gate.
 
   - id: PX-CONTRACT-001
     title: Public DTO and public-api require contract or snapshot tests
@@ -1366,16 +1385,16 @@ rules:
     required_patterns:
       - "contract test or snapshot test for public DTO exports"
     enforced_by:
-      - manual_gate
+      - scripts/check-public-dto-contract-tests.mjs
       - scripts/check-public-dto-pii.mjs
     evidence_required: __tests__ public-api or dto contract suite
     status: active
     owner: architecture
     notes: >
-      Contract/shape tests exist for identity (public-mapper-no-pii), media
-      (public-mapper-no-leak) and the profile application boundary
-      (application-v2/profile/__tests__/contract.test.ts). Dedicated
-      check-public-dto-contract-tests.mjs still TODO.
+      check-public-dto-contract-tests.mjs requires PARTIAL/IMPLEMENTED domains
+      to ship at least one of domain-contract / public-mapper-no-pii /
+      public-mapper-no-leak / public-api / contract test. SCAFFOLD_ONLY domains
+      are not required to have runtime contract tests.
 
   - id: PX-ID-001
     title: Domain IDs use branded types not raw string at boundaries
@@ -1390,14 +1409,16 @@ rules:
     required_patterns:
       - "UserId PostId MediaAssetId CommunityId branded types at domain boundary"
     enforced_by:
+      - scripts/check-branded-id-types.mjs
       - manual_gate
-    evidence_required: shared/contracts/ids.ts + tests
+    evidence_required: shared/contracts/ids.ts + tests + gate log
     status: active
     owner: engineering
     notes: >
       Branded ID types + constructors live in shared/contracts/ids.ts with
       compile-level smoke tests; adopted in identity/media events and outbox.
-      check-branded-id-types.mjs still TODO.
+      check-branded-id-types.mjs verifies shared/contracts/ids.ts uses Brand<>
+      and that domain contracts don't redeclare *Id aliases as raw string.
 
   - id: PX-ERROR-001
     title: Domain boundaries return typed Result not raw thrown errors
@@ -1476,15 +1497,18 @@ rules:
     required_patterns:
       - "idempotency key storage for create publish upload finalize"
     enforced_by:
+      - scripts/check-idempotency-flows.mjs
       - manual_gate
-    evidence_required: migration 0004 + repository idempotency contract + tests
+    evidence_required: migration 0004 + repository idempotency contract + tests + gate log
     status: active
     owner: architecture
     notes: >
       idempotency_keys table in supabase/migrations/0004 (code only, not pushed),
       IdempotencyRepository contract + in-memory adapter in
       server/application-v2/runtime/idempotency.ts, shared IdempotencyKey contract,
-      all tested. Live wiring into create/publish/upload remains manual_gate.
+      all tested. check-idempotency-flows.mjs verifies the structural skeleton
+      (shared contract + runtime adapter + migration + branded key + no
+      Math.random). Live wiring into create/publish/upload remains manual_gate.
 
   - id: PX-POLICY-001
     title: Policies are pure testable functions canView canEdit canAttach canDelete
@@ -1568,14 +1592,18 @@ rules:
     required_patterns:
       - "correlationId end to end"
     enforced_by:
+      - scripts/check-correlation-id-boundary.mjs
+      - scripts/check-no-unsafe-randomness.mjs
       - manual_gate
     evidence_required: shared/contracts/correlation.ts skeleton + middleware/use-case log fields
     status: active
     owner: engineering
     notes: >
       RequestContext + createCorrelationId skeleton in shared/contracts/correlation.ts
-      with tests (CORRELATION_CONTEXT_SKELETON_READY). End-to-end wiring through
-      middleware/use-case/log remains manual_gate. check-correlation-id-boundary.mjs TODO.
+      (WebCrypto-only randomness via createUuid). check-correlation-id-boundary.mjs
+      enforces the structural skeleton (RequestContext.correlationId/actorId,
+      no Math.random). End-to-end wiring through middleware/use-case/log
+      remains manual_gate.
 
   - id: PX-SEED-001
     title: Dev and test seeds must be deterministic and PII-safe
@@ -1593,13 +1621,17 @@ rules:
     enforced_by:
       - scripts/check-deterministic-seeds.mjs
       - scripts/check-test-env-safety.mjs
-    evidence_required: fixture builders + seed scripts review + deterministic-seeds gate log
+      - scripts/check-no-unsafe-randomness.mjs
+    evidence_required: fixture builders + seed scripts review + deterministic-seeds gate log + no-unsafe-randomness gate log
     status: active
     owner: engineering
     notes: >
       check-deterministic-seeds.mjs enforces PII patterns, non-determinism
       (Math.random/Date.now/new Date) and stable seed-* IDs across
-      shared/test-seeds and server/seeds. Both gates run via rules:check and
+      shared/test-seeds and server/seeds. check-no-unsafe-randomness.mjs
+      additionally blocks Math.random in runtime code paths
+      (shared/contracts, server/**, client/src/**) — opt-out per line via
+      `// allow: Math.random — <reason>`. Both gates run via rules:check and
       guards:runtime-invariants.
 
   # === MANDATORY TASK FINALIZATION ===

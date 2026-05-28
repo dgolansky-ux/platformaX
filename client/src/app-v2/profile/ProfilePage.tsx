@@ -130,6 +130,7 @@ export function ProfilePage({
             profile={profile}
             mode={mode}
             previewOpen={previewOpen}
+            canEditProfile={canEditProfile}
             onTogglePreview={() => setPreviewOpen((v) => !v)}
             onSelectPreview={handleSelectPreview}
             onSelectPersonal={() => setMode("personal")}
@@ -139,7 +140,7 @@ export function ProfilePage({
             onEditBanner={canEditProfile ? () => setMediaTarget("banner") : undefined}
           />
 
-          {activePreview ? (
+          {activePreview && canEditProfile ? (
             <div className={header.previewMenu} role="status">
               <p className={header.previewMenuTitle}>{activePreview.title}</p>
               <p className={header.previewBody}>{activePreview.body}</p>
@@ -164,13 +165,13 @@ export function ProfilePage({
                 <ProfilePersonalSections
                   presentationPostCount={profile.presentationPostCount}
                   milestoneCount={profile.milestoneCount}
-                  isOwner={profile.isOwner}
+                  canEdit={canEditProfile}
                 />
               </div>
             </>
           ) : (
             <div className={layout.professionalGrid}>
-              <ProfileProfessionalLayer isOwner={profile.isOwner} />
+              <ProfileProfessionalLayer canEdit={canEditProfile} />
             </div>
           )}
         </main>

@@ -7,7 +7,8 @@ dist/
 Thumbs.db
 .vite/
 coverage/
-.claude/
+.claude/*
+!.claude/settings.example.json
 
 # Local audit export artefacts (operator ZIP/audit workflow). Never source.
 AUDIT_*.txt

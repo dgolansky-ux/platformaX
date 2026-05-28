@@ -5,7 +5,11 @@ import media from "../styles/profile-media.module.css";
 
 type ProfileBannerProps = {
   onShare: () => void;
-  isOwner?: boolean;
+  /**
+   * True only for authenticated owner viewing their own profile. Controls
+   * activation of the banner edit button. Anonymous/loading must pass false.
+   */
+  canEdit?: boolean;
   onEditImage?: () => void;
   /** Optional banner URL resolved through the media boundary. Falls back to gradient. */
   bannerUrl?: string | null;
@@ -22,7 +26,7 @@ type ProfileBannerProps = {
  */
 export function ProfileBanner({
   onShare,
-  isOwner,
+  canEdit,
   onEditImage,
   bannerUrl = null,
   shareCount = 52,
@@ -70,7 +74,7 @@ export function ProfileBanner({
           </div>
         </div>
       )}
-      {isOwner && onEditImage ? (
+      {canEdit && onEditImage ? (
         <button
           type="button"
           className={media.bannerEdit}

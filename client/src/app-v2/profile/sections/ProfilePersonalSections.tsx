@@ -4,7 +4,8 @@ import styles from "../styles/profile-sections.module.css";
 type ProfilePersonalSectionsProps = {
   presentationPostCount: number;
   milestoneCount: number;
-  isOwner: boolean;
+  /** True only when an authenticated owner is viewing their own profile. */
+  canEdit: boolean;
 };
 
 type EmptyAccent = "green" | "yellow";
@@ -15,7 +16,7 @@ type EmptyBlockProps = {
   icon: React.ReactNode;
   iconAccent: EmptyAccent;
   ownerText: string;
-  isOwner: boolean;
+  canEdit: boolean;
   count: number;
   total: number;
   addLabel: string;
@@ -28,7 +29,7 @@ function SectionBlock({
   icon,
   iconAccent,
   ownerText,
-  isOwner,
+  canEdit,
   count,
   total,
   addLabel,
@@ -48,7 +49,7 @@ function SectionBlock({
             {count}/{total} {subtitle}
           </span>
         </div>
-        {isOwner ? (
+        {canEdit ? (
           <button
             type="button"
             className={styles.addButton}
@@ -68,7 +69,7 @@ function SectionBlock({
           </div>
           <p className={styles.emptyTitle}>{emptyTitle}</p>
           <p className={styles.emptyText}>
-            {isOwner ? ownerText : "Ten użytkownik nie dodał jeszcze żadnych treści."}
+            {canEdit ? ownerText : "Ten użytkownik nie dodał jeszcze żadnych treści."}
           </p>
         </div>
       ) : null}
@@ -80,7 +81,7 @@ function SectionBlock({
 export function ProfilePersonalSections({
   presentationPostCount,
   milestoneCount,
-  isOwner,
+  canEdit,
 }: ProfilePersonalSectionsProps) {
   return (
     <>
@@ -91,7 +92,7 @@ export function ProfilePersonalSections({
         iconAccent="green"
         emptyTitle="Brak postów"
         ownerText="Dodaj do 12 postów ze zdjęciami i filmami."
-        isOwner={isOwner}
+        canEdit={canEdit}
         count={presentationPostCount}
         total={12}
         addLabel="Dodaj post"
@@ -103,7 +104,7 @@ export function ProfilePersonalSections({
         iconAccent="yellow"
         emptyTitle="Brak ważnych wydarzeń"
         ownerText="Dodaj ważne momenty ze swojego życia na osi czasu."
-        isOwner={isOwner}
+        canEdit={canEdit}
         count={milestoneCount}
         total={12}
         addLabel="Dodaj wydarzenie"

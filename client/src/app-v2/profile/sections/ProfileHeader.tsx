@@ -10,6 +10,14 @@ type ProfileHeaderProps = {
   profile: PersonalProfileView;
   mode: ProfileViewMode;
   previewOpen: boolean;
+  /**
+   * True only when ProfilePage has resolved an authenticated owner viewing
+   * their own profile (state.kind === "ready" && state.userId !== null
+   * && profile.isOwner). Anonymous/loading must pass false even when the
+   * fixture carries isOwner=true — that fixture flag only controls visual
+   * shell, never privilege.
+   */
+  canEditProfile: boolean;
   onTogglePreview: () => void;
   onSelectPreview: (kind: ProfilePreviewKind) => void;
   onSelectPersonal: () => void;
@@ -27,6 +35,7 @@ export function ProfileHeader({
   profile,
   mode,
   previewOpen,
+  canEditProfile,
   onTogglePreview,
   onSelectPreview,
   onSelectPersonal,
@@ -44,21 +53,21 @@ export function ProfileHeader({
           <ProfileAvatar
             initial={profile.avatarInitial}
             avatarUrl={profile.avatarUrl}
-            isOwner={profile.isOwner}
+            canEdit={canEditProfile}
             previewOpen={previewOpen}
-            onTogglePreview={onTogglePreview}
-            onEdit={onEditAvatar}
+            onTogglePreview={canEditProfile ? onTogglePreview : undefined}
+            onEdit={canEditProfile ? onEditAvatar : undefined}
           />
-          <ProfileCivilCard isOwner={profile.isOwner} />
+          <ProfileCivilCard canEdit={canEditProfile} />
         </div>
         <div className={styles.separator} aria-hidden="true" />
         <div className={styles.rightCol}>
-          <ProfileBio bio={profile.bio} isOwner={profile.isOwner} />
-          <ProfileStatusRow status={profile.status} isOwner={profile.isOwner} />
+          <ProfileBio bio={profile.bio} canEdit={canEditProfile} />
+          <ProfileStatusRow status={profile.status} canEdit={canEditProfile} />
         </div>
       </div>
 
-      {previewOpen ? (
+      {previewOpen && canEditProfile ? (
         <div className={styles.previewMenu} role="menu">
           <p className={styles.previewMenuTitle}>Podgląd profilu</p>
           <button
@@ -106,8 +115,8 @@ export function ProfileHeader({
 
       <ProfileBanner
         onShare={onShare}
-        isOwner={profile.isOwner}
-        onEditImage={onEditBanner}
+        canEdit={canEditProfile}
+        onEditImage={canEditProfile ? onEditBanner : undefined}
         bannerUrl={profile.bannerUrl}
       />
     </header>

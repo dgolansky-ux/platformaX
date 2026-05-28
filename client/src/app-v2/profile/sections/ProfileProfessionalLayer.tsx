@@ -3,7 +3,8 @@ import { ProfileSpecialists } from "./ProfileSpecialists";
 import { ProfileProfessionalActivities } from "./ProfileProfessionalActivities";
 
 type ProfileProfessionalLayerProps = {
-  isOwner: boolean;
+  /** True only when an authenticated owner is viewing their own profile. */
+  canEdit: boolean;
 };
 
 /**
@@ -11,12 +12,12 @@ type ProfileProfessionalLayerProps = {
  * separate route or domain — just the professional sections shown instead of the
  * personal content sections. UI shell with empty states only (no profession data).
  */
-export function ProfileProfessionalLayer({ isOwner }: ProfileProfessionalLayerProps) {
+export function ProfileProfessionalLayer({ canEdit }: ProfileProfessionalLayerProps) {
   return (
     <>
-      <ProfessionBlock isOwner={isOwner} />
-      <ProfileSpecialists isOwner={isOwner} />
-      <ProfileProfessionalActivities isOwner={isOwner} />
+      <ProfessionBlock isOwner={canEdit} />
+      <ProfileSpecialists isOwner={canEdit} />
+      <ProfileProfessionalActivities isOwner={canEdit} />
     </>
   );
 }

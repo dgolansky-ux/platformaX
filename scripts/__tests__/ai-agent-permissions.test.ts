@@ -1,123 +1,140 @@
 import { describe, it, expect } from "vitest";
-import { existsSync, readFileSync } from "fs";
-import { join } from "path";
+// @ts-expect-error mjs export
+import { checkAllowList, normalize } from "../check-ai-agent-permissions.mjs";
 
-const ROOT = process.cwd();
-const SETTINGS_PATH = join(ROOT, ".claude/settings.local.json");
-
-const DANGEROUS_PATTERNS = [
-  "--force",
-  "--no-verify",
-  "rm -rf",
-  "DROP TABLE",
-  "DROP DATABASE",
-  "railway deploy",
-  "railway up",
-  "supabase db push",
-];
-
-const WILDCARD_DANGEROUS_PREFIXES = [
-  { wildcard: "git push", covers: ["git push --force", "git push origin main"] },
-  { wildcard: "git commit", covers: ["git commit --no-verify"] },
-  { wildcard: "git reset", covers: ["git reset --hard"] },
-  { wildcard: "git merge", covers: ["git merge main"] },
-  { wildcard: "gh pr", covers: ["gh pr merge"] },
-];
-
-function getAllowList(content: string): string[] {
-  try {
-    const parsed = JSON.parse(content);
-    return parsed?.permissions?.allow ?? [];
-  } catch {
-    return [];
-  }
-}
-
-function wildcardCovers(normalized: string, prefix: string): boolean {
-  if (!normalized.includes("*")) return false;
-  const base = normalized.replace(/\s*\*+\s*$/, "").trim();
-  return prefix.startsWith(base);
+function violations(entries: string[]): string[] {
+  return (checkAllowList as (l: string, a: string[]) => string[])("test", entries);
 }
 
 describe("ai-agent-permissions guard logic", () => {
-  const settingsExist = existsSync(SETTINGS_PATH);
-
-  it("PASS: .claude/settings.local.json exists", () => {
-    if (!settingsExist) {
-      console.warn("SKIP: .claude/settings.local.json not found — test skipped gracefully");
-      return;
-    }
-    expect(settingsExist).toBe(true);
-    const content = readFileSync(SETTINGS_PATH, "utf-8");
-    expect(content.length).toBeGreaterThan(0);
+  it("normalizes Bash(...) wrappers", () => {
+    expect(normalize("Bash(git status)")).toBe("git status");
+    expect(normalize("git status")).toBe("git status");
   });
 
-  it("PASS: no unconditional dangerous permissions in allow list", () => {
-    if (!settingsExist) return;
-
-    const content = readFileSync(SETTINGS_PATH, "utf-8");
-    const allowList = getAllowList(content);
-
-    for (const entry of allowList) {
-      for (const pattern of DANGEROUS_PATTERNS) {
-        const isUnconditional = entry === `Bash(${pattern})` || entry === pattern;
-        expect(
-          isUnconditional,
-          `Dangerous unconditional permission found: "${entry}" matches "${pattern}"`,
-        ).toBe(false);
-      }
-    }
+  it("FAIL: git push -u origin * (broad)", () => {
+    const v = violations(["Bash(git push -u origin *)"]);
+    expect(v.length).toBeGreaterThan(0);
+    expect(v.join("\n")).toMatch(/broad git push wildcard/);
   });
 
-  it("PASS: no wildcard permissions that encompass dangerous commands", () => {
-    if (!settingsExist) return;
-
-    const content = readFileSync(SETTINGS_PATH, "utf-8");
-    const allowList = getAllowList(content);
-
-    const covered: Array<{ entry: string; wildcard: string; base: string }> = [];
-
-    for (const entry of allowList) {
-      const normalized = entry.replace(/^Bash\(/, "").replace(/\)$/, "");
-      for (const { wildcard, covers } of WILDCARD_DANGEROUS_PREFIXES) {
-        if (wildcardCovers(normalized, wildcard)) {
-          covered.push({
-            entry,
-            wildcard,
-            base: normalized.replace(/\s*\*+\s*$/, "").trim(),
-          });
-        }
-      }
-    }
-
-    expect(
-      covered,
-      `Wildcard permissions cover dangerous prefixes:\n${covered.map((c) => `- ${c.entry} covers "${c.wildcard}" via base "${c.base}"`).join("\n")}`,
-    ).toHaveLength(0);
+  it("FAIL: git push origin *", () => {
+    const v = violations(["Bash(git push origin *)"]);
+    expect(v.length).toBeGreaterThan(0);
   });
 
-  it("FAIL: detects --force in allow list", () => {
-    const fakeAllowList = [
-      "Bash(git push --force)",
-      "Bash(pnpm test *)",
-    ];
-
-    const hasForce = fakeAllowList.some((entry) => entry.includes("--force"));
-    expect(hasForce).toBe(true);
+  it("FAIL: git push * (raw)", () => {
+    const v = violations(["Bash(git push *)"]);
+    expect(v.length).toBeGreaterThan(0);
   });
 
-  it("FAIL: detects --no-verify in allow list", () => {
-    const fakeAllowList = [
-      "Bash(git commit --no-verify)",
-      "Bash(pnpm build *)",
-    ];
-
-    const hasNoVerify = fakeAllowList.some((entry) => entry.includes("--no-verify"));
-    expect(hasNoVerify).toBe(true);
+  it("PASS: git push origin HEAD", () => {
+    const v = violations(["Bash(git push origin HEAD)"]);
+    expect(v).toEqual([]);
   });
 
-  it("FAIL: detects wildcard 'git push *' as covering --force", () => {
-    const normalized = "git push *".replace(/\s*\*+\s*$/, "").trim();
-    expect(wildcardCovers("git push *", "git push")).toBe(true);
+  it("PASS: git push -u origin HEAD", () => {
+    const v = violations(["Bash(git push -u origin HEAD)"]);
+    expect(v).toEqual([]);
+  });
+
+  it("FAIL: git push origin main", () => {
+    const v = violations(["Bash(git push origin main)"]);
+    expect(v.length).toBeGreaterThan(0);
+    expect(v.join("\n")).toMatch(/git push to main/);
+  });
+
+  it("FAIL: git push --force", () => {
+    const v = violations(["Bash(git push --force)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("FAIL: git push -f", () => {
+    const v = violations(["Bash(git push -f)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("FAIL: --no-verify anywhere", () => {
+    const v = violations(["Bash(git commit --no-verify)"]);
+    expect(v.length).toBeGreaterThan(0);
+    expect(v.join("\n")).toMatch(/--no-verify/);
+  });
+
+  it("FAIL: git pull * (no --ff-only)", () => {
+    const v = violations(["Bash(git pull *)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("PASS: git pull --ff-only *", () => {
+    const v = violations(["Bash(git pull --ff-only *)"]);
+    expect(v).toEqual([]);
+  });
+
+  it("FAIL: gh api * (broad mutable bypass)", () => {
+    const v = violations(["Bash(gh api *)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("FAIL: gh pr merge", () => {
+    const v = violations(["Bash(gh pr merge)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("FAIL: node * (broad arbitrary execution)", () => {
+    const v = violations(["Bash(node *)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("PASS: node scripts/check-ai-agent-permissions.mjs", () => {
+    const v = violations(["Bash(node scripts/check-ai-agent-permissions.mjs)"]);
+    expect(v).toEqual([]);
+  });
+
+  it("FAIL: railway *", () => {
+    const v = violations(["Bash(railway up)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("FAIL: supabase db push", () => {
+    const v = violations(["Bash(supabase db push)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("FAIL: rm -rf", () => {
+    const v = violations(["Bash(rm -rf node_modules)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("FAIL: git reset --hard", () => {
+    const v = violations(["Bash(git reset --hard)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("FAIL: git checkout -- *", () => {
+    const v = violations(["Bash(git checkout -- *)"]);
+    expect(v.length).toBeGreaterThan(0);
+  });
+
+  it("PASS: safe pnpm entries", () => {
+    const v = violations([
+      "Bash(pnpm check)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm rules:check)",
+      "Bash(pnpm arch:check:v2)",
+      "Bash(pnpm guards:all-local)",
+    ]);
+    expect(v).toEqual([]);
+  });
+
+  it("PASS: safe git read entries", () => {
+    const v = violations([
+      "Bash(git status)",
+      "Bash(git diff)",
+      "Bash(git log)",
+      "Bash(git branch --show-current)",
+      "Bash(git rev-parse --short HEAD)",
+      "Bash(git ls-files)",
+    ]);
+    expect(v).toEqual([]);
   });
 });

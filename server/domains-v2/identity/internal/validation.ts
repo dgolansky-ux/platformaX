@@ -8,45 +8,32 @@
 import type {
   CivilStatus,
   PersonalStatusVisibility,
-  SocialLinkKind,
   SocialLinks,
 } from "../dto";
+import {
+  ALLOWED_CIVIL_STATUSES,
+  ALLOWED_SOCIAL_LINK_KINDS,
+  IDENTITY_VALIDATION_LIMITS as LIMITS,
+} from "../validation-limits";
 
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const PHONE_DIGITS = /^\+?\d{9,15}$/;
-const BIO_MAX = 175;
-const LOCATION_MAX = 80;
-const STATUS_TEXT_MIN = 1;
-const STATUS_TEXT_MAX = 40;
-const STATUS_DESCRIPTION_MAX = 100;
-const STATUS_EMOJI_MAX = 8;
-const SOCIAL_URL_MAX = 200;
-const SLUG_MIN = 3;
-const SLUG_MAX = 32;
+const BIO_MAX = LIMITS.bioMax;
+const LOCATION_MAX = LIMITS.locationMax;
+const STATUS_TEXT_MIN = LIMITS.statusTextMin;
+const STATUS_TEXT_MAX = LIMITS.statusTextMax;
+const STATUS_DESCRIPTION_MAX = LIMITS.statusDescriptionMax;
+const STATUS_EMOJI_MAX = LIMITS.statusEmojiMax;
+const SOCIAL_URL_MAX = LIMITS.socialUrlMax;
+const SLUG_MIN = LIMITS.profileSlugMin;
+const SLUG_MAX = LIMITS.profileSlugMax;
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$/;
 const HTTPS_URL = /^https?:\/\/[^\s]+$/i;
-
-const ALLOWED_CIVIL_STATUSES: readonly CivilStatus[] = [
-  "single",
-  "in_relationship",
-  "engaged",
-  "married",
-  "partnered",
-  "complicated",
-  "undisclosed",
-];
 
 const ALLOWED_PERSONAL_STATUS_VISIBILITY: readonly PersonalStatusVisibility[] = [
   "public",
   "friends_only",
   "private",
-];
-
-const ALLOWED_SOCIAL_LINK_KINDS: readonly SocialLinkKind[] = [
-  "linkedin",
-  "github",
-  "instagram",
-  "website",
 ];
 
 export type FieldErrors = Record<string, string>;
@@ -244,22 +231,5 @@ export function validatePersonalStatusInput(input: {
   return errors;
 }
 
-export const IDENTITY_VALIDATION_LIMITS = {
-  firstNameMin: 2,
-  firstNameMax: 80,
-  lastNameMin: 2,
-  lastNameMax: 120,
-  phoneMin: 9,
-  phoneMax: 15,
-  bioMax: BIO_MAX,
-  locationMax: LOCATION_MAX,
-  statusTextMin: STATUS_TEXT_MIN,
-  statusTextMax: STATUS_TEXT_MAX,
-  statusDescriptionMax: STATUS_DESCRIPTION_MAX,
-  statusEmojiMax: STATUS_EMOJI_MAX,
-  socialUrlMax: SOCIAL_URL_MAX,
-  profileSlugMin: SLUG_MIN,
-  profileSlugMax: SLUG_MAX,
-  allowedCivilStatuses: ALLOWED_CIVIL_STATUSES,
-  allowedSocialLinkKinds: ALLOWED_SOCIAL_LINK_KINDS,
-};
+// Re-export the stable contract so existing internal consumers keep their imports.
+export { IDENTITY_VALIDATION_LIMITS } from "../validation-limits";

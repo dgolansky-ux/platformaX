@@ -17,11 +17,20 @@ const EXCLUDE = new Set([
   ".env", ".env.local", ".env.production", ".cache", ".turbo",
 ]);
 
+// Files inside .claude/ that should be excluded from the evidence ZIP. The
+// tracked example is the audit reference; the local override is gitignored
+// and may carry developer-only allowlist entries we don't want in the ZIP.
+const EXCLUDE_FILES = new Set([
+  ".claude/settings.local.json",
+]);
+
 function walk(dir) {
   const results = [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (EXCLUDE.has(entry.name)) continue;
     const fullPath = join(dir, entry.name);
+    const rel = relative(ROOT, fullPath).replace(/\\/g, "/");
+    if (EXCLUDE_FILES.has(rel)) continue;
     if (entry.isDirectory()) {
       results.push(...walk(fullPath));
     } else {

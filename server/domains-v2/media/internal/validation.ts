@@ -5,38 +5,24 @@
  * what the UI blocks, plus rules the UI cannot be trusted to enforce. Raw bytes
  * never reach this layer; we validate declared type, declared size and reject
  * inline `data:` scheme refs (uploads must go through a storage target).
+ *
+ * Stable limits (ALLOWED_MIME_TYPES, MEDIA_VALIDATION_LIMITS, maxBytesFor)
+ * live in `../validation-limits.ts` and are re-exported here for internal
+ * consumers. The public-api re-exports them from the stable file, not from here.
  */
 import type { MediaPurpose } from "../dto";
 import type { UploadFileMeta } from "../contracts";
+import {
+  ALLOWED_MIME_TYPES,
+  MEDIA_VALIDATION_LIMITS,
+  maxBytesFor,
+} from "../validation-limits";
+
+export { ALLOWED_MIME_TYPES, MEDIA_VALIDATION_LIMITS, maxBytesFor };
 
 export type FieldErrors = Record<string, string>;
 
-/** Only raster image types accepted. SVG is rejected (script-in-image risk). */
-export const ALLOWED_MIME_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-] as const;
-
 const MB = 1024 * 1024;
-
-export const MEDIA_VALIDATION_LIMITS = {
-  avatarMaxBytes: 5 * MB,
-  bannerMaxBytes: 10 * MB,
-  statusPhotoMaxBytes: 5 * MB,
-  allowedMimeTypes: ALLOWED_MIME_TYPES,
-} as const;
-
-export function maxBytesFor(purpose: MediaPurpose): number {
-  switch (purpose) {
-    case "avatar":
-      return MEDIA_VALIDATION_LIMITS.avatarMaxBytes;
-    case "banner":
-      return MEDIA_VALIDATION_LIMITS.bannerMaxBytes;
-    case "statusPhoto":
-      return MEDIA_VALIDATION_LIMITS.statusPhotoMaxBytes;
-  }
-}
 
 function isAllowedMime(mimeType: string): boolean {
   return (ALLOWED_MIME_TYPES as readonly string[]).includes(mimeType);

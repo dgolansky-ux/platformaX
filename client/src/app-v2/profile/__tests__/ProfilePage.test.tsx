@@ -6,22 +6,31 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { describe, expect, test } from "vitest";
 import { ProfilePage } from "../ProfilePage";
+import { anonymousDataDeps, readyOwnerDataDeps } from "./testProfileDataDeps";
 
 const ROOT = process.cwd();
 const PROFILE_DIR = join(ROOT, "client/src/app-v2/profile");
 
 /**
  * Render the profile shell and drain the async useProfileData transition
- * (loading → anonymous when no auth) inside act() so React never logs
+ * (loading → anonymous/ready) inside act() so React never logs
  * "update inside a test was not wrapped in act(...)" warnings.
+ *
+ * Default behaviour stays "anonymous" so we keep coverage for the auth-gated
+ * shell; pass `mode: "ready"` to test owner-only affordances.
  */
-async function renderProfile() {
+async function renderProfile(opts: { mode?: "anonymous" | "ready" } = {}) {
+  const dataDeps =
+    opts.mode === "ready" ? readyOwnerDataDeps("owner-1") : anonymousDataDeps();
   let utils!: ReturnType<typeof render>;
   await act(async () => {
     utils = render(
       <MemoryRouter initialEntries={["/profile"]}>
         <Routes>
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route
+            path="/profile"
+            element={<ProfilePage dataDeps={dataDeps} />}
+          />
           <Route path="/" element={<div>LANDING</div>} />
         </Routes>
       </MemoryRouter>,
@@ -96,12 +105,53 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.getByRole("region", { name: /Ważne wydarzenia/ })).toBeDefined();
   });
 
-  test("preview eye CTA toggles local preview state (not a no-op)", async () => {
-    await renderProfile();
+  test("preview eye CTA toggles local preview state (ready owner — not a no-op)", async () => {
+    await renderProfile({ mode: "ready" });
     fireEvent.click(screen.getByRole("button", { name: /podgląd profilu/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /widok znajomego/i }));
     expect(screen.getByText(/widok znajomego/i)).toBeDefined();
     expect(screen.getByText(/Znajomi widzą Twój feed/i)).toBeDefined();
+  });
+
+  test("anonymous: owner-only controls are NOT rendered", async () => {
+    await renderProfile({ mode: "anonymous" });
+    // Avatar preview menu trigger ("Podgląd profilu") — owner-only.
+    expect(screen.queryByRole("button", { name: /podgląd profilu/i })).toBeNull();
+    // Avatar edit button — owner-only.
+    expect(
+      screen.queryByRole("button", { name: /zmień zdjęcie profilowe/i }),
+    ).toBeNull();
+    // Civil status card — owner-only.
+    expect(screen.queryByRole("button", { name: /ustaw stan cywilny/i })).toBeNull();
+    // Banner edit — owner-only.
+    expect(screen.queryByRole("button", { name: /^zmień baner$/i })).toBeNull();
+    // Status-row empty owner prompt label "Edytuj status — wkrótce" is owner-only;
+    // the disabled pill keeps a non-owner label.
+    expect(
+      screen.queryByRole("button", { name: /edytuj status — wkrótce/i }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /ustaw status — wkrótce/i }),
+    ).toBeNull();
+  });
+
+  test("anonymous: bio empty owner prompt is NOT rendered", async () => {
+    await renderProfile({ mode: "anonymous" });
+    expect(screen.queryByText(/Dodaj opis\.\.\./)).toBeNull();
+  });
+
+  test("ready owner: avatar/banner/bio owner controls render", async () => {
+    await renderProfile({ mode: "ready" });
+    expect(
+      screen.getByRole("button", { name: /zmień zdjęcie profilowe/i }),
+    ).toBeDefined();
+    expect(screen.getByRole("button", { name: /^zmień baner$/i })).toBeDefined();
+    // empty-state owner prompt for bio (ready view returns null bio by default)
+    expect(screen.getByText(/Dodaj opis\.\.\./)).toBeDefined();
+    // civil card is owner-only and present for ready
+    expect(
+      screen.getByRole("button", { name: /ustaw stan cywilny/i }),
+    ).toBeDefined();
   });
 
   test("quick feed CTA expands via local state", async () => {
@@ -139,8 +189,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(container.querySelectorAll('[class*="_undefined_"]').length).toBe(0);
   });
 
-  test("specialists toggle (visibility switch) flips local state", async () => {
-    await renderProfile();
+  test("specialists toggle (visibility switch) flips local state — ready owner", async () => {
+    await renderProfile({ mode: "ready" });
     fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
     const toggle = screen.getByRole("button", { name: /ukryj sekcję specjalistów/i });
     expect(toggle.getAttribute("aria-pressed")).toBe("true");
@@ -150,8 +200,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     ).toBe("false");
   });
 
-  test("professional Klasyczny tab renders 'Moja praca' disabled anchor + 'Moduł w budowie'", async () => {
-    await renderProfile();
+  test("professional Klasyczny tab renders 'Moja praca' disabled anchor + 'Moduł w budowie' — ready owner", async () => {
+    await renderProfile({ mode: "ready" });
     fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
     const mojaPraca = screen.getByRole("button", { name: /moja praca/i });
     expect((mojaPraca as HTMLButtonElement).disabled).toBe(true);
@@ -202,8 +252,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.queryByRole("heading", { name: /Specjaliści/ })).toBeNull();
   });
 
-  test("professional layer renders its sections and CTAs are not no-ops", async () => {
-    await renderProfile();
+  test("professional layer renders its sections and CTAs are not no-ops — ready owner", async () => {
+    await renderProfile({ mode: "ready" });
     fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
     expect(screen.getByRole("region", { name: /^Zawód$/ })).toBeDefined();
     expect(screen.getByRole("region", { name: /Specjaliści/ })).toBeDefined();

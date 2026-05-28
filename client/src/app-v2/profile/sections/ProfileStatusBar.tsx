@@ -3,7 +3,8 @@ import styles from "../styles/profile-status.module.css";
 
 type ProfileStatusBarProps = {
   status: ProfileStatus | null;
-  isOwner: boolean;
+  /** True only for authenticated owner. Controls owner edit affordances/labels. */
+  canEdit: boolean;
 };
 
 const STATUS_PILL_HINT =
@@ -11,9 +12,10 @@ const STATUS_PILL_HINT =
 
 /**
  * Civil status card rendered under the avatar in the left column.
+ * Owner-only — hidden entirely for anonymous/loading/non-owner viewers.
  */
-export function ProfileCivilCard({ isOwner }: { isOwner: boolean }) {
-  if (!isOwner) return null;
+export function ProfileCivilCard({ canEdit }: { canEdit: boolean }) {
+  if (!canEdit) return null;
   return (
     <button
       type="button"
@@ -34,15 +36,15 @@ export function ProfileCivilCard({ isOwner }: { isOwner: boolean }) {
 /**
  * Status pill + status photo row. Rendered on the right side (bio column).
  */
-export function ProfileStatusRow({ status, isOwner }: ProfileStatusBarProps) {
+export function ProfileStatusRow({ status, canEdit }: ProfileStatusBarProps) {
   return (
     <div className={styles.statusRow}>
       {status ? (
         <button
           type="button"
           className={styles.statusPill}
-          aria-label={isOwner ? "Edytuj status — wkrótce" : "Status użytkownika"}
-          title={isOwner ? STATUS_PILL_HINT : undefined}
+          aria-label={canEdit ? "Edytuj status — wkrótce" : "Status użytkownika"}
+          title={canEdit ? STATUS_PILL_HINT : undefined}
           disabled
         >
           <span className={styles.statusDot} aria-hidden="true" />
@@ -76,8 +78,8 @@ export function ProfileStatusRow({ status, isOwner }: ProfileStatusBarProps) {
         <button
           type="button"
           className={`${styles.statusPill} ${styles.statusPillEmpty}`}
-          aria-label={isOwner ? "Ustaw status — wkrótce" : "Brak statusu"}
-          title={isOwner ? STATUS_PILL_HINT : undefined}
+          aria-label={canEdit ? "Ustaw status — wkrótce" : "Brak statusu"}
+          title={canEdit ? STATUS_PILL_HINT : undefined}
           disabled
         >
           <span className={styles.statusSparkle} aria-hidden="true">✶</span>
@@ -108,11 +110,11 @@ export function ProfileStatusRow({ status, isOwner }: ProfileStatusBarProps) {
  * Combined status bar (civil card + status row). Kept for backward compat
  * with tests that import ProfileStatusBar.
  */
-export function ProfileStatusBar({ status, isOwner }: ProfileStatusBarProps) {
+export function ProfileStatusBar({ status, canEdit }: ProfileStatusBarProps) {
   return (
     <div className={styles.statusBar}>
-      <ProfileCivilCard isOwner={isOwner} />
-      <ProfileStatusRow status={status} isOwner={isOwner} />
+      <ProfileCivilCard canEdit={canEdit} />
+      <ProfileStatusRow status={status} canEdit={canEdit} />
     </div>
   );
 }

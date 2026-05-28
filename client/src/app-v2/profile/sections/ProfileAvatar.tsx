@@ -5,9 +5,14 @@ type ProfileAvatarProps = {
   initial: string;
   /** Optional avatar URL resolved through the media boundary. Falls back to the initial. */
   avatarUrl?: string | null;
-  isOwner: boolean;
+  /**
+   * True only for authenticated owner. Anonymous/loading must pass false even
+   * when the fixture has `isOwner: true`. Controls activation of the edit
+   * button and the preview menu (owner-only affordances).
+   */
+  canEdit: boolean;
   previewOpen: boolean;
-  onTogglePreview: () => void;
+  onTogglePreview?: () => void;
   onEdit?: () => void;
 };
 
@@ -20,7 +25,7 @@ type ProfileAvatarProps = {
 export function ProfileAvatar({
   initial,
   avatarUrl = null,
-  isOwner,
+  canEdit,
   previewOpen,
   onTogglePreview,
   onEdit,
@@ -42,7 +47,7 @@ export function ProfileAvatar({
             )}
           </div>
         </div>
-        {isOwner && onEdit ? (
+        {canEdit && onEdit ? (
           <button
             type="button"
             className={media.avatarEditButton}
@@ -56,7 +61,7 @@ export function ProfileAvatar({
           </button>
         ) : null}
       </div>
-      {isOwner ? (
+      {canEdit && onTogglePreview ? (
         <button
           type="button"
           className={`${styles.eyeButton} ${previewOpen ? styles.eyeButtonActive : ""}`}

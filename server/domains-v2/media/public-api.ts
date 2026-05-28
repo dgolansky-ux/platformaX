@@ -57,7 +57,7 @@ export {
   MEDIA_VALIDATION_LIMITS,
   ALLOWED_MIME_TYPES,
   maxBytesFor,
-} from "./internal/validation";
+} from "./validation-limits";
 
 export type {
   MediaEvent,

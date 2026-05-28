@@ -5,11 +5,16 @@
  * supabase/migrations (media_assets.id uuid, outbox_messages.id uuid,
  * outbox_messages.event_id uuid, outbox_messages.actor_id uuid).
  *
- * `createUuid` returns a UUID-formatted string. It prefers WebCrypto's
- * `crypto.randomUUID()` (Node 18+, browsers); otherwise it falls back to a
- * deterministic v4-like construction over `Math.random()`. The fallback
- * is acceptable because seeds/tests inject deterministic generators directly
- * — the fallback only runs in environments without WebCrypto.
+ * Source of randomness — strictly WebCrypto:
+ *   1. `globalThis.crypto.randomUUID()` (Node 18+, browsers).
+ *   2. Fallback to `crypto.getRandomValues()` to build a v4 UUID.
+ *   3. If neither is available, throw a controlled error
+ *      (`UUID_GENERATOR_UNAVAILABLE`). We never fall back to `Math.random`
+ *      because it is not cryptographically secure and creates an
+ *      unsafe-randomness guard violation (PX-SEED-001 / PX-ID-001 spirit).
+ *
+ * Browser/Vite-safe: no `node:crypto` import — both branches come from the
+ * global `crypto` object exposed in Node 18+ and every modern browser.
  *
  * `isUuid` accepts any version (v1/v3/v4/v5/v7) and any case.
  *
@@ -21,26 +26,37 @@
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-7][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-type CryptoLike = { randomUUID?: () => string };
+type CryptoLike = {
+  randomUUID?: () => string;
+  getRandomValues?: <T extends ArrayBufferView>(buf: T) => T;
+};
 
-function fallbackV4(): string {
-  // Best-effort v4 — only used when no WebCrypto is available. Tests should
-  // inject their own deterministic generator; production runs hit WebCrypto.
+export class UuidGeneratorUnavailableError extends Error {
+  constructor() {
+    super(
+      "UUID_GENERATOR_UNAVAILABLE: no globalThis.crypto.randomUUID and no getRandomValues — cannot generate a UUID safely.",
+    );
+    this.name = "UuidGeneratorUnavailableError";
+  }
+}
+
+function getRandomValuesV4(c: CryptoLike): string {
+  const bytes = new Uint8Array(16);
+  c.getRandomValues!(bytes);
+  // Force version 4 and variant 10xx, per RFC 4122 §4.4.
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40;
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
   const hex = (n: number) => n.toString(16).padStart(2, "0");
-  const bytes = new Array(16);
-  for (let i = 0; i < 16; i += 1) bytes[i] = Math.floor(Math.random() * 256);
-  // Force version 4 and variant 10xx.
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
   const part = (a: number, b: number) =>
-    bytes.slice(a, b).map(hex).join("");
+    Array.from(bytes.slice(a, b)).map(hex).join("");
   return `${part(0, 4)}-${part(4, 6)}-${part(6, 8)}-${part(8, 10)}-${part(10, 16)}`;
 }
 
 export function createUuid(): string {
   const c = (globalThis as { crypto?: CryptoLike }).crypto;
   if (c && typeof c.randomUUID === "function") return c.randomUUID();
-  return fallbackV4();
+  if (c && typeof c.getRandomValues === "function") return getRandomValuesV4(c);
+  throw new UuidGeneratorUnavailableError();
 }
 
 export function isUuid(value: unknown): boolean {
