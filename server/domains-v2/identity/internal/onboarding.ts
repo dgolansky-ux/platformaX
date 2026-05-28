@@ -14,7 +14,7 @@ import {
   identityOnboardingCompletedEvent,
   identityProfilePublicSummaryChangedEvent,
 } from "../events";
-import type { PrivateProfileDTO } from "./private-profile-dto";
+import type { PrivateProfileDTO } from "../private-dto";
 import type { PrivateProfileRecord } from "./record";
 import { canCompleteOnboarding } from "../policy";
 import { toPrivateProfileDTO } from "../mapper";

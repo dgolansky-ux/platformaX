@@ -5,9 +5,11 @@ import {
   type IdentityEvent,
   type IdentityService,
 } from "../public-api";
+import { asMediaAssetId, asUserId } from "@shared/contracts/ids";
 
-const OWNER = "user-1";
-const STRANGER = "user-2";
+const OWNER = asUserId("user-1");
+const STRANGER = asUserId("user-2");
+const GHOST = asUserId("ghost");
 const NOW = "2026-05-25T12:00:00.000Z";
 
 function buildService(events: IdentityEvent[] = []) {
@@ -118,7 +120,7 @@ describe("identity service — getMyProfile / updatePrivateProfile", () => {
 
   it("getMyProfile returns NOT_FOUND for a user without a profile", async () => {
     const { service } = buildService();
-    const result = await service.getMyProfile("ghost");
+    const result = await service.getMyProfile(GHOST);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe("NOT_FOUND");
@@ -221,7 +223,7 @@ describe("identity service — getPublicProfile", () => {
 
   it("returns NOT_FOUND when the profile does not exist", async () => {
     const { service } = buildService();
-    const result = await service.getPublicProfile(STRANGER, "ghost");
+    const result = await service.getPublicProfile(STRANGER, GHOST);
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe("NOT_FOUND");
@@ -277,7 +279,7 @@ describe("identity service — personal status", () => {
 
   it("attachStatusPhotoMediaRef requires an active status (INVALID_INPUT otherwise)", async () => {
     const service = await seed();
-    const result = await service.attachStatusPhotoMediaRef(OWNER, "asset-x");
+    const result = await service.attachStatusPhotoMediaRef(OWNER, asMediaAssetId("asset-x"));
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe("INVALID_INPUT");
@@ -286,7 +288,7 @@ describe("identity service — personal status", () => {
   it("attachStatusPhotoMediaRef stores the ref once status exists", async () => {
     const service = await seed();
     await service.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
-    const result = await service.attachStatusPhotoMediaRef(OWNER, "asset-x");
+    const result = await service.attachStatusPhotoMediaRef(OWNER, asMediaAssetId("asset-x"));
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.personalStatus?.photoMediaRef).toEqual({ assetId: "asset-x" });
@@ -366,8 +368,8 @@ describe("identity service — personal profile fields", () => {
 
   it("attachAvatarMediaRef and attachBannerMediaRef thinly set the refs", async () => {
     const service = await seed();
-    const a = await service.attachAvatarMediaRef(OWNER, "asset-a");
-    const b = await service.attachBannerMediaRef(OWNER, "asset-b");
+    const a = await service.attachAvatarMediaRef(OWNER, asMediaAssetId("asset-a"));
+    const b = await service.attachBannerMediaRef(OWNER, asMediaAssetId("asset-b"));
     expect(a.ok).toBe(true);
     expect(b.ok).toBe(true);
     if (!a.ok || !b.ok) return;

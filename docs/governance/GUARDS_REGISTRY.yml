@@ -588,3 +588,50 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+
+  # === HARD ARCHITECTURE / DOMAIN-COMPLIANCE GUARDS (Opus pass) ===
+
+  - id: GUARD-065
+    command: node scripts/check-service-boundary-branded-ids.mjs
+    file: scripts/check-service-boundary-branded-ids.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ID-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-066
+    command: node scripts/check-owner-viewer-authority-boundary.mjs
+    file: scripts/check-owner-viewer-authority-boundary.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-OWN-001, PX-OWN-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-067
+    command: node scripts/check-owner-upload-intent-classification.mjs
+    file: scripts/check-owner-upload-intent-classification.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-MEDIA-004, PX-DTO-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-068
+    command: node scripts/check-public-profile-id-exposure.mjs
+    file: scripts/check-public-profile-id-exposure.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEC-001, PX-DTO-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-069
+    command: node scripts/check-application-service-size.mjs
+    file: scripts/check-application-service-size.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CODE-001, PX-APP-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active

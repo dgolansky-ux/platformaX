@@ -17,9 +17,8 @@
 // Works on multi-line `export { ... } from "./..."` statements.
 
 import { readFileSync } from "node:fs";
-import { globSync } from "node:fs";
-import { join, relative } from "node:path";
-import { execSync } from "node:child_process";
+import { join } from "node:path";
+import { listSourceFiles } from "./lib/list-source-files.mjs";
 
 const ROOT = process.cwd();
 
@@ -46,18 +45,11 @@ const FORBIDDEN_PATTERNS = [
 ];
 
 function listPublicApiFiles() {
-  // Use git ls-files to avoid scanning node_modules.
-  try {
-    const out = execSync("git ls-files server/domains-v2", { cwd: ROOT, encoding: "utf-8" });
-    return out
-      .split(/\r?\n/)
-      .filter((p) => p.endsWith("/public-api.ts"))
-      .map((p) => p.replace(/\\/g, "/"));
-  } catch {
-    // Fallback to fs glob
-    const out = globSync("server/domains-v2/**/public-api.ts", { cwd: ROOT });
-    return out.map((p) => p.replace(/\\/g, "/"));
-  }
+  return listSourceFiles({
+    cwd: ROOT,
+    roots: ["server/domains-v2"],
+    extensions: [".ts"],
+  }).filter((p) => p.endsWith("/public-api.ts"));
 }
 
 const STMT_RE = /export\s*(?:\*|type\s*\*|\{[\s\S]*?\}|type\s*\{[\s\S]*?\})\s*from\s*["']([^"']+)["']/g;

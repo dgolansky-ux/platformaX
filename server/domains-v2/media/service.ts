@@ -1,16 +1,12 @@
 /**
- * media — service (use-cases)
+ * media — service (use-cases). Owns the first media runtime slice: avatar /
+ * banner / status-photo upload intents, confirm, public URL read and
+ * verifyProfileAssetForAttach. Storage SDK is injected; env-required port
+ * honestly fails with STORAGE_UNAVAILABLE instead of faking success.
  *
- * Owns the first media runtime slice:
- *  - createAvatarUploadIntent(userId, meta)
- *  - createBannerUploadIntent(userId, meta)
- *  - confirmProfileMediaUpload(userId, assetId)
- *  - getPublicMediaUrl(ref)
- *
- * Depends on `MediaRepository` and `MediaStoragePort` (interfaces) plus policy,
- * validation and mapper. No storage SDK is referenced here — a concrete adapter
- * is injected. With the env-required storage port, confirm honestly fails with
- * STORAGE_UNAVAILABLE instead of pretending an upload succeeded.
+ * Boundary types (PX-ID-001 / ADR-012): public service signatures use the
+ * branded `UserId` / `MediaAssetId` types from `@shared/contracts/ids`. The
+ * transport DTO surface in `./dto` keeps `string` for wire compatibility.
  */
 import type {
   MediaError,
@@ -18,14 +14,20 @@ import type {
   MediaResult,
   UploadFileMeta,
 } from "./contracts";
-import type { MediaAssetDTO, MediaPurpose, MediaRefDTO, UploadIntentDTO } from "./dto";
+import type {
+  MediaAssetDTO,
+  MediaPurpose,
+  MediaRefDTO,
+  OwnerUploadIntentDTO,
+} from "./dto";
 import type { MediaEvent } from "./events";
 import { mediaUploadConfirmedEvent, mediaUploadIntentCreatedEvent } from "./events";
 import { maxBytesFor, validateUploadFileMeta } from "./internal/validation";
-import { toMediaAssetDTO, toUploadIntentDTO } from "./mapper";
+import { toMediaAssetDTO, toOwnerUploadIntentDTO } from "./mapper";
 import { canCreateUploadIntent } from "./policy";
 import type { MediaRepository, MediaStoragePort } from "./repository";
 import { createUuid } from "@shared/contracts/uuid";
+import type { MediaAssetId, UserId } from "@shared/contracts/ids";
 
 export type MediaClock = () => string;
 export type MediaIdGenerator = () => string;
@@ -41,30 +43,31 @@ export type MediaServiceDeps = {
 
 export interface MediaService {
   createAvatarUploadIntent(
-    userId: string,
+    ownerUserId: UserId,
     meta: UploadFileMeta,
-  ): Promise<MediaResult<UploadIntentDTO>>;
+  ): Promise<MediaResult<OwnerUploadIntentDTO>>;
   createBannerUploadIntent(
-    userId: string,
+    ownerUserId: UserId,
     meta: UploadFileMeta,
-  ): Promise<MediaResult<UploadIntentDTO>>;
+  ): Promise<MediaResult<OwnerUploadIntentDTO>>;
   createStatusPhotoUploadIntent(
-    userId: string,
+    ownerUserId: UserId,
     meta: UploadFileMeta,
-  ): Promise<MediaResult<UploadIntentDTO>>;
+  ): Promise<MediaResult<OwnerUploadIntentDTO>>;
   confirmProfileMediaUpload(
-    userId: string,
-    assetId: string,
+    ownerUserId: UserId,
+    assetId: MediaAssetId,
   ): Promise<MediaResult<MediaAssetDTO>>;
   getPublicMediaUrl(ref: MediaRefDTO): Promise<MediaResult<MediaAssetDTO>>;
   /**
-   * Verify that `assetId` belongs to `userId`, has the expected `purpose` and is
-   * `ready`, before another domain attaches it as a profile ref. Returns the
-   * public-safe DTO. Never leaks `ownerId`/`storageKey` to non-owners.
+   * Verify that `assetId` belongs to `ownerUserId`, has the expected `purpose`
+   * and is `ready`, before another domain attaches it as a profile ref.
+   * Returns the public-safe DTO. Never leaks `ownerId`/`storageKey` to
+   * non-owners.
    */
   verifyProfileAssetForAttach(
-    userId: string,
-    assetId: string,
+    ownerUserId: UserId,
+    assetId: MediaAssetId,
     purpose: MediaPurpose,
   ): Promise<MediaResult<MediaAssetDTO>>;
 }
@@ -98,11 +101,11 @@ function defaultIdGen(): string {
 
 async function buildUploadIntent(
   ctx: ServiceContext,
-  userId: string,
+  ownerUserId: UserId,
   purpose: MediaPurpose,
   meta: UploadFileMeta,
-): Promise<MediaResult<UploadIntentDTO>> {
-  if (!userId) return { ok: false, error: fail("FORBIDDEN", "Wymagane zalogowanie") };
+): Promise<MediaResult<OwnerUploadIntentDTO>> {
+  if (!ownerUserId) return { ok: false, error: fail("FORBIDDEN", "Wymagane zalogowanie") };
   if (!canCreateUploadIntent("owner")) {
     return { ok: false, error: fail("FORBIDDEN", "Brak uprawnień") };
   }
@@ -114,7 +117,7 @@ async function buildUploadIntent(
   }
 
   const assetId = ctx.idGen();
-  const storageKey = `user/${userId}/${purpose}/${assetId}`;
+  const storageKey = `user/${ownerUserId}/${purpose}/${assetId}`;
   const maxBytes = maxBytesFor(purpose);
   const target = await ctx.storage.createUploadTarget({
     storageKey,
@@ -126,7 +129,7 @@ async function buildUploadIntent(
   const record = await ctx.repo.create(
     {
       assetId,
-      ownerId: userId,
+      ownerId: ownerUserId,
       purpose,
       provider: target.provider,
       storageKey,
@@ -143,13 +146,13 @@ async function buildUploadIntent(
   ctx.publish(
     mediaUploadIntentCreatedEvent({
       assetId,
-      ownerId: userId,
+      ownerId: ownerUserId,
       purpose,
       occurredAt: now,
       generateId: ctx.idGen,
     }),
   );
-  return { ok: true, value: toUploadIntentDTO(record, target, maxBytes) };
+  return { ok: true, value: toOwnerUploadIntentDTO(record, target, maxBytes) };
 }
 
 export function createMediaService(deps: MediaServiceDeps): MediaService {
@@ -162,19 +165,19 @@ export function createMediaService(deps: MediaServiceDeps): MediaService {
   };
 
   return {
-    createAvatarUploadIntent: (userId, meta) =>
-      buildUploadIntent(ctx, userId, "avatar", meta),
+    createAvatarUploadIntent: (ownerUserId, meta) =>
+      buildUploadIntent(ctx, ownerUserId, "avatar", meta),
 
-    createBannerUploadIntent: (userId, meta) =>
-      buildUploadIntent(ctx, userId, "banner", meta),
+    createBannerUploadIntent: (ownerUserId, meta) =>
+      buildUploadIntent(ctx, ownerUserId, "banner", meta),
 
-    createStatusPhotoUploadIntent: (userId, meta) =>
-      buildUploadIntent(ctx, userId, "statusPhoto", meta),
+    createStatusPhotoUploadIntent: (ownerUserId, meta) =>
+      buildUploadIntent(ctx, ownerUserId, "statusPhoto", meta),
 
-    async confirmProfileMediaUpload(userId, assetId) {
+    async confirmProfileMediaUpload(ownerUserId, assetId) {
       const record = await ctx.repo.findById(assetId);
       if (!record) return { ok: false, error: fail("NOT_FOUND", "Zasób nie istnieje") };
-      if (record.ownerId !== userId) {
+      if (record.ownerId !== ownerUserId) {
         return { ok: false, error: fail("FORBIDDEN", "Brak uprawnień do zasobu") };
       }
       if (!record.publicUrl) {
@@ -192,7 +195,7 @@ export function createMediaService(deps: MediaServiceDeps): MediaService {
       ctx.publish(
         mediaUploadConfirmedEvent({
           assetId,
-          ownerId: userId,
+          ownerId: ownerUserId,
           purpose: updated.purpose,
           occurredAt: now,
           generateId: ctx.idGen,
@@ -207,13 +210,13 @@ export function createMediaService(deps: MediaServiceDeps): MediaService {
       return { ok: true, value: toMediaAssetDTO(record) };
     },
 
-    async verifyProfileAssetForAttach(userId, assetId, purpose) {
-      if (!userId) {
+    async verifyProfileAssetForAttach(ownerUserId, assetId, purpose) {
+      if (!ownerUserId) {
         return { ok: false, error: fail("FORBIDDEN", "Wymagane zalogowanie") };
       }
       const record = await ctx.repo.findById(assetId);
       if (!record) return { ok: false, error: fail("NOT_FOUND", "Zasób nie istnieje") };
-      if (record.ownerId !== userId) {
+      if (record.ownerId !== ownerUserId) {
         return { ok: false, error: fail("FORBIDDEN", "Brak uprawnień do zasobu") };
       }
       if (record.purpose !== purpose) {

@@ -9,8 +9,8 @@
 //     write-side ownership.
 
 import { readFileSync, existsSync } from "node:fs";
-import { execSync } from "node:child_process";
 import { join } from "node:path";
+import { listSourceFiles } from "./lib/list-source-files.mjs";
 
 const ROOT = process.cwd();
 
@@ -39,14 +39,11 @@ if (!policyDocumented) {
 }
 
 // Co-ownership anti-pattern scan in docs.
-let docFiles = [];
-try {
-  const out = execSync("git ls-files docs", { cwd: ROOT, encoding: "utf-8" });
-  docFiles = out
-    .split(/\r?\n/)
-    .filter((p) => p && /\.md$/.test(p))
-    .map((p) => p.replace(/\\/g, "/"));
-} catch {}
+const docFiles = listSourceFiles({
+  cwd: ROOT,
+  roots: ["docs"],
+  extensions: [".md"],
+});
 
 const CO_OWNERSHIP_RE = /(content-v2[^\n]{0,60}\+\s*social|social[^\n]{0,60}\+\s*content-v2)/i;
 

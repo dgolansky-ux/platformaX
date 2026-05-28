@@ -23,6 +23,7 @@ import {
   createProfileApplicationService,
   type ProfileApplicationService,
 } from "../public-api";
+import { asMediaAssetId, asUserId } from "@shared/contracts/ids";
 
 const OWNER = "user-1";
 const STRANGER = "user-2";
@@ -95,7 +96,7 @@ describe("profile application service — getMyProfileView", () => {
     const result = await app.getMyProfileView(OWNER);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.value.userId).toBe(OWNER);
+    expect(result.value.profileUserId).toBe(OWNER);
     expect(result.value.displayName).toBe("Anna Kowalska");
     expect(result.value.phone).toBe("+48600999111");
     expect(result.value.onboardingCompleted).toBe(true);
@@ -196,12 +197,12 @@ describe("profile application service — attachProfileAvatarRef / attachProfile
     const meta = purpose === "avatar" ? SAMPLE_AVATAR : SAMPLE_BANNER;
     const intent =
       purpose === "avatar"
-        ? await media.createAvatarUploadIntent(ownerId, meta)
-        : await media.createBannerUploadIntent(ownerId, meta);
+        ? await media.createAvatarUploadIntent(asUserId(ownerId), meta)
+        : await media.createBannerUploadIntent(asUserId(ownerId), meta);
     if (!intent.ok) throw new Error("intent failed");
     const confirmed = await media.confirmProfileMediaUpload(
-      ownerId,
-      intent.value.assetId,
+      asUserId(ownerId),
+      asMediaAssetId(intent.value.assetId),
     );
     if (!confirmed.ok) throw new Error("confirm failed");
     return intent.value.assetId;
@@ -250,7 +251,10 @@ describe("profile application service — attachProfileAvatarRef / attachProfile
   it("rejects attaching a pending (not ready) asset as MEDIA_ASSET_NOT_READY", async () => {
     const { app, media } = buildService();
     await app.completeOnboarding(OWNER, ONBOARDING_INPUT);
-    const intent = await media.createAvatarUploadIntent(OWNER, SAMPLE_AVATAR);
+    const intent = await media.createAvatarUploadIntent(
+      asUserId(OWNER),
+      SAMPLE_AVATAR,
+    );
     if (!intent.ok) throw new Error("intent failed");
     const result = await app.attachProfileAvatarRef(OWNER, intent.value.assetId);
     expect(result.ok).toBe(false);
@@ -312,12 +316,15 @@ describe("profile application service — personal status", () => {
   it("attachProfileStatusPhotoRef verifies media owner + purpose + ready, then stores the ref", async () => {
     const { app, media } = await ready();
     await app.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
-    const intent = await media.createStatusPhotoUploadIntent(OWNER, {
+    const intent = await media.createStatusPhotoUploadIntent(asUserId(OWNER), {
       mimeType: "image/png",
       sizeBytes: 1024,
     });
     if (!intent.ok) throw new Error("intent failed");
-    const confirmed = await media.confirmProfileMediaUpload(OWNER, intent.value.assetId);
+    const confirmed = await media.confirmProfileMediaUpload(
+      asUserId(OWNER),
+      asMediaAssetId(intent.value.assetId),
+    );
     if (!confirmed.ok) throw new Error("confirm failed");
     const result = await app.attachProfileStatusPhotoRef(OWNER, intent.value.assetId);
     expect(result.ok).toBe(true);
@@ -329,12 +336,15 @@ describe("profile application service — personal status", () => {
   it("attachProfileStatusPhotoRef rejects a foreign asset (MEDIA_ASSET_FORBIDDEN)", async () => {
     const { app, media } = await ready();
     await app.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
-    const intent = await media.createStatusPhotoUploadIntent(STRANGER, {
+    const intent = await media.createStatusPhotoUploadIntent(asUserId(STRANGER), {
       mimeType: "image/png",
       sizeBytes: 1024,
     });
     if (!intent.ok) throw new Error("intent failed");
-    const confirmed = await media.confirmProfileMediaUpload(STRANGER, intent.value.assetId);
+    const confirmed = await media.confirmProfileMediaUpload(
+      asUserId(STRANGER),
+      asMediaAssetId(intent.value.assetId),
+    );
     if (!confirmed.ok) throw new Error("confirm failed");
     const result = await app.attachProfileStatusPhotoRef(OWNER, intent.value.assetId);
     expect(result.ok).toBe(false);
@@ -344,12 +354,15 @@ describe("profile application service — personal status", () => {
   it("attachProfileStatusPhotoRef rejects an avatar-purpose asset as MEDIA_ASSET_TYPE_MISMATCH", async () => {
     const { app, media } = await ready();
     await app.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
-    const intent = await media.createAvatarUploadIntent(OWNER, {
+    const intent = await media.createAvatarUploadIntent(asUserId(OWNER), {
       mimeType: "image/png",
       sizeBytes: 1024,
     });
     if (!intent.ok) throw new Error("intent failed");
-    const confirmed = await media.confirmProfileMediaUpload(OWNER, intent.value.assetId);
+    const confirmed = await media.confirmProfileMediaUpload(
+      asUserId(OWNER),
+      asMediaAssetId(intent.value.assetId),
+    );
     if (!confirmed.ok) throw new Error("confirm failed");
     const result = await app.attachProfileStatusPhotoRef(OWNER, intent.value.assetId);
     expect(result.ok).toBe(false);

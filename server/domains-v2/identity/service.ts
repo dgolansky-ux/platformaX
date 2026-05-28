@@ -9,6 +9,11 @@
  * injected. Identity never imports the media domain; media-asset ownership
  * validation lives in application-v2/profile, which calls
  * `media.verifyProfileAssetForAttach` before invoking attach* methods here.
+ *
+ * Boundary types (PX-ID-001 / ADR-012): public service signatures use the
+ * branded `UserId` and `MediaAssetId` types from `@shared/contracts/ids`,
+ * not raw `string`. Repository persistence records keep the raw string column
+ * shape; the service is the boundary that brands them.
  */
 import type {
   CompleteOnboardingInput,
@@ -21,7 +26,7 @@ import type { PublicProfileDTO } from "./dto";
 import type { IdentityEvent } from "./events";
 import { identityProfilePublicSummaryChangedEvent } from "./events";
 import { completeOnboardingFlow } from "./internal/onboarding";
-import type { PrivateProfileDTO } from "./internal/private-profile-dto";
+import type { PrivateProfileDTO } from "./private-dto";
 import {
   buildPersonalStatusPatch,
   buildPrivateProfilePatch,
@@ -42,12 +47,13 @@ import type {
   IdentityProfileRepository,
   UpdateProfileRecordPatch,
 } from "./repository";
+import type { MediaAssetId, UserId } from "@shared/contracts/ids";
 
 export type IdentityEventPublisher = (event: IdentityEvent) => void;
 export type IdentityClock = () => string;
 export type IdentityRelationshipResolver = (
-  viewerId: string,
-  profileUserId: string,
+  viewerUserId: UserId,
+  profileUserId: UserId,
 ) => Promise<ViewerRole> | ViewerRole;
 
 export type IdentityServiceDeps = {
@@ -60,34 +66,34 @@ export type IdentityServiceDeps = {
 
 export interface IdentityService {
   completeOnboarding(
-    userId: string,
+    currentUserId: UserId,
     input: CompleteOnboardingInput,
   ): Promise<IdentityResult<PrivateProfileDTO>>;
-  getMyProfile(userId: string): Promise<IdentityResult<PrivateProfileDTO>>;
+  getMyProfile(currentUserId: UserId): Promise<IdentityResult<PrivateProfileDTO>>;
   updatePrivateProfile(
-    userId: string,
+    currentUserId: UserId,
     input: UpdatePrivateProfileInput,
   ): Promise<IdentityResult<PrivateProfileDTO>>;
   updatePersonalStatus(
-    userId: string,
+    currentUserId: UserId,
     input: UpdatePersonalStatusInput,
   ): Promise<IdentityResult<PrivateProfileDTO>>;
-  clearPersonalStatus(userId: string): Promise<IdentityResult<PrivateProfileDTO>>;
+  clearPersonalStatus(currentUserId: UserId): Promise<IdentityResult<PrivateProfileDTO>>;
   attachAvatarMediaRef(
-    userId: string,
-    assetId: string,
+    currentUserId: UserId,
+    assetId: MediaAssetId,
   ): Promise<IdentityResult<PrivateProfileDTO>>;
   attachBannerMediaRef(
-    userId: string,
-    assetId: string,
+    currentUserId: UserId,
+    assetId: MediaAssetId,
   ): Promise<IdentityResult<PrivateProfileDTO>>;
   attachStatusPhotoMediaRef(
-    userId: string,
-    assetId: string,
+    currentUserId: UserId,
+    assetId: MediaAssetId,
   ): Promise<IdentityResult<PrivateProfileDTO>>;
   getPublicProfile(
-    viewerId: string | null,
-    profileUserId: string,
+    viewerUserId: UserId | null,
+    profileUserId: UserId,
   ): Promise<IdentityResult<PublicProfileDTO>>;
 }
 
@@ -102,10 +108,10 @@ function errNotFound(): IdentityError {
 }
 
 function defaultRoleResolver(
-  viewerId: string | null,
-  profileUserId: string,
+  viewerUserId: UserId | null,
+  profileUserId: UserId,
 ): ViewerRole {
-  if (viewerId && viewerId === profileUserId) return "owner";
+  if (viewerUserId && viewerUserId === profileUserId) return "owner";
   return "stranger";
 }
 
@@ -116,33 +122,33 @@ export function createIdentityService(
   const clock = deps.clock ?? (() => new Date().toISOString());
   const publish = deps.publish ?? (() => {});
   const resolveRole = deps.resolveViewerRole
-    ? async (viewerId: string | null, profileUserId: string) => {
-        if (!viewerId) return "stranger" as ViewerRole;
-        if (viewerId === profileUserId) return "owner" as ViewerRole;
-        return deps.resolveViewerRole!(viewerId, profileUserId);
+    ? async (viewerUserId: UserId | null, profileUserId: UserId) => {
+        if (!viewerUserId) return "stranger" as ViewerRole;
+        if (viewerUserId === profileUserId) return "owner" as ViewerRole;
+        return deps.resolveViewerRole!(viewerUserId, profileUserId);
       }
-    : async (viewerId: string | null, profileUserId: string) =>
-        defaultRoleResolver(viewerId, profileUserId);
+    : async (viewerUserId: UserId | null, profileUserId: UserId) =>
+        defaultRoleResolver(viewerUserId, profileUserId);
 
   async function patchAndReturn(
-    userId: string,
+    currentUserId: UserId,
     patch: UpdateProfileRecordPatch,
   ): Promise<IdentityResult<PrivateProfileDTO>> {
     const now = clock();
-    const record = await repo.update(userId, patch, now);
+    const record = await repo.update(currentUserId, patch, now);
     if (!record) return { ok: false, error: errNotFound() };
-    publish(identityProfilePublicSummaryChangedEvent(userId, { occurredAt: now }));
+    publish(identityProfilePublicSummaryChangedEvent(currentUserId, { occurredAt: now }));
     return { ok: true, value: toPrivateProfileDTO(record) };
   }
 
   async function doAttachStatusPhoto(
-    userId: string,
-    assetId: string,
+    currentUserId: UserId,
+    assetId: MediaAssetId,
   ): Promise<IdentityResult<PrivateProfileDTO>> {
     if (!assetId) {
       return { ok: false, error: errInvalid({ assetId: "Brak identyfikatora zasobu" }) };
     }
-    const existing = await repo.findByUserId(userId);
+    const existing = await repo.findByUserId(currentUserId);
     if (!existing) return { ok: false, error: errNotFound() };
     if (!existing.statusText || !existing.statusVisibility) {
       return {
@@ -152,21 +158,21 @@ export function createIdentityService(
         }),
       };
     }
-    return patchAndReturn(userId, { statusPhotoAssetId: assetId });
+    return patchAndReturn(currentUserId, { statusPhotoAssetId: assetId });
   }
 
   return {
-    completeOnboarding: (userId, input) =>
-      completeOnboardingFlow(repo, { clock, publish }, userId, input),
+    completeOnboarding: (currentUserId, input) =>
+      completeOnboardingFlow(repo, { clock, publish }, currentUserId, input),
 
-    async getMyProfile(userId) {
+    async getMyProfile(currentUserId) {
       if (!canReadPrivateProfile("owner")) return { ok: false, error: errForbidden() };
-      const record = await repo.findByUserId(userId);
+      const record = await repo.findByUserId(currentUserId);
       if (!record) return { ok: false, error: errNotFound() };
       return { ok: true, value: toPrivateProfileDTO(record) };
     },
 
-    async updatePrivateProfile(userId, input) {
+    async updatePrivateProfile(currentUserId, input) {
       const errors = validateUpdateInput(input);
       if (Object.keys(errors).length > 0) {
         return { ok: false, error: errInvalid(errors) };
@@ -174,10 +180,10 @@ export function createIdentityService(
       if (!canUpdatePrivateProfile("owner")) {
         return { ok: false, error: errForbidden() };
       }
-      return patchAndReturn(userId, buildPrivateProfilePatch(input));
+      return patchAndReturn(currentUserId, buildPrivateProfilePatch(input));
     },
 
-    async updatePersonalStatus(userId, input) {
+    async updatePersonalStatus(currentUserId, input) {
       const errors = validatePersonalStatusInput(input);
       if (Object.keys(errors).length > 0) {
         return { ok: false, error: errInvalid(errors) };
@@ -185,36 +191,36 @@ export function createIdentityService(
       if (!canUpdatePrivateProfile("owner")) {
         return { ok: false, error: errForbidden() };
       }
-      return patchAndReturn(userId, buildPersonalStatusPatch(input));
+      return patchAndReturn(currentUserId, buildPersonalStatusPatch(input));
     },
 
-    async clearPersonalStatus(userId) {
+    async clearPersonalStatus(currentUserId) {
       if (!canUpdatePrivateProfile("owner")) {
         return { ok: false, error: errForbidden() };
       }
-      return patchAndReturn(userId, CLEAR_PERSONAL_STATUS_PATCH);
+      return patchAndReturn(currentUserId, CLEAR_PERSONAL_STATUS_PATCH);
     },
 
-    async attachAvatarMediaRef(userId, assetId) {
+    async attachAvatarMediaRef(currentUserId, assetId) {
       if (!assetId) {
         return { ok: false, error: errInvalid({ assetId: "Brak identyfikatora zasobu" }) };
       }
-      return patchAndReturn(userId, { avatarAssetId: assetId });
+      return patchAndReturn(currentUserId, { avatarAssetId: assetId });
     },
 
-    async attachBannerMediaRef(userId, assetId) {
+    async attachBannerMediaRef(currentUserId, assetId) {
       if (!assetId) {
         return { ok: false, error: errInvalid({ assetId: "Brak identyfikatora zasobu" }) };
       }
-      return patchAndReturn(userId, { bannerAssetId: assetId });
+      return patchAndReturn(currentUserId, { bannerAssetId: assetId });
     },
 
     attachStatusPhotoMediaRef: doAttachStatusPhoto,
 
-    async getPublicProfile(viewerId, profileUserId) {
+    async getPublicProfile(viewerUserId, profileUserId) {
       const record = await repo.findByUserId(profileUserId);
       if (!record) return { ok: false, error: errNotFound() };
-      const role = await resolveRole(viewerId, profileUserId);
+      const role = await resolveRole(viewerUserId, profileUserId);
       if (!canReadPublicProfile(role, record.visibility)) {
         return { ok: false, error: errForbidden() };
       }

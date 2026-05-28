@@ -38,6 +38,7 @@ export type {
   MediaAssetStatus,
   MediaRefDTO,
   MediaAssetDTO,
+  OwnerUploadIntentDTO,
   UploadIntentDTO,
   UploadTransportState,
 } from "./dto";

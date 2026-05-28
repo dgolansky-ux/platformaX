@@ -16,9 +16,9 @@ import { fetchProfileDataOnce } from "../fetchProfileData";
 
 const NOW = "2026-05-25T12:00:00.000Z";
 
-function ownerViewFor(userId: string): OwnerProfileView {
+function ownerViewFor(profileUserId: string): OwnerProfileView {
   return {
-    userId,
+    profileUserId,
     profileSlug: null,
     firstName: "Anna",
     lastName: "Kowalska",

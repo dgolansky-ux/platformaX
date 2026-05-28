@@ -19,7 +19,7 @@ export const SEED_COMMUNITY_ID: CommunityId = asCommunityId("seed-community-0001
 
 /** Public-safe profile fixture — by type it cannot contain PII. */
 export const seedPublicProfile: PublicProfileView = {
-  userId: SEED_OWNER_USER_ID,
+  profileUserId: SEED_OWNER_USER_ID,
   profileSlug: "seed-owner",
   displayName: "Seed Owner",
   bio: "Deterministyczny profil testowy. Bez danych prywatnych.",

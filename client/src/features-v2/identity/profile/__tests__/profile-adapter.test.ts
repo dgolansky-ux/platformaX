@@ -19,9 +19,9 @@ import {
 
 const NOW = "2026-05-27T00:00:00.000Z";
 
-function ownerView(userId: string): OwnerProfileView {
+function ownerView(profileUserId: string): OwnerProfileView {
   return {
-    userId,
+    profileUserId,
     profileSlug: null,
     firstName: "Anna",
     lastName: "Kowalska",
@@ -82,7 +82,7 @@ describe("createProfileAdapter (client boundary)", () => {
     const adapter = createProfileAdapter({ port, isPersistent: false });
     const result = await adapter.getMyProfileView("u-1");
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.value.userId).toBe("u-1");
+    if (result.ok) expect(result.value.profileUserId).toBe("u-1");
     expect(calls).toContain("getMyProfileView:u-1");
   });
 });

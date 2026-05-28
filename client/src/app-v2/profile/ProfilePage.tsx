@@ -4,7 +4,7 @@ import type {
   ProfilePreviewKind,
   ProfileViewMode,
 } from "./types";
-import { ownerPersonalProfile } from "./fixtures";
+import { visualProfileShell } from "./fixtures";
 import { ProfileHeader } from "./sections/ProfileHeader";
 import { ProfileSocialLinks } from "./sections/ProfileSocialLinks";
 import { ProfilePortalCards } from "./sections/ProfilePortalCards";
@@ -89,7 +89,7 @@ export function ProfilePage({
   }
 
   const runtimeProfile =
-    state.kind === "ready" ? state.view : ownerPersonalProfile;
+    state.kind === "ready" ? state.view : visualProfileShell;
   const baseProfile = explicitProfile ?? runtimeProfile;
   const profile: PersonalProfileView =
     localBioOverride !== undefined
@@ -99,8 +99,9 @@ export function ProfilePage({
   const activePreview = previewKind !== "none" ? PREVIEW_COPY[previewKind] : null;
   const ownerUserId = state.kind === "ready" ? state.userId : null;
   // Owner edit affordances must only activate when the runtime has resolved an
-  // authenticated owner. Anonymous/loading renders the visual shell (fixture
-  // `isOwner: true` carries no privilege), but never wires owner controls.
+  // authenticated owner. Anonymous/loading renders the visual shell — which
+  // explicitly carries `isOwner: false` so this guard cannot accidentally
+  // open edit controls before the data state has resolved.
   const canEditProfile =
     state.kind === "ready" && ownerUserId !== null && profile.isOwner;
 

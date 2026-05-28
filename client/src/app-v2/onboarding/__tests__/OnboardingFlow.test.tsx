@@ -28,7 +28,7 @@ function buildProfileAdapter(
   const successResult: CompleteOnboardingResult = {
     ok: true,
     value: {
-      userId: "user-test",
+      profileUserId: "user-test",
       profileSlug: null,
       firstName: "Anna",
       lastName: "Kowalska",

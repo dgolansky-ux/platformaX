@@ -1,11 +1,15 @@
 /**
  * media — mappers
  *
- * Internal record -> public DTOs. The public projection drops storage key,
- * owner id, byte size and the storage backend identity. Dedicated PII/leak
- * tests live in __tests__/public-mapper-no-leak.test.ts.
+ * Internal record -> DTOs. The public projection drops storage key, owner id,
+ * byte size and the storage backend identity. The owner-only upload intent
+ * projection keeps `storageKey` / `uploadUrl` / `maxBytes` because those are
+ * required by the owner client to push bytes directly to storage; it is only
+ * ever returned from owner-gated commands.
+ *
+ * Dedicated leak tests live in __tests__/public-mapper-no-leak.test.ts.
  */
-import type { MediaAssetDTO, UploadIntentDTO } from "./dto";
+import type { MediaAssetDTO, OwnerUploadIntentDTO } from "./dto";
 import type { MediaAssetRecord } from "./internal/record";
 import type { UploadTarget } from "./repository";
 
@@ -21,11 +25,11 @@ export function toMediaAssetDTO(record: MediaAssetRecord): MediaAssetDTO {
   };
 }
 
-export function toUploadIntentDTO(
+export function toOwnerUploadIntentDTO(
   record: MediaAssetRecord,
   target: UploadTarget,
   maxBytes: number,
-): UploadIntentDTO {
+): OwnerUploadIntentDTO {
   return {
     assetId: record.assetId,
     purpose: record.purpose,
@@ -38,3 +42,9 @@ export function toUploadIntentDTO(
     expiresAt: target.expiresAt,
   };
 }
+
+/**
+ * @deprecated Use `toOwnerUploadIntentDTO`. Kept as a thin alias so external
+ * callers that imported the old name compile during the transitional window.
+ */
+export const toUploadIntentDTO = toOwnerUploadIntentDTO;

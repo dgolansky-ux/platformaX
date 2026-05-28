@@ -217,6 +217,27 @@ Rule: **PX-AIS-002**
 
 ---
 
+## 13. Application use-cases canonical location (PX-APP-001)
+
+Per ADR-010, flows that touch **2+ owner domains** live under
+`server/application-v2/use-cases/<flow>/`. That folder is the canonical
+import target. The implementation of an individual use-case MAY live in a
+sibling folder (e.g. `server/application-v2/profile/` while the profile use-
+case is migrated) provided the canonical entry under `use-cases/` re-exports
+it.
+
+**Forbidden:**
+
+- New cross-domain flow created outside `server/application-v2/use-cases/`.
+- Composition flow living inside one domain's `service.ts` / `router.ts`.
+
+**Enforced by:**
+
+- `scripts/check-application-use-cases-boundary.mjs` — blocks files outside
+  `server/application-v2/` that import the public-api of 2+ domains.
+- `scripts/check-application-service-size.mjs` — caps application service
+  files at 280 lines so use-cases stay decomposed.
+
 ## Related docs
 
 - `docs/architecture/PlatformaX-V2-active-rules.md` — constitution + runtime governance addendum

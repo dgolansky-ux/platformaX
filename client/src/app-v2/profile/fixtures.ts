@@ -79,3 +79,17 @@ export const ownerPersonalProfile: PersonalProfileView = {
   milestoneCount: 0,
   isOwner: true,
 };
+
+/**
+ * Visual-only shell used while the data state is `anonymous` / `loading` /
+ * `empty` / `error`. Mirrors the owner fixture's *visual* shape (so the
+ * layout doesn't reflow once data arrives) but flips `isOwner` to `false`
+ * so owner controls (edit avatar/banner/bio, preview menu) stay inactive.
+ * This separates "visual look" from "authority" — using `ownerPersonalProfile`
+ * as the loading shell silently asserted ownership on a screen the viewer
+ * doesn't yet own.
+ */
+export const visualProfileShell: PersonalProfileView = {
+  ...ownerPersonalProfile,
+  isOwner: false,
+};

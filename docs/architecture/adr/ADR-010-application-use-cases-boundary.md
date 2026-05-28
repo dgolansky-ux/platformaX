@@ -33,10 +33,24 @@ Use-cases may call domain `public-api.ts` / `contracts.ts` only — never foreig
 
 ## Migration / rollout
 
-1. Skeleton `server/application-v2/use-cases/` with README.
-2. Move existing multi-domain flows incrementally; status `PARTIAL` until moved.
+1. Skeleton `server/application-v2/use-cases/` with README — DONE (2026-05-28).
+2. Profile use-case has a canonical entry at
+   `server/application-v2/use-cases/profile/public-api.ts`; the implementation
+   continues to live at `server/application-v2/profile/` so existing tests and
+   the `ProfileApplicationPort` wire contract remain binary-compatible. New
+   multi-domain flows must create a `use-cases/<flow>/` folder from day one.
+3. Status: `PARTIAL` — physical move of `profile/` into `use-cases/profile/`
+   may follow once the HTTP transport lands, to keep refactor churn out of
+   governance-only commits.
 
 ## Guard / enforcement
 
-- **manual_gate** + import graph review
-- TODO: `scripts/check-application-use-cases-boundary.mjs`
+- `scripts/check-application-use-cases-boundary.mjs` — blocks files outside
+  `server/application-v2/` that import the public-api of 2+ domains.
+- `scripts/check-client-server-boundary.mjs` — blocks `client/src` imports of
+  `@server/*` (split-readiness).
+- `scripts/check-application-service-size.mjs` — caps application service
+  files at 280 lines (PX-CODE-001 boundary) so use-cases stay decomposed
+  rather than turning into god-services.
+- Deeper "which use-cases exist, which are pure" review remains
+  **manual_gate**.

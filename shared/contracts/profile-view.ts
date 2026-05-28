@@ -7,14 +7,18 @@
  * imports these types instead of reaching into `@server/*`. The server
  * application layer re-exports the view + error types from here.
  *
- * Privacy:
- *  - OwnerProfileView  — Private (owner-only): MAY include dateOfBirth, phone.
- *  - PublicProfileView — Public (any viewer): MUST NOT include PII.
- *
  * QUALITY_STRUCTURE_EXCEPTION — see docs/governance/EXCEPTIONS_REGISTER.md (EXC-001).
  * This module is the single canonical wire-contract surface for the profile
  * application boundary. Splitting it would create multiple import paths for what
  * is, per ADR-010, one logical contract, weakening the boundary it defines.
+ *
+ * Sections below are explicitly classified:
+ *  - PUBLIC_SAFE   — `PublicProfileView`, `ProfileMediaRefView`,
+ *                    `PersonalStatusView`, `MediaAssetRef`, value-object enums.
+ *  - OWNER_ONLY    — `OwnerProfileView` (Private; carries `phone`,
+ *                    `dateOfBirth`), `CompleteOnboardingInput`,
+ *                    `UpdatePrivateProfileInput`, `UpdatePersonalStatusInput`.
+ *  - APP_BOUNDARY  — `ProfileApplicationPort`, application error / result.
  *
  * ALLOW_PRIVATE_DTO_PII — `OwnerProfileView` is the owner-only Private view and
  * intentionally carries `phone` and `dateOfBirth` (mirrors the same Owner-only
@@ -22,7 +26,9 @@
  * Public and contains none of these — enforced by domain mappers + tests.
  */
 
-// --- Value objects ---------------------------------------------------------
+// =====================================================================
+// PUBLIC_SAFE — value objects (any viewer may see / receive these)
+// =====================================================================
 
 export type ProfileVisibility = "public" | "friends" | "private";
 
@@ -46,20 +52,23 @@ export type SocialLinks = {
   website?: string | null;
 };
 
-/** Reference to a media asset owned by the media domain. No payload. */
+/** PUBLIC_SAFE — reference to a media asset owned by the media domain. No payload. */
 export type MediaAssetRef = {
   assetId: string;
 };
 
-// --- Composed view DTOs ----------------------------------------------------
+// =====================================================================
+// PUBLIC_SAFE — composed view value objects
+// =====================================================================
 
-/** Public-safe media ref view with URL pre-resolved when ready. */
+/** PUBLIC_SAFE — public-safe media ref view with URL pre-resolved when ready. */
 export type ProfileMediaRefView = {
   assetId: string;
   /** Public URL when the asset is ready; null while pending or env-required. */
   url: string | null;
 };
 
+/** PUBLIC_SAFE — viewer-resolved personal status; null when cleared/forbidden. */
 export type PersonalStatusView = {
   text: string;
   emoji: string | null;
@@ -68,16 +77,33 @@ export type PersonalStatusView = {
   photo: ProfileMediaRefView | null;
 };
 
-/** Owner-only view (Private). Never used for non-owner viewers. */
+// =====================================================================
+// OWNER_ONLY — Private composed view DTOs
+// =====================================================================
+
+/**
+ * OWNER_ONLY — Private. Never returned to a non-owner viewer.
+ *
+ * Carries Private fields (`phone`, `dateOfBirth`) plus the stable profile
+ * owner user id (PUBLIC_STABLE_USER_REF_NOT_AUTH_SECRET — see
+ * `profileUserId`).
+ */
 export type OwnerProfileView = {
-  userId: string;
+  /**
+   * PUBLIC_STABLE_USER_REF_NOT_AUTH_SECRET — stable identifier of the
+   * profile owner. Not an email / token / provider id. Public callers see
+   * the same value on `PublicProfileView`; it's not a secret. The literal
+   * field name `profileUserId` (not `userId`) is deliberate: callers must
+   * never conflate it with an authenticated session subject.
+   */
+  profileUserId: string;
   profileSlug: string | null;
   firstName: string | null;
   lastName: string | null;
   displayName: string;
-  /** Private. ISO YYYY-MM-DD. Owner-only. */
+  /** OWNER_ONLY. ISO YYYY-MM-DD. */
   dateOfBirth: string | null;
-  /** Private. Owner-only. */
+  /** OWNER_ONLY. */
   phone: string | null;
   bio: string | null;
   location: string | null;
@@ -93,9 +119,24 @@ export type OwnerProfileView = {
   isOwner: true;
 };
 
-/** Public view (any viewer). MUST NOT contain email/phone/dateOfBirth. */
+// =====================================================================
+// PUBLIC_SAFE — Public composed view DTO
+// =====================================================================
+
+/**
+ * PUBLIC_SAFE — any viewer. MUST NOT contain `email`, `phone`, `dateOfBirth`
+ * or any auth/session metadata. Enforced by `check-public-dto-pii.mjs` and
+ * `check-public-profile-id-exposure.mjs`.
+ */
 export type PublicProfileView = {
-  userId: string;
+  /**
+   * PUBLIC_STABLE_USER_REF_NOT_AUTH_SECRET — stable identifier of the
+   * profile owner. Not an email / token / provider id. Renamed from `userId`
+   * so callers cannot mistake it for an authenticated session subject. Public
+   * URLs / display SHOULD prefer `profileSlug` and use this only when no slug
+   * exists.
+   */
+  profileUserId: string;
   profileSlug: string | null;
   displayName: string;
   bio: string | null;
@@ -110,14 +151,16 @@ export type PublicProfileView = {
   isOwner: false;
 };
 
-// --- Request inputs --------------------------------------------------------
+// =====================================================================
+// OWNER_ONLY — request inputs (only owners can send these)
+// =====================================================================
 
 export type CompleteOnboardingInput = {
   firstName: string;
   lastName: string;
-  /** ISO date string (YYYY-MM-DD). Private. */
+  /** OWNER_ONLY. ISO date string (YYYY-MM-DD). */
   dateOfBirth: string;
-  /** Owner-only contact field. Private. */
+  /** OWNER_ONLY. */
   phone: string;
   avatarMediaRef?: MediaAssetRef | null;
   bio?: string | null;
@@ -146,7 +189,9 @@ export type UpdatePersonalStatusInput = {
   photoMediaRef?: MediaAssetRef | null;
 };
 
-// --- Application error contract --------------------------------------------
+// =====================================================================
+// APP_BOUNDARY — application error contract
+// =====================================================================
 
 export type ProfileApplicationErrorCode =
   | "PROFILE_NOT_FOUND"
@@ -171,19 +216,26 @@ export type ProfileApplicationResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: ProfileApplicationError };
 
-// --- Application port (transport-neutral) ----------------------------------
+// =====================================================================
+// APP_BOUNDARY — application port (transport-neutral)
+// =====================================================================
 
 /**
  * The profile application boundary. The server profile application service
  * implements this shape; a client transport (or a UI-only stub) implements the
  * same shape so the frontend never depends on server runtime.
+ *
+ * Parameters use the transport-boundary `string` shape (not branded `UserId`)
+ * because this contract is shared with the client. The server application
+ * service brands them via `asUserId` / `asMediaAssetId` before calling owner-
+ * gated domain services.
  */
 export interface ProfileApplicationPort {
   getMyProfileView(
     currentUserId: string,
   ): Promise<ProfileApplicationResult<OwnerProfileView>>;
   getPublicProfileView(
-    viewerId: string | null,
+    viewerUserId: string | null,
     profileUserId: string,
   ): Promise<ProfileApplicationResult<PublicProfileView>>;
   completeOnboarding(

@@ -12,9 +12,9 @@ import type { OwnerProfileView } from "@shared/contracts/profile-view";
 
 type Mode = "ready" | "anonymous";
 
-function readyOwnerView(userId: string): OwnerProfileView {
+function readyOwnerView(profileUserId: string): OwnerProfileView {
   return {
-    userId,
+    profileUserId,
     profileSlug: null,
     firstName: "Anna",
     lastName: "Kowalska",

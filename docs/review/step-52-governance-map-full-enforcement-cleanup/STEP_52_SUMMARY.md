@@ -179,3 +179,64 @@ owner state is unchanged (avatar/banner edit buttons render exactly as before).
 ## Gate results
 
 See the FINALIZATION block in the closing agent response.
+
+---
+
+## Opus hard architecture/domain compliance pass
+
+Status: `OPUS_HARD_ARCHITECTURE_DOMAIN_FIX_READY`
+Date: 2026-05-28
+Branch: `chore/runtime-invariants-code-alignment`
+Scope: hard architecture, domain boundaries, application use-cases, branded
+IDs at server boundary, owner/viewer/authority model, media DTO classification,
+profile contract markers, public profile id exposure, stale internal shim
+removal, application service responsibility split, anonymous shell honesty,
+five new structural guards, guard portability helper, false-pass fixes.
+
+| Area | Result | Notes |
+|---|---|---|
+| Guard portability helper | PASS | `scripts/lib/list-source-files.mjs` exports `listSourceFiles({ roots, extensions })` with `git ls-files` + fs fallback, normalizes `\\`→`/`, excludes `.git`/`node_modules`/`dist`/`build`/`coverage`/`.turbo`/`.cache`/`.next`/`.vite`/`ZIPY`/`Starykod`, never returns real `.env*`, returns `.env*.example`. Tests in `scripts/__tests__/list-source-files.test.ts`. Adopted by 6 guards (check-application-use-cases-boundary, check-branded-id-types, check-idempotency-flows, check-no-unsafe-randomness, check-public-api-surface, check-read-model-single-owner). |
+| Public DTO parser | PASS | `check-public-dto-contract-tests.mjs` parser accepts both `- name:` and `- domain:`; fails closed when registry parses to zero domains (previously a silent false PASS). Pure-function extraction (`parseRegistry`, `evaluate`) + tests in `scripts/__tests__/public-dto-contract-tests.test.ts`. |
+| Idempotency guard | PASS | `check-idempotency-flows.mjs` detects migration by SQL content (CREATE TABLE + `idempotency_keys` + `key`/`scope`/`status`), not filename. `0004_runtime_outbox_idempotency.sql` validated. Works without `.git` via `listSourceFiles`. `detectIdempotencyMigration` exported + tested. |
+| Application use-cases layout | PASS | Canonical `server/application-v2/use-cases/` created with `profile/public-api.ts` re-exporting the existing implementation. `ADR-010` updated; `server/application-v2/README.md` documents the canonical location; `BACKEND_ARCHITECTURE_INVARIANTS.md` §13 added. Implementation continues to live at `server/application-v2/profile/` for binary-compatible tests; `check-application-use-cases-boundary.mjs` already accepts the entire `server/application-v2/` tree. |
+| Server branded IDs | PASS | `server/domains-v2/identity/service.ts` and `server/domains-v2/media/service.ts` public interfaces typed with `UserId` / `MediaAssetId` from `@shared/contracts/ids`. Repository records keep raw `string` (no DB migration). New `check-service-boundary-branded-ids.mjs` extends PX-ID-001 enforcement to public service signatures: fails closed on `userId/viewerUserId/profileUserId/actorId/assetId: string` in `server/domains-v2/**/service.ts`; reports as advisory in `server/application-v2/**/service.ts` (transport boundary). All identity/media tests updated to cast via `asUserId` / `asMediaAssetId`. |
+| Owner/viewer authority model | PASS | New `shared/contracts/request-context.ts` exports `RequestContext` (anonymous reads, `actorId: UserId \| null`) and `OwnerCommandContext` (writes, `actorId: UserId` non-null) plus `asOwnerCommandContext` promoter. New guard `check-owner-viewer-authority-boundary.mjs` fails when a public service method uses anonymous `userId: string` (instead of `currentUserId/actorId/ownerUserId/profileUserId`) or when `viewerUserId: string` lacks the `\| null` union (anonymous viewer must be honest). Tests cover both directions. |
+| Media DTO classification | PASS | `server/domains-v2/media/dto.ts` declares `OwnerUploadIntentDTO` (OWNER_ONLY_UPLOAD_INTENT marker, carries `uploadUrl`/`storageKey`/`maxBytes`) separately from `MediaAssetDTO` (PUBLIC_SAFE). Legacy `UploadIntentDTO` kept as deprecated alias of `OwnerUploadIntentDTO`. New guard `check-owner-upload-intent-classification.mjs` enforces classification + ensures `getPublicMediaUrl` returns `MediaAssetDTO` (never the owner intent). Tests verify owner intent fields never appear on public read responses. |
+| Profile contract split | PASS | `shared/contracts/profile-view.ts` keeps single canonical wire surface (per EXC-001) but now declares explicit section banners: `PUBLIC_SAFE` value objects, `PUBLIC_SAFE` composed views, `OWNER_ONLY` Private DTO, `OWNER_ONLY` request inputs, `APP_BOUNDARY` error contract, `APP_BOUNDARY` application port. Markers consumed by the new public-profile-id-exposure guard. |
+| Public profile id exposure | PASS | Option A adopted: `PublicProfileView.userId` and `OwnerProfileView.userId` renamed to `profileUserId` with `PUBLIC_STABLE_USER_REF_NOT_AUTH_SECRET` marker comment. New guard `check-public-profile-id-exposure.mjs` fails closed if either type regresses to a raw `userId: string` field, or if `profileUserId` lacks the marker. All client view-models, tests, fixtures, and the seed updated. |
+| Internal DTO shim | PASS | `server/domains-v2/identity/internal/private-profile-dto.ts` deleted; identity `mapper.ts` and `internal/onboarding.ts` import `PrivateProfileDTO` directly from `../private-dto` (stable, allowlisted by the public-api-surface guard). README and DOMAIN_STATUS_REGISTRY updated to point at the canonical path. |
+| Application service responsibility | PASS | `server/application-v2/profile/service.ts` slimmed to a thin orchestrator. View composition extracted to `profile-view-composer.ts` (`composeOwnerView`, `composePublicView`, async media-ref resolution). Identity/Media error mapping extracted to `error-mapper.ts` (`mapIdentityError`, `mapMediaError`, `unauthError`). New guard `check-application-service-size.mjs` caps `server/application-v2/**/service.ts` at 280 lines (soft cap, opt-out via `PLATFORMAX_EXCEPTION` block). |
+| Anonymous shell honesty | PASS | New `visualProfileShell` fixture (mirrors owner visual but `isOwner: false`). `ProfilePage` uses it for anonymous/loading/empty/error states instead of `ownerPersonalProfile` (which silently asserted ownership on a screen the viewer didn't yet own). Visual layout unchanged. Test `client/src/app-v2/profile/__tests__/visualProfileShell.test.tsx` verifies the shell carries no privilege and ProfilePage still renders the visual layout without owner controls. |
+| Remaining gaps | — | Live HTTP transport for the profile use-case (port → adapter wiring) stays out of scope. Full owner/viewer matrix proof (PX-OWN-002, PX-VIS-001, PX-CTX-001) stays `manual_gate`. Outbox-in-same-TX (PX-EVENT-002) stays `manual_gate`. Live idempotency wiring stays `manual_gate`. Application-v2 service-boundary branded-id violations are intentional advisories (`SERVICE_BOUNDARY_BRANDED_IDS_ADVISORY`) — the transport boundary accepts raw `string` and casts internally. Visual parity stays `MANUAL_OWNER_REVIEW`. |
+
+### Files added (Opus pass)
+
+- `scripts/lib/list-source-files.mjs`
+- `scripts/check-service-boundary-branded-ids.mjs`
+- `scripts/check-owner-viewer-authority-boundary.mjs`
+- `scripts/check-owner-upload-intent-classification.mjs`
+- `scripts/check-public-profile-id-exposure.mjs`
+- `scripts/check-application-service-size.mjs`
+- `scripts/__tests__/list-source-files.test.ts`
+- `scripts/__tests__/public-dto-contract-tests.test.ts`
+- `scripts/__tests__/idempotency-flows.test.ts`
+- `scripts/__tests__/new-architecture-guards.test.ts`
+- `shared/contracts/request-context.ts`
+- `shared/contracts/__tests__/request-context.test.ts`
+- `server/application-v2/use-cases/README.md`
+- `server/application-v2/use-cases/profile/public-api.ts`
+- `server/application-v2/use-cases/profile/README.md`
+- `server/application-v2/profile/profile-view-composer.ts`
+- `server/application-v2/profile/error-mapper.ts`
+- `client/src/app-v2/profile/__tests__/visualProfileShell.test.tsx`
+
+### Files removed (Opus pass)
+
+- `server/domains-v2/identity/internal/private-profile-dto.ts` (stale shim — `../private-dto.ts` is canonical)
+
+### Guards wired into
+
+- `scripts/rules-check.mjs`
+- `package.json` `guards:runtime-invariants`
+- `docs/governance/GUARDS_REGISTRY.yml` (GUARD-065..GUARD-069)
+- `docs/governance/RULES_TO_GUARDS_MATRIX.md` (PX-ID-001, PX-OWN-001, PX-OWN-002, PX-MEDIA-004, PX-DTO-001, PX-APP-001 rows updated)

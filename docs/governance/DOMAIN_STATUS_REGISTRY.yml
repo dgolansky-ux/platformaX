@@ -17,7 +17,7 @@ domains:
       - server/domains-v2/identity/dto.ts
       - server/domains-v2/identity/policy.ts
       - server/domains-v2/identity/events.ts
-      - server/domains-v2/identity/internal/private-profile-dto.ts
+      - server/domains-v2/identity/private-dto.ts
       - server/domains-v2/identity/internal/record.ts
       - server/domains-v2/identity/internal/validation.ts
       - server/domains-v2/identity/__tests__/service.test.ts

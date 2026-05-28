@@ -8,20 +8,16 @@
 //     reference multiple domains for inventory or scaffolding purposes.
 
 import { readFileSync } from "node:fs";
-import { execSync } from "node:child_process";
+import { listSourceFiles } from "./lib/list-source-files.mjs";
 
 const ROOT = process.cwd();
 
 function listFiles() {
-  try {
-    const out = execSync("git ls-files", { cwd: ROOT, encoding: "utf-8" });
-    return out
-      .split(/\r?\n/)
-      .filter((p) => p && /\.(ts|tsx|mjs)$/.test(p))
-      .map((p) => p.replace(/\\/g, "/"));
-  } catch {
-    return [];
-  }
+  return listSourceFiles({
+    cwd: ROOT,
+    roots: ["."],
+    extensions: [".ts", ".tsx", ".mjs"],
+  });
 }
 
 const violations = [];

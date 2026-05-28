@@ -9,8 +9,8 @@
 //     top-level `export type <Name>Id = string` aliases are flagged.
 
 import { readFileSync, existsSync } from "node:fs";
-import { execSync } from "node:child_process";
 import { join } from "node:path";
+import { listSourceFiles } from "./lib/list-source-files.mjs";
 
 const ROOT = process.cwd();
 
@@ -33,13 +33,11 @@ if (!existsSync(idsPath)) {
 }
 
 // Rule 2 — domain contracts must not redeclare *Id as raw string alias
-let files = [];
-try {
-  const out = execSync("git ls-files server/domains-v2", { cwd: ROOT, encoding: "utf-8" });
-  files = out.split(/\r?\n/).filter((p) => p && /contracts\.ts$/.test(p));
-} catch {
-  // ignore
-}
+const files = listSourceFiles({
+  cwd: ROOT,
+  roots: ["server/domains-v2"],
+  extensions: [".ts"],
+}).filter((p) => /contracts\.ts$/.test(p));
 
 const ALLOW = new Set([
   // Transport DTOs that intentionally accept plain string ids at the boundary

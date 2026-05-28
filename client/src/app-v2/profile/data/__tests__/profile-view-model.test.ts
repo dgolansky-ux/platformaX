@@ -9,7 +9,7 @@ import {
 } from "../profile-view-model";
 
 const ownerView: OwnerProfileView = {
-  userId: "u-1",
+  profileUserId: "u-1",
   profileSlug: null,
   firstName: "Anna",
   lastName: "Kowalska",
@@ -31,7 +31,7 @@ const ownerView: OwnerProfileView = {
 };
 
 const publicView: PublicProfileView = {
-  userId: "u-1",
+  profileUserId: "u-1",
   profileSlug: null,
   displayName: "Anna Kowalska",
   bio: "Hello world",
@@ -49,6 +49,8 @@ const publicView: PublicProfileView = {
 describe("profile-view-model — owner view", () => {
   it("maps OwnerProfileView into the personal profile view with pre-resolved URLs", () => {
     const view = toOwnerPersonalProfileView(ownerView);
+    // PersonalProfileView (client shell) keeps `userId` as the auth-resolved
+    // user; the application-view's `profileUserId` is mapped 1:1 here.
     expect(view.userId).toBe("u-1");
     expect(view.displayName).toBe("Anna Kowalska");
     expect(view.avatarInitial).toBe("A");

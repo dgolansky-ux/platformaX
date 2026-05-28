@@ -14,7 +14,7 @@ import type {
   PersonalStatusDTO,
   PublicProfileDTO,
 } from "./dto";
-import type { PrivateProfileDTO } from "./internal/private-profile-dto";
+import type { PrivateProfileDTO } from "./private-dto";
 import type { PrivateProfileRecord } from "./internal/record";
 import type { ViewerRole } from "./policy";
 

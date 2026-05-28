@@ -92,7 +92,7 @@ export function toOwnerPersonalProfileView(
 ): PersonalProfileView {
   return {
     ...ownerPersonalProfile,
-    userId: view.userId,
+    userId: view.profileUserId,
     displayName: view.displayName,
     avatarInitial: initialOf(view.displayName),
     avatarUrl: view.avatar?.url ?? null,
@@ -111,7 +111,7 @@ export function toPublicPersonalProfileView(
 ): PersonalProfileView {
   return {
     ...publicPersonalProfile,
-    userId: view.userId,
+    userId: view.profileUserId,
     displayName: view.displayName,
     avatarInitial: initialOf(view.displayName),
     avatarUrl: view.avatar?.url ?? null,

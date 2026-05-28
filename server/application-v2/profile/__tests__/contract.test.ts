@@ -17,7 +17,7 @@ const ROOT = process.cwd();
  */
 
 const PUBLIC_PROFILE_SAMPLE: PublicProfileView = {
-  userId: "u-1",
+  profileUserId: "u-1",
   profileSlug: null,
   displayName: "Sample",
   bio: null,
@@ -33,7 +33,7 @@ const PUBLIC_PROFILE_SAMPLE: PublicProfileView = {
 };
 
 const OWNER_PROFILE_SAMPLE: OwnerProfileView = {
-  userId: "u-1",
+  profileUserId: "u-1",
   profileSlug: null,
   firstName: "A",
   lastName: "B",

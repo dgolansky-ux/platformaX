@@ -4,8 +4,9 @@
  * Public DTOs exposed by this domain. These cross the public-api boundary and
  * MUST NOT contain PII (private contact info, date of birth, auth metadata).
  *
- * Private DTOs (owner-only) live in `./internal/private-profile-dto.ts` so the
- * PII guard (`scripts/check-public-dto-pii.mjs`) can keep public DTOs strict.
+ * Private DTOs (owner-only) live in `./private-dto.ts` (root, not /internal/)
+ * so the public-api-surface guard can re-export the TYPE while the PII guard
+ * (`scripts/check-public-dto-pii.mjs`) keeps public DTOs strict.
  */
 
 /** Stable visibility level for a profile slot owned by identity. */

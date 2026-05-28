@@ -35,7 +35,9 @@ a persisted profile.
 
 ## Internal modules (not importable cross-domain)
 - `service.ts`, `repository.ts`, `policy.ts`, `mapper.ts`
-- `internal/private-profile-dto.ts` — owner-only DTO (PII)
+- `private-dto.ts` — owner-only `PrivateProfileDTO` (PII). Lives at the
+  domain root (not `/internal/`) so `public-api.ts` can re-export the TYPE
+  without violating the public-api-surface guard.
 - `internal/record.ts` — persistence record shape
 - `internal/validation.ts` — input normalisation/validation
 

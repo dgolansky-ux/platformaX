@@ -70,6 +70,12 @@ const GUARDS = [
   "check-read-model-single-owner.mjs",
   "check-idempotency-flows.mjs",
   "check-no-unsafe-randomness.mjs",
+  // Hard architecture / domain-compliance guards (Opus pass).
+  "check-service-boundary-branded-ids.mjs",
+  "check-owner-viewer-authority-boundary.mjs",
+  "check-owner-upload-intent-classification.mjs",
+  "check-public-profile-id-exposure.mjs",
+  "check-application-service-size.mjs",
 ];
 
 let failed = 0;

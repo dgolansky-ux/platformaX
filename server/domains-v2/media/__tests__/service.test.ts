@@ -7,6 +7,11 @@ import {
   type UploadFileMeta,
 } from "../public-api";
 import { isUuid } from "@shared/contracts/uuid";
+import { asMediaAssetId, asUserId } from "@shared/contracts/ids";
+
+const OWNER = asUserId("user-1");
+const INTRUDER = asUserId("intruder");
+const ANON = asUserId("");
 
 function deps(storage: MediaStoragePort) {
   let n = 0;
@@ -39,23 +44,23 @@ const goodAvatar: UploadFileMeta = { mimeType: "image/png", sizeBytes: 1024 };
 const goodBanner: UploadFileMeta = { mimeType: "image/webp", sizeBytes: 2048 };
 
 describe("media service — upload intents", () => {
-  it("avatar upload intent requires an owner (userId)", async () => {
+  it("avatar upload intent requires an owner (ownerUserId)", async () => {
     const svc = createMediaService(deps(connectedStorage()));
-    const res = await svc.createAvatarUploadIntent("", goodAvatar);
+    const res = await svc.createAvatarUploadIntent(ANON, goodAvatar);
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe("FORBIDDEN");
   });
 
-  it("banner upload intent requires an owner (userId)", async () => {
+  it("banner upload intent requires an owner (ownerUserId)", async () => {
     const svc = createMediaService(deps(connectedStorage()));
-    const res = await svc.createBannerUploadIntent("", goodBanner);
+    const res = await svc.createBannerUploadIntent(ANON, goodBanner);
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe("FORBIDDEN");
   });
 
   it("creates an avatar intent for a valid image and owner", async () => {
     const svc = createMediaService(deps(connectedStorage()));
-    const res = await svc.createAvatarUploadIntent("user-1", goodAvatar);
+    const res = await svc.createAvatarUploadIntent(OWNER, goodAvatar);
     expect(res.ok).toBe(true);
     if (res.ok) {
       expect(res.value.purpose).toBe("avatar");
@@ -68,7 +73,7 @@ describe("media service — upload intents", () => {
 
   it("rejects an unsupported mime type", async () => {
     const svc = createMediaService(deps(connectedStorage()));
-    const res = await svc.createAvatarUploadIntent("user-1", {
+    const res = await svc.createAvatarUploadIntent(OWNER, {
       mimeType: "image/svg+xml",
       sizeBytes: 1024,
     });
@@ -78,7 +83,7 @@ describe("media service — upload intents", () => {
 
   it("rejects a file larger than the avatar limit", async () => {
     const svc = createMediaService(deps(connectedStorage()));
-    const res = await svc.createAvatarUploadIntent("user-1", {
+    const res = await svc.createAvatarUploadIntent(OWNER, {
       mimeType: "image/png",
       sizeBytes: 50 * 1024 * 1024,
     });
@@ -87,14 +92,12 @@ describe("media service — upload intents", () => {
   });
 
   it("default media id generator (no idGen injected) is UUID-compatible", async () => {
-    // No `idGen` dep → service uses its UUID default (aligned with
-    // media_assets.id uuid in supabase/migrations).
     const svc = createMediaService({
       repository: createInMemoryMediaRepository(),
       storage: connectedStorage(),
       clock: () => "2026-05-25T00:00:00.000Z",
     });
-    const res = await svc.createAvatarUploadIntent("user-1", goodAvatar);
+    const res = await svc.createAvatarUploadIntent(OWNER, goodAvatar);
     expect(res.ok).toBe(true);
     if (res.ok) expect(isUuid(res.value.assetId)).toBe(true);
   });
@@ -102,7 +105,7 @@ describe("media service — upload intents", () => {
   it("rejects an inline data: scheme source ref", async () => {
     const svc = createMediaService(deps(connectedStorage()));
     const inlineRef = "data:image/png;" + "x".repeat(8);
-    const res = await svc.createAvatarUploadIntent("user-1", {
+    const res = await svc.createAvatarUploadIntent(OWNER, {
       mimeType: "image/png",
       sizeBytes: 1024,
       sourceUri: inlineRef,
@@ -115,11 +118,14 @@ describe("media service — upload intents", () => {
 describe("media service — confirm + read", () => {
   it("with connected storage, confirm marks the asset ready and resolves a URL", async () => {
     const svc = createMediaService(deps(connectedStorage()));
-    const intent = await svc.createAvatarUploadIntent("user-1", goodAvatar);
+    const intent = await svc.createAvatarUploadIntent(OWNER, goodAvatar);
     expect(intent.ok).toBe(true);
     if (!intent.ok) return;
 
-    const confirmed = await svc.confirmProfileMediaUpload("user-1", intent.value.assetId);
+    const confirmed = await svc.confirmProfileMediaUpload(
+      OWNER,
+      asMediaAssetId(intent.value.assetId),
+    );
     expect(confirmed.ok).toBe(true);
     if (confirmed.ok) {
       expect(confirmed.value.status).toBe("ready");
@@ -129,22 +135,28 @@ describe("media service — confirm + read", () => {
 
   it("a non-owner cannot confirm someone else's asset", async () => {
     const svc = createMediaService(deps(connectedStorage()));
-    const intent = await svc.createAvatarUploadIntent("user-1", goodAvatar);
+    const intent = await svc.createAvatarUploadIntent(OWNER, goodAvatar);
     if (!intent.ok) throw new Error("intent failed");
-    const res = await svc.confirmProfileMediaUpload("intruder", intent.value.assetId);
+    const res = await svc.confirmProfileMediaUpload(
+      INTRUDER,
+      asMediaAssetId(intent.value.assetId),
+    );
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe("FORBIDDEN");
   });
 
   it("env-required storage issues NO url and confirm fails STORAGE_UNAVAILABLE (no fake success)", async () => {
     const svc = createMediaService(deps(createEnvRequiredStoragePort()));
-    const intent = await svc.createBannerUploadIntent("user-1", goodBanner);
+    const intent = await svc.createBannerUploadIntent(OWNER, goodBanner);
     expect(intent.ok).toBe(true);
     if (!intent.ok) return;
     expect(intent.value.transport).toBe("ENV_REQUIRED");
     expect(intent.value.uploadUrl).toBeNull();
 
-    const confirmed = await svc.confirmProfileMediaUpload("user-1", intent.value.assetId);
+    const confirmed = await svc.confirmProfileMediaUpload(
+      OWNER,
+      asMediaAssetId(intent.value.assetId),
+    );
     expect(confirmed.ok).toBe(false);
     if (!confirmed.ok) expect(confirmed.error.code).toBe("STORAGE_UNAVAILABLE");
   });
@@ -159,17 +171,20 @@ describe("media service — confirm + read", () => {
 
 describe("media service — verifyProfileAssetForAttach", () => {
   async function readyAvatar(svc: ReturnType<typeof createMediaService>) {
-    const intent = await svc.createAvatarUploadIntent("user-1", goodAvatar);
+    const intent = await svc.createAvatarUploadIntent(OWNER, goodAvatar);
     if (!intent.ok) throw new Error("intent failed");
-    const confirmed = await svc.confirmProfileMediaUpload("user-1", intent.value.assetId);
+    const confirmed = await svc.confirmProfileMediaUpload(
+      OWNER,
+      asMediaAssetId(intent.value.assetId),
+    );
     if (!confirmed.ok) throw new Error("confirm failed");
-    return intent.value.assetId;
+    return asMediaAssetId(intent.value.assetId);
   }
 
   it("returns the public DTO when owner, purpose and ready status match", async () => {
     const svc = createMediaService(deps(connectedStorage()));
     const assetId = await readyAvatar(svc);
-    const res = await svc.verifyProfileAssetForAttach("user-1", assetId, "avatar");
+    const res = await svc.verifyProfileAssetForAttach(OWNER, assetId, "avatar");
     expect(res.ok).toBe(true);
     if (res.ok) {
       expect(res.value.assetId).toBe(assetId);
@@ -184,7 +199,7 @@ describe("media service — verifyProfileAssetForAttach", () => {
   it("rejects a foreign asset as FORBIDDEN", async () => {
     const svc = createMediaService(deps(connectedStorage()));
     const assetId = await readyAvatar(svc);
-    const res = await svc.verifyProfileAssetForAttach("intruder", assetId, "avatar");
+    const res = await svc.verifyProfileAssetForAttach(INTRUDER, assetId, "avatar");
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe("FORBIDDEN");
   });
@@ -192,18 +207,18 @@ describe("media service — verifyProfileAssetForAttach", () => {
   it("rejects a mismatched purpose (avatar asset used as banner ref) as INVALID_INPUT", async () => {
     const svc = createMediaService(deps(connectedStorage()));
     const assetId = await readyAvatar(svc);
-    const res = await svc.verifyProfileAssetForAttach("user-1", assetId, "banner");
+    const res = await svc.verifyProfileAssetForAttach(OWNER, assetId, "banner");
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe("INVALID_INPUT");
   });
 
   it("rejects a pending (not-yet-uploaded) asset as NOT_READY", async () => {
     const svc = createMediaService(deps(connectedStorage()));
-    const intent = await svc.createAvatarUploadIntent("user-1", goodAvatar);
+    const intent = await svc.createAvatarUploadIntent(OWNER, goodAvatar);
     if (!intent.ok) throw new Error("intent failed");
     const res = await svc.verifyProfileAssetForAttach(
-      "user-1",
-      intent.value.assetId,
+      OWNER,
+      asMediaAssetId(intent.value.assetId),
       "avatar",
     );
     expect(res.ok).toBe(false);
@@ -212,15 +227,66 @@ describe("media service — verifyProfileAssetForAttach", () => {
 
   it("rejects an unknown assetId as NOT_FOUND", async () => {
     const svc = createMediaService(deps(connectedStorage()));
-    const res = await svc.verifyProfileAssetForAttach("user-1", "missing", "avatar");
+    const res = await svc.verifyProfileAssetForAttach(
+      OWNER,
+      asMediaAssetId("missing"),
+      "avatar",
+    );
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe("NOT_FOUND");
   });
 
-  it("rejects an empty userId as FORBIDDEN", async () => {
+  it("rejects an empty ownerUserId as FORBIDDEN", async () => {
     const svc = createMediaService(deps(connectedStorage()));
-    const res = await svc.verifyProfileAssetForAttach("", "some-id", "avatar");
+    const res = await svc.verifyProfileAssetForAttach(
+      ANON,
+      asMediaAssetId("some-id"),
+      "avatar",
+    );
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe("FORBIDDEN");
+  });
+});
+
+describe("media DTO classification", () => {
+  it("MediaAssetDTO (public) MUST NOT carry storageKey / ownerId / sizeBytes / provider", async () => {
+    const svc = createMediaService(deps(connectedStorage()));
+    const intent = await svc.createAvatarUploadIntent(OWNER, goodAvatar);
+    if (!intent.ok) throw new Error("intent failed");
+    const confirmed = await svc.confirmProfileMediaUpload(
+      OWNER,
+      asMediaAssetId(intent.value.assetId),
+    );
+    if (!confirmed.ok) throw new Error("confirm failed");
+    const keys = Object.keys(confirmed.value);
+    expect(keys).not.toContain("storageKey");
+    expect(keys).not.toContain("ownerId");
+    expect(keys).not.toContain("sizeBytes");
+    expect(keys).not.toContain("provider");
+  });
+
+  it("OwnerUploadIntentDTO carries owner-only fields (uploadUrl, storageKey, maxBytes)", async () => {
+    const svc = createMediaService(deps(connectedStorage()));
+    const intent = await svc.createAvatarUploadIntent(OWNER, goodAvatar);
+    expect(intent.ok).toBe(true);
+    if (!intent.ok) return;
+    const keys = Object.keys(intent.value);
+    expect(keys).toContain("uploadUrl");
+    expect(keys).toContain("storageKey");
+    expect(keys).toContain("maxBytes");
+  });
+
+  it("public read (getPublicMediaUrl) never returns OwnerUploadIntentDTO fields", async () => {
+    const svc = createMediaService(deps(connectedStorage()));
+    const intent = await svc.createAvatarUploadIntent(OWNER, goodAvatar);
+    if (!intent.ok) throw new Error("intent failed");
+    await svc.confirmProfileMediaUpload(OWNER, asMediaAssetId(intent.value.assetId));
+    const pub = await svc.getPublicMediaUrl({ assetId: intent.value.assetId });
+    expect(pub.ok).toBe(true);
+    if (!pub.ok) return;
+    const keys = Object.keys(pub.value);
+    expect(keys).not.toContain("uploadUrl");
+    expect(keys).not.toContain("storageKey");
+    expect(keys).not.toContain("maxBytes");
   });
 });
