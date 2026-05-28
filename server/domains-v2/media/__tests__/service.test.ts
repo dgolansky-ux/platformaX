@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
   createMediaService,
-  createInMemoryMediaRepository,
-  createEnvRequiredStoragePort,
   type MediaStoragePort,
   type UploadFileMeta,
 } from "../public-api";
+import {
+  createInMemoryMediaRepository,
+  createEnvRequiredStoragePort,
+} from "../repository";
 
 function deps(storage: MediaStoragePort) {
   let n = 0;

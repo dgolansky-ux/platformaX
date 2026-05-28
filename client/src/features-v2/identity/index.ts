@@ -30,7 +30,7 @@ export type {
   AuthBackend,
 } from "./auth/types";
 
-export { profileAdapter, createProfileAdapter } from "./profile";
+export { profileAdapter, createMockProfileAdapter } from "./profile";
 export type {
   OnboardingProfileAdapter,
   CompleteOnboardingInput,

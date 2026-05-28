@@ -7,6 +7,7 @@
  * Payloads carry only stable, PII-free fields. PII never leaves the domain via
  * events — consumers must call identity public API if they need private data.
  */
+import type { EventEnvelope } from "@shared/contracts/event-envelope";
 import type { UserId } from "./contracts";
 
 export type OnboardingCompletedEvent = {
@@ -24,3 +25,11 @@ export type ProfilePublicSummaryChangedEvent = {
 export type IdentityEvent =
   | OnboardingCompletedEvent
   | ProfilePublicSummaryChangedEvent;
+
+/**
+ * Canonical envelope shape for an identity event crossing a domain boundary
+ * (PX-EVENT-001). Identity currently publishes in-process via the injected
+ * `publish` callback — there is NO transactional outbox yet, so this type marks
+ * the target wrapping; it does not imply outbox runtime readiness.
+ */
+export type IdentityEventEnvelope = EventEnvelope<IdentityEvent>;

@@ -23,6 +23,17 @@ Missing (not in this slice): a connected storage backend
 (`STORAGE_ADAPTER_ENV_REQUIRED`), real presigned upload (`LIVE_UPLOAD_NOT_STARTED`),
 image processing/CDN, feed/chat media.
 
+Events / outbox / idempotency: events now leave the domain wrapped in
+`EventEnvelope` (PX-EVENT-001) and each envelope carries an `idempotencyKey`
+(PX-IDEMP-001), but there is **no transactional outbox table yet** — publishing
+is in-process via the injected `publish` callback. Status:
+`OUTBOX_NOT_IMPLEMENTED` / `IDEMPOTENCY_KEY_ON_ENVELOPE_ONLY`.
+
+DB constraint alignment: `supabase/migrations/0004_media_assets_status_photo.sql`
+extends the original `purpose` CHECK enum to include `statusPhoto`, matching the
+runtime; without this the original 0002 migration would have rejected status
+photo writes at the DB boundary once persistence is wired.
+
 ## Owns
 - Media assets metadata
 - Upload intents / validation
@@ -33,8 +44,9 @@ image processing/CDN, feed/chat media.
 - Profiles (identity owns those; identity stores only a `MediaAssetRef`)
 
 ## Public surface
-- `public-api.ts` (service factory, repo/storage factories, DTOs, contracts, policy, events)
-- `contracts.ts`, `events.ts`, `dto.ts`
+- `public-api.ts` — `createMediaService` (service factory), DTOs (`MediaAssetDTO`, `MediaRefDTO`, `UploadIntentDTO`, `MediaPurpose`, `MediaAssetStatus`, `UploadTransportState`), contracts (`MediaAssetRef`, `UploadFileMeta`, `MediaResult`, `MediaError`, `MediaErrorCode`), policy predicates (`canCreateUploadIntent`, `canConfirmUpload`, `canReadMediaAsset`, `MediaViewerRole`), validation limits (`MEDIA_VALIDATION_LIMITS`, `ALLOWED_MIME_TYPES`, `maxBytesFor`), event types (`MediaEvent`, `MediaUploadIntentCreatedEvent`, `MediaUploadConfirmedEvent`, `MediaEventEnvelope`) and the `MediaRepository` / `MediaStoragePort` **port interfaces** (with `CreateMediaRecordInput`, `UpdateMediaRecordPatch`, `UploadTarget`, `UploadTargetRequest`).
+- `public-api.ts` does NOT export the in-memory repository implementation factory (`createInMemoryMediaRepository`) or the env-required storage implementation factory (`createEnvRequiredStoragePort`) — server-side composition (today: tests; future: HTTP/Supabase wiring) imports them directly from `./repository`. The boundary guard treats `./repository` as importable by composition code but not by other domains.
+- `contracts.ts`, `events.ts`, `dto.ts`, `policy.ts`, `limits.ts`, `ports.ts` are the typed surfaces re-exported via `public-api.ts` — domains MUST go through `public-api.ts`, never deep-import.
 
 ## Internal modules (not importable by other domains)
 - service, repository, policy, mapper, internal/record, internal/validation

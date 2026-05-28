@@ -247,19 +247,22 @@ Guard must scan:
 
 At minimum:
 
-- `pnpm arch:check:v2`
-- `node scripts/audit-domain-boundaries.mjs`
+- `pnpm arch:check:v2` — umbrella for the architecture-only subset.
+- `pnpm guards:all-local` — umbrella for all CI-required guards, including everything below.
+- `node scripts/audit-domain-boundaries.mjs` — enforces the public-api boundary: domains MUST be imported via `public-api.ts`/`contracts.ts`/`events.ts`; deep imports into another domain's `repository`/`service`/`policy`/`router`/`mapper`/`internal/*` fail closed (replaces the historical `check-public-api-surface.mjs` placeholder, which was never implemented).
+- `node scripts/check-architecture-import-graph.mjs` — enforces acyclic import graph between domains and matches `DOMAIN_OWNERSHIP_MATRIX.md`.
 - `node scripts/check-no-legacy-imports.mjs`
 - `node scripts/check-removed-product-areas.mjs`
-- `node scripts/check-public-api-surface.mjs`
 - `node scripts/check-public-dto-pii.mjs`
+- `node scripts/check-dto-privacy-classification.mjs`
 - `node scripts/check-code-quality-structure.mjs`
 - `node scripts/check-scalability-patterns.mjs`
+- `node scripts/check-scalability-hot-paths.mjs`
 - `node scripts/check-frontend-performance-patterns.mjs`
 - `node scripts/check-status-truth-consistency.mjs`
 - `node scripts/check-dependency-discipline.mjs`
 - `node scripts/check-logging-pii-security.mjs`
-- dependency boundary checker (`dependency-cruiser` or ESLint boundaries)
+- TODO: dedicated dependency boundary checker (`dependency-cruiser` or ESLint boundaries) — currently covered by `audit-domain-boundaries.mjs` + `check-architecture-import-graph.mjs`; tracked as `TODO_GUARD` in `RULES_TO_GUARDS_MATRIX.md`.
 
 ## 14. Backend and runtime invariant enforcement map
 

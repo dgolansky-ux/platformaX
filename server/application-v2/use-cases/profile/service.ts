@@ -1,5 +1,5 @@
 /**
- * application-v2/profile — application service
+ * application-v2/use-cases/profile — application service
  *
  * Thin composition layer: orchestrates identity + media public APIs into a
  * single profile view DTO and translates raw domain errors into the small,

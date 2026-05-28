@@ -7,6 +7,7 @@ const SCAN_DIRS = [
   "server/domains-v2",
   "client/src/features-v2",
   "client/src/app-v2",
+  "shared",
 ];
 
 const CROSS_DOMAIN_BLOCKED = [
@@ -89,13 +90,76 @@ let violations = 0;
 
 function checkPublicApiExportsInternals(fp, rel, content) {
   if (!rel.endsWith("public-api.ts")) return;
-  const blockedExports = ["repository", "router", "mapper", "cache-keys", "cacheKeys", "schema"];
+  const blockedExports = [
+    "repository",
+    "router",
+    "mapper",
+    "cache-keys",
+    "cacheKeys",
+    "schema",
+    "internal",
+  ];
+  // Collapse multiline `export {\n ... \n} from "..."` onto one logical line so
+  // an export spread across several lines cannot hide a repository/internal leak.
+  const normalized = content.replace(/\}\s*\n\s*from\s+/g, "} from ");
   for (const blocked of blockedExports) {
-    const pat = new RegExp(`export.*from\\s+["'].*${blocked}`, "i");
-    if (pat.test(content)) {
+    // `[^;]*` keeps the match scoped to a single (possibly multiline) statement;
+    // `[^"']*` keeps it scoped to the imported module specifier.
+    const pat = new RegExp(`export[^;]*from\\s+["'][^"']*${blocked}`, "im");
+    if (pat.test(normalized)) {
       console.error(`BOUNDARY_VIOLATION: public-api.ts exports internal "${blocked}" in ${rel}`);
       violations++;
     }
+  }
+}
+
+function checkClientServerBoundary(fp, rel, content) {
+  // Frontend production code must never reach the server runtime — neither
+  // directly (`@server/*`) nor transitively through `@shared/wiring/*`. The
+  // wiring module was deleted exactly because that path bundled server code
+  // into the client; depending only on `@shared/contracts/*` (type-only) keeps
+  // the boundary honest.
+  if (!rel.startsWith("client/")) return;
+  if (
+    rel.includes("__tests__/") ||
+    rel.endsWith(".test.ts") ||
+    rel.endsWith(".test.tsx")
+  ) {
+    return;
+  }
+  if (/from\s+["']@server\//.test(content) || /import\(\s*["']@server\//.test(content)) {
+    console.error(
+      `BOUNDARY_VIOLATION: client production file imports @server/* in ${rel} — use @shared/contracts/* (types only)`,
+    );
+    violations++;
+  }
+  if (/from\s+["']@shared\/wiring\//.test(content) || /import\(\s*["']@shared\/wiring\//.test(content)) {
+    console.error(
+      `BOUNDARY_VIOLATION: client production file imports @shared/wiring/* in ${rel} — that path was removed because it pulled @server/* into the client bundle; use @shared/contracts/* and a local mock/HTTP adapter`,
+    );
+    violations++;
+  }
+}
+
+function checkSharedNoServerImports(fp, rel, content) {
+  // Anything under `shared/**` is reachable from the client bundle graph. A
+  // single `@server/*` import there is exactly the transitive bypass the wiring
+  // module used to be (`client -> @shared/wiring -> @server`). Tests under
+  // `shared/**/__tests__` are still allowed to compose concrete server
+  // implementations to verify the contract end-to-end.
+  if (!rel.startsWith("shared/")) return;
+  if (
+    rel.includes("__tests__/") ||
+    rel.endsWith(".test.ts") ||
+    rel.endsWith(".test.tsx")
+  ) {
+    return;
+  }
+  if (/from\s+["']@server\//.test(content) || /import\(\s*["']@server\//.test(content)) {
+    console.error(
+      `BOUNDARY_VIOLATION: shared production file imports @server/* in ${rel} — shared modules are reachable from the client bundle; keep server runtime out of the shared graph`,
+    );
+    violations++;
   }
 }
 
@@ -159,9 +223,19 @@ for (const scanDir of SCAN_DIRS) {
     const importPaths = extractImportPaths(content);
 
     checkPublicApiExportsInternals(fp, rel, content);
+    checkClientServerBoundary(fp, rel, content);
+    checkSharedNoServerImports(fp, rel, content);
     checkSharedUiDomainImports(fp, rel, content);
     checkAppV2BackendInternals(fp, rel, content);
     checkFeatureCrossDomainInternals(fp, rel, content);
+
+    // Test files legitimately compose concrete implementations across domains
+    // (they wire identity + media + application to exercise an adapter), so the
+    // cross-domain *module* checks below do not apply to them — consistent with
+    // check-architecture-import-graph.mjs, which skips __tests__ entirely.
+    const isTestFile =
+      /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(rel) || rel.includes("__tests__/");
+    if (isTestFile) continue;
 
     for (const imp of importPaths) {
       if (rel.startsWith("client/src/app-v2/")) {

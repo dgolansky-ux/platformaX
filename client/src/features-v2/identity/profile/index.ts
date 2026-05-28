@@ -2,11 +2,12 @@
  * features-v2/identity/profile — public entrypoint
  *
  * app-v2 consumes only this barrel. The backend identity + media domains are
- * reached via `profile-adapter.ts`, which is the only place allowed to import
- * from `@server/application-v2/profile/public-api` (and from the underlying
- * domain public APIs for the default composition).
+ * intentionally unreachable from `client/**` (no `@server/*` imports, no
+ * `@shared/wiring`). The default `profileAdapter` is a MOCK_LOCAL_ONLY adapter
+ * that satisfies the same contract a future HTTP transport will, so UI screens
+ * never branch on which backend is wired.
  */
-export { profileAdapter, createProfileAdapter } from "./profile-adapter";
+export { profileAdapter, createMockProfileAdapter } from "./profile-adapter";
 export type {
   OnboardingProfileAdapter,
   CompleteOnboardingResult,

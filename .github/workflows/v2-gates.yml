@@ -44,20 +44,15 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Rules check (umbrella gate)
-        run: pnpm rules:check
+      - name: All local guards (umbrella matrix)
+        # Covers every guard marked runs_in: ci in
+        # docs/governance/GUARDS_REGISTRY.yml (rules:check + the extra guards
+        # not wrapped by it). check-guards-registry.mjs verifies this stays
+        # true — if a new CI guard is added, this step must reach it.
+        run: pnpm guards:all-local
 
       - name: Architecture check
         run: pnpm arch:check:v2
-
-      - name: Secret scan
-        run: pnpm guards:secrets
-
-      - name: Review reports & self-audit
-        run: pnpm guards:review
-
-      - name: BRAMKA acceptance matrix
-        run: pnpm guards:bramka
 
       - name: Bundle validation (smoke)
         run: pnpm guards:bundle

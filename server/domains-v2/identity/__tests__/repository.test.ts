@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createInMemoryIdentityProfileRepository } from "../public-api";
-import type { CreateProfileRecordInput } from "../public-api";
+import { createInMemoryIdentityProfileRepository } from "../repository";
+import type { CreateProfileRecordInput } from "../repository";
 
 const NOW = "2026-05-25T12:00:00.000Z";
 const LATER = "2026-05-25T13:00:00.000Z";

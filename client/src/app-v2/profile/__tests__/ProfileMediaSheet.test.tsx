@@ -1,6 +1,21 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeAll, describe, expect, test, vi } from "vitest";
+import { ownerPersonalProfile } from "../fixtures";
+
+// Avatar/banner edit are owner-only affordances and gated by `editEnabled`,
+// which requires BOTH an isOwner profile AND a "ready" runtime state with a
+// real ownerUserId. The shell intentionally hides the edit buttons until the
+// runtime confirms ownership — so test rendering must inject a ready runtime,
+// not just the owner fixture.
+vi.mock("../data/useProfileData", () => ({
+  useProfileData: () => ({
+    state: { kind: "ready", userId: "owner-test-user", view: ownerPersonalProfile },
+    reload: vi.fn(),
+  }),
+}));
+
+// Imported after the mock so ProfilePage picks up the mocked hook.
 import { ProfilePage } from "../ProfilePage";
 
 // jsdom does not implement object URLs — stub them so the local preview path works.
@@ -15,7 +30,7 @@ function renderProfile() {
   return render(
     <MemoryRouter initialEntries={["/profile"]}>
       <Routes>
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile" element={<ProfilePage profile={ownerPersonalProfile} />} />
         <Route path="/" element={<div>LANDING</div>} />
       </Routes>
     </MemoryRouter>,
