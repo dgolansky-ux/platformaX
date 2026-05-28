@@ -1,4 +1,15 @@
-/* QUALITY_STRUCTURE_EXCEPTION + ALLOW_FILE_SIZE_EXCEPTION */
+/*
+QUALITY_STRUCTURE_EXCEPTION + ALLOW_FILE_SIZE_EXCEPTION
+PLATFORMAX_EXCEPTION:
+Rule: PX-CODE-001
+Scope: client/src/app-v2/profile/styles/profile-header.module.css
+Reason: profile header CSS keeps tightly-coupled responsive header/avatar/bio states together.
+Risk: stylesheet can become harder to review if unrelated profile sections are added here.
+Owner: engineering
+Expiry: 2026-11-30
+Removal plan: split when another independent header surface is added or line count grows.
+Evidence: docs/review/step-30-architecture-quality-scalability-guards/STEP_30_REVIEW.md
+*/
 
 .header { padding: 4px 0 0; border-radius: 0; }
 

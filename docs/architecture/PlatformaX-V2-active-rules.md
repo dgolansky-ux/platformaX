@@ -248,8 +248,8 @@ Governance index: `docs/governance/GOVERNANCE_INDEX.md` — section **Runtime in
 ### 10.5 Pagination and lifecycle
 
 - Large runtime lists use **opaque cursor** — no offset pagination on hot paths (**PX-CURSOR-001**, ADR-013).
-- Deletable entities: lifecycle **status enum** + **`deletedAt`** soft delete (**PX-LIFECYCLE-001**, **PX-LC-001**).
-- **Idempotency table** for create / publish / upload / finalize (**PX-IDEMPOTENCY-001**, **PX-IDEMP-001**, ADR-015).
+- Deletable entities: lifecycle **status enum** + **`deletedAt`** soft delete (**PX-LIFECYCLE-001** canonical; **PX-LC-001** deprecated alias).
+- **Idempotency table** for create / publish / upload / finalize (**PX-IDEMPOTENCY-001** canonical; **PX-IDEMP-001** deprecated alias; ADR-015).
 
 ### 10.6 Policy, UI, observability, data
 

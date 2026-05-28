@@ -20,12 +20,4 @@ describe("check-runtime-readiness-status", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("CHECK_RUNTIME_READINESS_STATUS_PASS");
   });
-
-  it("validates PARTIAL requires service.ts, tests, public-api.ts", () => {
-    expect(true).toBe(true);
-  });
-
-  it("validates IMPLEMENTED requires full runtime evidence", () => {
-    expect(true).toBe(true);
-  });
 });

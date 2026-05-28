@@ -3,7 +3,7 @@
 Status: `ACTIVE`  
 Owner: Architecture / Governance  
 Applies to: `server/domains-v2`, `server/application-v2`, migrations, public-api, contracts, events, outbox  
-Rules Registry: `docs/governance/RULES_REGISTRY.yml` (PX-OWN-*, PX-VIS-*, PX-DTO-002, PX-CTX-*, PX-MEDIA-004, PX-LIST-004, PX-DB-004, PX-EVENT-001, PX-LC-*, PX-IDEMP-*, PX-AIS-002)
+Rules Registry: `docs/governance/RULES_REGISTRY.yml` (PX-OWN-*, PX-VIS-*, PX-DTO-002, PX-CTX-*, PX-MEDIA-004, PX-LIST-004, PX-DB-004, PX-EVENT-001, PX-LIFECYCLE-001, PX-IDEMPOTENCY-001, PX-AIS-002; deprecated aliases: PX-LC-001, PX-IDEMP-001)
 
 > **Precedence:** If this file conflicts with `docs/governance/`, governance registry wins. This file is the canonical **backend invariant checklist** for agents and PR review.
 
@@ -180,7 +180,7 @@ Entities with lifecycle must use explicit status enum, e.g.:
 
 Do not hide or delete states ad hoc without domain policy.
 
-**Evidence:** `contracts.ts` / DTO status field + tests (PX-LC-001; manual gate).
+**Evidence:** `contracts.ts` / DTO status field + tests (PX-LIFECYCLE-001; PX-LC-001 is a deprecated alias; manual gate).
 
 ---
 
@@ -191,7 +191,7 @@ Create / publish / upload / finalize / retry-sensitive writes require:
 - `idempotencyKey` persisted and honored, **or**
 - explicit documented reason why idempotency is not required
 
-**Evidence:** service contract + migration when table exists (PX-IDEMP-001; manual gate until table guard lands).
+**Evidence:** service contract + idempotency table/migration (PX-IDEMPOTENCY-001; PX-IDEMP-001 is a deprecated alias). `scripts/check-idempotency-flows.mjs` guards the structural skeleton; live wiring remains a manual gate.
 
 ---
 

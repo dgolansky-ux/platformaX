@@ -240,3 +240,30 @@ five new structural guards, guard portability helper, false-pass fixes.
 - `package.json` `guards:runtime-invariants`
 - `docs/governance/GUARDS_REGISTRY.yml` (GUARD-065..GUARD-069)
 - `docs/governance/RULES_TO_GUARDS_MATRIX.md` (PX-ID-001, PX-OWN-001, PX-OWN-002, PX-MEDIA-004, PX-DTO-001, PX-APP-001 rows updated)
+
+## Follow-up audit ZIP / guard portability fix
+
+- Guards that previously depended on `git ls-files` use `scripts/lib/list-source-files.mjs` with filesystem fallback, so extracted audit ZIPs without `.git` do not silently scan zero files.
+- `check-public-dto-contract-tests.mjs` parser supports both `name:` and `domain:` registry shapes and fails closed when parsing returns zero domains.
+- `check-idempotency-flows.mjs` works without `.git` through the same source-file listing fallback.
+- `scripts/validate-audit-zip.mjs` catches backslash ZIP entry paths.
+- Audit ZIP validation rejects `.claude/settings.local.json`.
+- `.env*.example` files remain included; real `.env*` files are rejected.
+- Visual profile status remains `MANUAL_OWNER_REVIEW`.
+- No screenshots were requested or generated.
+- No db push was performed.
+- No Railway action was performed.
+
+## Coding rules consistency hardening
+
+- Duplicated rule families resolved: `PX-IDEMPOTENCY-001` and `PX-LIFECYCLE-001` are canonical; `PX-IDEMP-001` and `PX-LC-001` are deprecated aliases.
+- `PX-GOV-FINALIZE-001` remains allowed as an explicit governance compound prefix.
+- `PX-CODE-001..005` are visible in the index/matrix and wired to guards.
+- Guard ↔ rule bidirectional linkage is enforced by the expanded `check-rules-to-guards-coverage.mjs`.
+- Coding limits are aligned as file hard limits, function/component body limits, and recommended soft limits.
+- Exception markers are canonicalized around `PLATFORMAX_EXCEPTION`; deprecated markers require a canonical block or `EXCEPTIONS_REGISTER.md` entry.
+- Backend domain requirements are status-based; `router.ts` is only required when HTTP transport is exposed.
+- Owner manual visual review is clarified as acceptable evidence for manual review statuses; agents do not require screenshots or self-write `VISUAL_DONE`.
+- Placeholder tests are banned by `scripts/check-no-placeholder-tests.mjs`.
+- New meta-guard `scripts/check-coding-standards-consistency.mjs` enforces PX-CODE visibility, exception policy, status-based backend rules, matrix summary honesty, and canonical/alias rule-family relationships.
+- Remaining manual gates: full owner/viewer matrix, transactional outbox same-TX proof, live idempotency wiring, per-projection read-model proof, profile visual parity owner review, AIS/report human judgment.

@@ -1,89 +1,119 @@
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
+import { fileURLToPath } from "url";
 
 const ROOT = process.cwd();
 const EXCEPTIONS_PATH = join(ROOT, "docs/governance/EXCEPTIONS_REGISTER.md");
 
-function parseExceptions(content) {
+const REQUIRED_BLOCK_FIELDS = [
+  "PLATFORMAX_EXCEPTION:",
+  "Rule:",
+  "Scope:",
+  "Reason:",
+  "Risk:",
+  "Owner:",
+  "Expiry:",
+  "Removal plan:",
+  "Evidence:",
+];
+
+export function hasCanonicalExceptionBlock(content) {
+  return REQUIRED_BLOCK_FIELDS.every((field) => content.includes(field));
+}
+
+export function parseExceptions(content) {
   const exceptions = [];
   const lines = content.split("\n");
-  let inTable = false;
-  let headerParsed = false;
 
   for (const line of lines) {
-    if (line.includes("| Exception ID") || line.includes("| EXC-")) {
-      inTable = true;
-    }
-    if (!inTable) continue;
-    if (line.includes("---")) { headerParsed = true; continue; }
-    if (!line.startsWith("|")) continue;
-
-    const cells = line.split("|").map(c => c.trim()).filter(Boolean);
-    if (cells.length < 7) continue;
-    if (cells[0] === "Exception ID" || cells[0] === "Field") continue;
-
-    if (/^EXC-\d+$/.test(cells[0])) {
-      exceptions.push({
-        id: cells[0],
-        ruleId: cells[1] || "",
-        reason: cells[2] || "",
-        expiry: cells[3] || "",
-        owner: cells[4] || "",
-        evidence: cells[5] || "",
-        risk: cells[6] || "",
-        status: cells[7] || "active",
-      });
-    }
+    if (!line.startsWith("| EXC-")) continue;
+    const cells = line.split("|").map((c) => c.trim()).filter(Boolean);
+    if (cells.length < 9) continue;
+    exceptions.push({
+      id: cells[0],
+      ruleId: cells[1],
+      scope: cells[2],
+      reason: cells[3],
+      expiry: cells[4],
+      owner: cells[5],
+      evidence: cells[6],
+      risk: cells[7],
+      status: cells[8] || "active",
+    });
   }
 
   return exceptions;
 }
 
-let violations = 0;
+export function evaluateExceptionsRegister(content, today = new Date()) {
+  const violations = [];
+  const exceptions = parseExceptions(content);
 
-if (!existsSync(EXCEPTIONS_PATH)) {
-  console.error("EXCEPTION_EXPIRY_FAIL: EXCEPTIONS_REGISTER.md not found");
-  process.exit(1);
-}
+  const requiredFields = [
+    "id",
+    "ruleId",
+    "scope",
+    "reason",
+    "expiry",
+    "owner",
+    "risk",
+    "evidence",
+  ];
 
-const content = readFileSync(EXCEPTIONS_PATH, "utf-8");
-
-if (content.includes("No active exceptions") && !content.includes("EXC-")) {
-  console.log("CHECK_EXCEPTION_EXPIRY_PASS (no active exceptions)");
-  process.exit(0);
-}
-
-const exceptions = parseExceptions(content);
-
-const REQUIRED_FIELDS = ["id", "ruleId", "reason", "expiry", "owner", "risk", "evidence"];
-
-for (const exc of exceptions) {
-  for (const field of REQUIRED_FIELDS) {
-    if (!exc[field] || exc[field].trim() === "" || exc[field].trim() === "-") {
-      console.error(`EXCEPTION_VIOLATION: ${exc.id} missing required field: ${field}`);
-      violations++;
-    }
-  }
-
-  if (exc.status === "active" || !exc.status || exc.status === "") {
-    if (exc.expiry && exc.expiry.trim() !== "" && exc.expiry.trim() !== "-") {
-      const expiryDate = new Date(exc.expiry);
-      if (!isNaN(expiryDate.getTime()) && expiryDate < new Date()) {
-        console.error(`EXCEPTION_VIOLATION: ${exc.id} is active but expired on ${exc.expiry} — must be revoked`);
-        violations++;
+  for (const exc of exceptions) {
+    for (const field of requiredFields) {
+      if (!exc[field] || exc[field].trim() === "" || exc[field].trim() === "-") {
+        violations.push(`${exc.id} missing required field: ${field}`);
       }
     }
 
-    if (!exc.expiry || exc.expiry.trim() === "" || exc.expiry.trim() === "-") {
-      console.error(`EXCEPTION_VIOLATION: ${exc.id} has no expiry date — all exceptions must be time-bound`);
-      violations++;
+    if (!/^PX-[A-Z0-9-]+-\d+$/.test(exc.ruleId) && !exc.ruleId.startsWith("check-")) {
+      violations.push(`${exc.id} has no rule ID`);
+    }
+
+    if (exc.status === "active" || !exc.status) {
+      if (!exc.expiry || exc.expiry.trim() === "" || exc.expiry.trim() === "-") {
+        violations.push(`${exc.id} has no expiry date`);
+      } else {
+        const dateMatch = exc.expiry.match(/\d{4}-\d{2}-\d{2}/);
+        if (dateMatch) {
+          const expiryDate = new Date(dateMatch[0]);
+          if (!Number.isNaN(expiryDate.getTime()) && expiryDate < today) {
+            violations.push(`${exc.id} is active but expired on ${dateMatch[0]}`);
+          }
+        }
+      }
     }
   }
+
+  return { exceptions, violations };
 }
 
-if (violations > 0) {
-  console.error(`\ncheck-exception-expiry: ${violations} violation(s)`);
-  process.exit(1);
+function main() {
+  if (!existsSync(EXCEPTIONS_PATH)) {
+    console.error("EXCEPTION_EXPIRY_FAIL: EXCEPTIONS_REGISTER.md not found");
+    process.exit(1);
+  }
+
+  const content = readFileSync(EXCEPTIONS_PATH, "utf-8");
+  const { exceptions, violations } = evaluateExceptionsRegister(content);
+
+  if (!content.includes("PLATFORMAX_EXCEPTION:")) {
+    violations.push("EXCEPTIONS_REGISTER missing canonical PLATFORMAX_EXCEPTION format");
+  }
+
+  for (const violation of violations) {
+    console.error(`EXCEPTION_VIOLATION: ${violation}`);
+  }
+
+  if (violations.length > 0) {
+    console.error(`\ncheck-exception-expiry: ${violations.length} violation(s)`);
+    process.exit(1);
+  }
+
+  console.log(`CHECK_EXCEPTION_EXPIRY_PASS (${exceptions.length} exception(s) checked)`);
 }
 
-console.log("CHECK_EXCEPTION_EXPIRY_PASS");
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main();
+}

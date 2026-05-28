@@ -47,16 +47,26 @@ Forbidden by default:
 - raw DB records returned from public routers or public APIs
 - mixing private/internal DTOs with public DTOs
 
-Allowed exception format:
+Allowed exception format (canonical):
 
 ```ts
-// PLATFORMAX_EXCEPTION: <why this is necessary>
-// Scope: <file/function>
-// Risk: <risk>
+// PLATFORMAX_EXCEPTION:
+// Rule: <PX-CODE-001 | PX-CODE-002 | PX-CODE-003 | PX-EXC-001 | ...>
+// Scope: <file/function/block>
+// Reason: <why this is necessary>
+// Risk: <risk introduced>
+// Owner: <person/team>
+// Expiry: <YYYY-MM-DD or explicit review condition>
 // Removal plan: <condition/date/issue>
+// Evidence: <ADR/report/test/gate>
 ```
 
-Exceptions without this block fail review.
+Exceptions without this block fail review. Deprecated aliases such as
+`ALLOW_FILE_SIZE_EXCEPTION`, `QUALITY_STRUCTURE_EXCEPTION`,
+`COMPLEXITY_EXCEPTION`, and `eslint-disable max-lines` are accepted only during
+the short migration period and only when the same file also has a full
+`PLATFORMAX_EXCEPTION` block or an entry in
+`docs/governance/EXCEPTIONS_REGISTER.md`.
 
 ## 4. React standard
 
@@ -91,22 +101,55 @@ Every button must do one of these:
 
 ## 5. Backend standard
 
-Required per V2 domain:
+Backend domain requirements are status-based. Router.ts is not required for
+every domain; `router.ts` is required only when a domain exposes HTTP/transport
+directly.
 
-```txt
-server/domains-v2/<domain>/
-  README.md
-  public-api.ts
-  contracts.ts
-  dto.ts
-  mapper.ts
-  policy.ts
-  service.ts
-  repository.ts
-  router.ts
-  events.ts
-  __tests__/
-```
+Router.ts is not required for every domain.
+
+### SCAFFOLD_ONLY
+
+Required:
+
+- `README.md`
+- `public-api.ts`
+- `contracts.ts`
+- `dto.ts`
+- `policy.ts`
+- `events.ts`
+- `index.ts`
+- domain status evidence (`domain-registry.ts` and `DOMAIN_STATUS_REGISTRY.yml`)
+- scaffold contract test without `expect(true).toBe(true)`
+
+Forbidden:
+
+- runtime claims
+- service/repository/router evidence unless the status is upgraded
+
+### PARTIAL
+
+Required:
+
+- all `SCAFFOLD_ONLY` files
+- `service.ts` or explicit reason why service work has not started
+- `repository.ts` / repository interface or explicit no-storage status
+- `mapper.ts` when raw records are mapped to DTOs
+- policy tests
+- DTO/public mapper tests
+- public-api surface tests
+- status evidence listing implemented vs missing runtime parts
+
+### IMPLEMENTED
+
+Required:
+
+- full runtime path
+- router/transport only if the domain exposes HTTP
+- repository adapter and migrations/storage when persistence exists
+- policy/service/mapper tests
+- public-api tests
+- runtime evidence and gate logs
+- no fake DONE / no status upgrade without evidence
 
 Router rules:
 
@@ -149,7 +192,7 @@ Policy rules:
 ## 5.1 Backend architecture invariants
 
 Canonical checklist: `docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md`  
-Rules: `PX-OWN-001`, `PX-OWN-002`, `PX-VIS-001`, `PX-DTO-002`, `PX-CTX-001`, `PX-MEDIA-004`, `PX-LIST-004`, `PX-DB-004`, `PX-EVENT-001`, `PX-LC-001`, `PX-IDEMP-001`, `PX-AIS-002`
+Rules: `PX-OWN-001`, `PX-OWN-002`, `PX-VIS-001`, `PX-DTO-002`, `PX-CTX-001`, `PX-MEDIA-004`, `PX-LIST-004`, `PX-DB-004`, `PX-EVENT-001`, `PX-LIFECYCLE-001`, `PX-IDEMPOTENCY-001`, `PX-AIS-002`. Deprecated aliases retained for historical references: `PX-LC-001`, `PX-IDEMP-001`.
 
 ### Identity fields (do not conflate)
 
@@ -192,28 +235,44 @@ Rules: `PX-OWN-001`, `PX-OWN-002`, `PX-VIS-001`, `PX-DTO-002`, `PX-CTX-001`, `PX
 
 ## 6. File size and complexity limits
 
-| File type | Soft limit | Hard limit | Required reaction |
-|---|---:|---:|---|
-| React component | 250 lines | 350 lines | split into subcomponents/hooks/types |
-| service.ts | 300 lines | 400 lines | split by use-case |
-| repository.ts | 350 lines | 500 lines | split query builders/mappers/pagination |
-| mapper.ts | 180 lines | 260 lines | split DTO mappers |
-| policy.ts | 220 lines | 320 lines | split policy groups |
-| test file | 700 lines | 1000 lines | split suites/builders |
-| check script | 350 lines | 500 lines | extract helpers |
+`scripts/check-code-quality-structure.mjs` is the strict structural guard: it
+checks function bodies, component bodies, public surface shape, backend service
+shape, and type/prop complexity. `scripts/check-file-complexity.mjs` is the
+broader hard-max fallback across source files and scripts.
 
-Hard limit violations require either refactor or explicit `COMPLEXITY_EXCEPTION` report. `eslint-disable max-lines` is not enough.
+### Function/body limits
 
-### Stylesheet limits (enforced by `scripts/check-file-size-limits.mjs`)
+- function body max: 80 lines
+- component body max: 140 lines
 
-| File type | Hard limit | Reaction |
-|---|---:|---|
-| CSS module (`*.module.css`) | 360 lines | split by surface (layout / header / sections / per-block) |
-| Global CSS (`*.css`, not module) | 500 lines | split by feature or extract tokens |
+### File hard limits
 
-CSS limits are wired into `pnpm rules:check` and fail closed. Exceptional
-fixtures may include the `ALLOW_FILE_SIZE_EXCEPTION` marker — only with a
-documented justification in the step report.
+| File type | Hard limit | Enforced by | Required reaction |
+|---|---:|---|---|
+| regular `.tsx` file | 220 lines | `check-code-quality-structure.mjs`, `check-file-complexity.mjs` | split into subcomponents/hooks/types |
+| route/page/flow `.tsx` exception | 280 lines | `check-code-quality-structure.mjs`, `check-file-complexity.mjs` | split route container from sections |
+| CSS module (`*.module.css`) | 320 lines | `check-file-size-limits.mjs` | split by surface |
+| global CSS | 500 lines | `check-file-size-limits.mjs` | split by feature or extract tokens |
+| backend `service.ts` | 240 lines | `check-code-quality-structure.mjs`, `check-file-complexity.mjs` | split by use-case |
+| backend `repository.ts` | 240 lines | `check-code-quality-structure.mjs`, `check-file-complexity.mjs` | split query builders/pagination |
+| backend `mapper.ts` | 240 lines | `check-code-quality-structure.mjs` | split DTO mappers |
+| backend `policy.ts` | 240 lines | `check-code-quality-structure.mjs` | split policy groups |
+| test file | 1000 lines | `check-file-complexity.mjs` | split suites/builders |
+| check/validate script | 500 lines | `check-file-complexity.mjs` | extract helpers |
+
+### Recommended soft limits
+
+| File type | Recommended soft limit |
+|---|---:|
+| presentational component | 140 lines |
+| container/page body | 180 lines |
+| service use-case function | 80 lines |
+| mapper function | 80 lines |
+| check script helper group | 300 lines |
+
+Hard limit violations require either refactor or a canonical
+`PLATFORMAX_EXCEPTION` block plus register evidence when the marker is a
+deprecated alias. `eslint-disable max-lines` is not enough.
 
 ## 7. Testing standard
 
@@ -235,6 +294,8 @@ Tests must not:
 - call external services by default
 - rely on hidden local developer state
 - mutate real DB unless a specific integration test environment is explicitly configured
+- use placeholder assertions such as `expect(true).toBe(true)`
+- use `expect(mod).toBeDefined()` as the only assertion in a file
 
 ## 8. Fixtures and mocks
 
@@ -410,8 +471,8 @@ Before every commit, verify:
 
 These rules are enforced by `scripts/check-code-quality-structure.mjs`, `scripts/check-scalability-patterns.mjs`, `scripts/check-frontend-performance-patterns.mjs`, `scripts/check-dependency-discipline.mjs`, and `scripts/check-logging-pii-security.mjs`.
 
-1. **No large files.** File limits are enforced per type (route/page 280, regular .tsx 220, CSS module 320, backend service/repository/policy/router/mapper 240).
-2. **No large functions.** Max 80 lines per function. React components max 140 lines.
+1. **No large files.** File hard limits are enforced per type: route/page 280, regular `.tsx` 220, CSS module 320, backend service/repository/policy/router/mapper 240, check scripts 500.
+2. **No large functions.** Function body max: 80 lines. Component body max: 140 lines.
 3. **No unbounded lists.** Every list/feed/search must have `limit` + `maxLimit` + cursor or explicit fixed cap.
 4. **Every list/feed/search needs limit + maxLimit + cursor/fixed cap + stable order.** Tie-breaker must be `id` or `createdAt`.
 5. **No N+1 in feed/profile/comments/reactions.** Use batch/bulk queries, not per-item loops.
@@ -420,5 +481,5 @@ These rules are enforced by `scripts/check-code-quality-structure.mjs`, `scripts
 8. **UI buttons cannot be no-op.** Every button must perform a real action, open a modal, navigate, call an adapter, or be visibly disabled.
 9. **Animation must respect prefers-reduced-motion.** CSS animations/transitions require a `prefers-reduced-motion` media query. `transition: all` is forbidden.
 10. **New dependencies require review report justification.** No heavy packages for simple tasks. No duplicate libraries for the same purpose.
-11. **Any exception must include reason + review/ticket path.** Exception markers without justification fail the guard.
+11. **Any exception must use `PLATFORMAX_EXCEPTION`.** Deprecated markers without canonical block or `EXCEPTIONS_REGISTER.md` entry fail the guard.
 12. **Profile/feed/social runtime must be batch/cursor/read-model ready.** No unbounded queries, no full-table scans, no raw DB records in public output.

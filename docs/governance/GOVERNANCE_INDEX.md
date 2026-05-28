@@ -17,6 +17,8 @@ Central map of all governance rules, organized by category. Every rule has a sta
 | PX-GOV-002 | No weakened guards | PlatformaX-V2-active-rules.md §9 |
 | PX-GOV-003 | No --no-verify | PlatformaX-V2-coding-standards.md §15 |
 | PX-GOV-004 | No direct push to main | PlatformaX-V2-coding-standards.md §15 |
+| PX-GOV-ZIP-001 | Audit ZIP must be cross-platform and exclude local agent config | AGENT_COMMAND_STANDARD.md §11 |
+| PX-GOV-GUARD-PORTABILITY-001 | Required guards must work from repo and extracted audit ZIP | AGENT_COMMAND_STANDARD.md §11 |
 | PX-SEC-001 | No public PII | PlatformaX-V2-active-rules.md §2 |
 | PX-SEC-002 | No secrets in repo/logs/ZIP | SECRET_HANDLING_POLICY.md |
 | PX-MEDIA-001 | No base64/dataUrl/readAsDataURL runtime uploads | PlatformaX-V2-active-rules.md §2 |
@@ -44,13 +46,14 @@ Central map of all governance rules, organized by category. Every rule has a sta
 | PX-CODE-002 | No components over 140 lines | PlatformaX-V2-coding-standards.md §6 |
 | PX-CODE-003 | No `as any` without exception block | PlatformaX-V2-coding-standards.md §3 |
 | PX-CODE-004 | No `transition: all` | PlatformaX-V2-coding-standards.md §22 |
+| PX-CODE-005 | No placeholder tests | PlatformaX-V2-coding-standards.md §7 |
 
 ## Status / Evidence Rules
 
 | ID | Rule | Source |
 |---|---|---|
 | PX-STATUS-001 | Status truth required — status must match evidence | PlatformaX-V2-domain-status.md §1 |
-| PX-STATUS-002 | No VISUAL_DONE without screenshots/manual evidence | PlatformaX-V2-domain-status.md §3 |
+| PX-STATUS-002 | No VISUAL_DONE without visual evidence; owner manual review allowed | PlatformaX-V2-domain-status.md §3 |
 | PX-STATUS-003 | No BACKEND_DONE without runtime evidence | PlatformaX-V2-domain-status.md §3 |
 
 ## Domain Rules
@@ -156,6 +159,8 @@ update). Local-only edits do not count as task completion. See
 | ID | Rule | Source |
 |---|---|---|
 | PX-GOV-005 | No governance drift — normative rules require Rule ID or link | HIDDEN_RULES_INVENTORY.md |
+| PX-GOV-ZIP-001 | Audit ZIP portability and local-config exclusion | AGENT_COMMAND_STANDARD.md §11 |
+| PX-GOV-GUARD-PORTABILITY-001 | Required guards have filesystem fallback and no empty-scan false PASS | AGENT_COMMAND_STANDARD.md §11 |
 
 ## Backend architecture invariants
 
@@ -173,8 +178,10 @@ Canonical checklist: [`BACKEND_ARCHITECTURE_INVARIANTS.md`](BACKEND_ARCHITECTURE
 | PX-DB-004 | No raw DB outside domain | audit-domain-boundaries, check-architecture-import-graph |
 | PX-EVENT-001 | EventEnvelope + outbox fanout | check-scalability-hot-paths, manual_gate |
 | PX-EVENT-002 | Transactional outbox same TX | manual_gate |
-| PX-LC-001 | Explicit lifecycle statuses | manual_gate |
-| PX-IDEMP-001 | Idempotency on retry writes | manual_gate |
+| PX-LIFECYCLE-001 | Explicit lifecycle statuses | manual_gate |
+| PX-LC-001 | Explicit lifecycle statuses | deprecated alias for PX-LIFECYCLE-001 |
+| PX-IDEMPOTENCY-001 | Idempotency on retry writes | check-idempotency-flows + manual_gate |
+| PX-IDEMP-001 | Idempotency on retry writes | deprecated alias for PX-IDEMPOTENCY-001 |
 | PX-AIS-002 | Architecture Impact Statement | check-adr-required, manual_gate |
 
 ## Runtime invariants / anti-spaghetti rules

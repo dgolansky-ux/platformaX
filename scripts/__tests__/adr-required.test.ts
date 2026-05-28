@@ -20,8 +20,4 @@ describe("check-adr-required", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("CHECK_ADR_REQUIRED_PASS");
   });
-
-  it("validates architecture-impacting changes require ADR IMPACT DECISION", () => {
-    expect(true).toBe(true);
-  });
 });

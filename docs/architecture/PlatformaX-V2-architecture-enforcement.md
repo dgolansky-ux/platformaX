@@ -287,8 +287,8 @@ Matrix: `docs/governance/RULES_TO_GUARDS_MATRIX.md`
 | Resource context refs | PX-CTX-001 | New content types vary |
 | Media attach validation | PX-MEDIA-004 | Attach paths need domain tests |
 | EventEnvelope + transactional outbox | PX-EVENT-001, PX-EVENT-002 | Outbox table not fully automated yet |
-| Lifecycle status | PX-LC-001, PX-LIFECYCLE-001 | Schema-dependent |
-| Idempotency persistence | PX-IDEMP-001, PX-IDEMPOTENCY-001 | Table guard TODO |
+| Lifecycle status | PX-LIFECYCLE-001 (canonical), PX-LC-001 (deprecated alias) | Schema-dependent |
+| Idempotency persistence | PX-IDEMPOTENCY-001 (canonical), PX-IDEMP-001 (deprecated alias) | `check-idempotency-flows` structural guard + manual live-wiring review |
 | Application use-cases | PX-APP-001 | Orchestration review |
 | Read-model single owner | PX-READMODEL-001 | Ownership matrix review |
 | Contract tests | PX-CONTRACT-001 | Per-domain test coverage |

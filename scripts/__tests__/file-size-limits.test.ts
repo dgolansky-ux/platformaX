@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
  * Unit test for scripts/check-file-size-limits.mjs.
  *
  * The guard scans `client/src`, `server`, `shared` relative to `cwd()` and
- * fails when any `.module.css` exceeds 360 lines (or any global `.css` exceeds
+ * fails when any `.module.css` exceeds 320 lines (or any global `.css` exceeds
  * 500). We run the guard as a subprocess inside a temp cwd so the fixtures are
  * isolated from the real repo, and assert exit code + emitted output.
  */
@@ -34,7 +34,7 @@ afterEach(() => {
 });
 
 describe("check-file-size-limits.mjs", () => {
-  it("PASS: a CSS module under the 360 line limit does not fail", () => {
+  it("PASS: a CSS module under the 320 line limit does not fail", () => {
     const lines = Array.from({ length: 200 }, (_, i) => `.line${i} { color: red; }`).join("\n");
     writeFileSync(join(tmp, "client/src/small.module.css"), lines);
     const res = runGuard(tmp);
@@ -42,14 +42,14 @@ describe("check-file-size-limits.mjs", () => {
     expect(res.stdout).toContain("CHECK_FILE_SIZE_LIMITS_PASS");
   });
 
-  it("FAIL: a CSS module above the 360 line limit triggers FILE_SIZE_VIOLATION", () => {
+  it("FAIL: a CSS module above the 320 line limit triggers FILE_SIZE_VIOLATION", () => {
     const lines = Array.from({ length: 400 }, (_, i) => `.line${i} { color: red; }`).join("\n");
     writeFileSync(join(tmp, "client/src/huge.module.css"), lines);
     const res = runGuard(tmp);
     expect(res.status).toBe(1);
     expect(res.stderr).toContain("FILE_SIZE_VIOLATION");
     expect(res.stderr).toContain("huge.module.css");
-    expect(res.stderr).toContain("CSS module limit: 360");
+    expect(res.stderr).toContain("CSS module limit: 320");
   });
 
   it("FAIL: a global .css above the 500 line limit triggers FILE_SIZE_VIOLATION", () => {
@@ -61,8 +61,18 @@ describe("check-file-size-limits.mjs", () => {
     expect(res.stderr).toContain("global CSS limit: 500");
   });
 
-  it("EXCEPTION marker skips the file", () => {
-    const header = "/* ALLOW_FILE_SIZE_EXCEPTION — long fixture, justified in REPORT */";
+  it("PLATFORMAX_EXCEPTION block skips the file", () => {
+    const header = `/*
+PLATFORMAX_EXCEPTION:
+Rule: PX-CODE-001
+Scope: client/src/exception.module.css
+Reason: fixture proving exception behavior
+Risk: none; temp test fixture
+Owner: engineering
+Expiry: 2026-12-31
+Removal plan: delete fixture after test
+Evidence: file-size-limits.test.ts
+*/`;
     const body = Array.from({ length: 600 }, (_, i) => `.line${i} { color: red; }`).join("\n");
     writeFileSync(join(tmp, "client/src/exception.module.css"), `${header}\n${body}`);
     const res = runGuard(tmp);
@@ -70,7 +80,7 @@ describe("check-file-size-limits.mjs", () => {
     expect(res.stdout).toContain("CHECK_FILE_SIZE_LIMITS_PASS");
   });
 
-  it("ACTUAL repo: every profile CSS module is under 360 lines", () => {
+  it("ACTUAL repo: every profile CSS module is under 320 lines or has registered exception", () => {
     const profileDir = join(process.cwd(), "client/src/app-v2/profile/styles");
     for (const f of [
       "profile-layout.module.css",
@@ -86,7 +96,14 @@ describe("check-file-size-limits.mjs", () => {
       expect(stat.isFile()).toBe(true);
       const content = require("fs").readFileSync(fp, "utf-8") as string;
       const lineCount = content.split("\n").length;
-      expect(lineCount, `${f} has ${lineCount} lines (limit 360)`).toBeLessThanOrEqual(360);
+      const hasException =
+        content.includes("PLATFORMAX_EXCEPTION:") ||
+        content.includes("QUALITY_STRUCTURE_EXCEPTION") ||
+        content.includes("ALLOW_FILE_SIZE_EXCEPTION");
+      expect(
+        lineCount <= 320 || hasException,
+        `${f} has ${lineCount} lines (limit 320) without exception marker`,
+      ).toBe(true);
     }
   });
 });

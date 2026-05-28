@@ -23,26 +23,4 @@ describe("check-architecture-import-graph", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("CHECK_ARCHITECTURE_IMPORT_GRAPH_PASS");
   });
-
-  it("would detect forbidden cross-domain import patterns", () => {
-    const testDir = join(FIXTURE_DIR, "server/domains-v2/fake-domain-a");
-    mkdirSync(testDir, { recursive: true });
-    writeFileSync(
-      join(testDir, "service.ts"),
-      `import { repo } from "../fake-domain-b/repository";\nexport const svc = {};\n`
-    );
-    const testDirB = join(FIXTURE_DIR, "server/domains-v2/fake-domain-b");
-    mkdirSync(testDirB, { recursive: true });
-    writeFileSync(join(testDirB, "repository.ts"), `export const repo = {};\n`);
-
-    try {
-      expect(true).toBe(true);
-    } finally {
-      rmSync(FIXTURE_DIR, { recursive: true, force: true });
-    }
-  });
-
-  it("allows cross-domain import via public-api.ts", () => {
-    expect(true).toBe(true);
-  });
 });

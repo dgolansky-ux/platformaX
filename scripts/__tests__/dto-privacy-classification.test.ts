@@ -20,12 +20,4 @@ describe("check-dto-privacy-classification", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("CHECK_DTO_PRIVACY_CLASSIFICATION_PASS");
   });
-
-  it("validates Public DTOs cannot contain PII fields", () => {
-    expect(true).toBe(true);
-  });
-
-  it("skips scaffold-only DTOs", () => {
-    expect(true).toBe(true);
-  });
 });

@@ -6,7 +6,7 @@
 Status: `Accepted`  
 Date: 2026-05-27  
 Owner: Architecture  
-Rules: **PX-IDEMP-001**, **PX-IDEMPOTENCY-001**
+Rules: **PX-IDEMPOTENCY-001** (canonical), **PX-IDEMP-001** (deprecated alias)
 
 ## Context
 
@@ -36,5 +36,5 @@ Create, publish, upload, and finalize operations are retried by clients and work
 
 ## Guard / enforcement
 
-- **manual_gate**
-- TODO: `scripts/check-idempotency-flows.mjs`
+- `scripts/check-idempotency-flows.mjs` guards the structural skeleton.
+- **manual_gate** remains for live wiring into create/publish/upload/finalize flows.

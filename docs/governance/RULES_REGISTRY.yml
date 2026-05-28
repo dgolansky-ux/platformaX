@@ -92,6 +92,61 @@ rules:
     owner: governance
     notes: null
 
+  - id: PX-GOV-ZIP-001
+    title: Audit ZIP must be cross-platform and exclude local agent config
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/governance/AGENT_COMMAND_STANDARD.md
+      - docs/security/SECRET_HANDLING_POLICY.md
+    applies_to: [audit-zip, exports, evidence]
+    forbidden_patterns:
+      - "ZIP entry path with backslash"
+      - ".claude/settings.local.json in audit ZIP"
+      - "real .env file in audit ZIP"
+      - "missing .env*.example from audit ZIP"
+    required_patterns:
+      - "forward slash paths"
+      - ".claude/settings.example.json included"
+      - ".env*.example included"
+      - "manifest and validation included"
+    enforced_by:
+      - scripts/validate-audit-zip.mjs
+      - scripts/check-coding-standards-consistency.mjs
+    evidence_required: validate-audit-zip gate log
+    status: active
+    owner: governance
+    notes: >
+      scripts/create-evidence-zip.mjs produces forward-slash entries and an
+      audit-manifest.json; scripts/validate-audit-zip.mjs verifies extracted
+      evidence ZIP portability and local-config exclusion.
+
+  - id: PX-GOV-GUARD-PORTABILITY-001
+    title: Required guards must work from repo and extracted audit ZIP
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/governance/AGENT_COMMAND_STANDARD.md
+      - docs/governance/RULES_TO_GUARDS_MATRIX.md
+    applies_to: [scripts, guards, audit-zip]
+    forbidden_patterns:
+      - "guard silently scans zero files when .git is absent"
+      - "false PASS on empty scan"
+    required_patterns:
+      - "fs fallback when git ls-files is unavailable"
+      - "non-empty scan assertion for required source roots"
+    enforced_by:
+      - scripts/check-rules-to-guards-coverage.mjs
+      - scripts/check-coding-standards-consistency.mjs
+      - scripts/check-guard-portability.mjs
+    evidence_required: list-source-files tests + rules coverage gate log
+    status: active
+    owner: governance
+    notes: >
+      scripts/lib/list-source-files.mjs provides git ls-files + filesystem
+      fallback. Its tests are the portability evidence; the coverage and
+      consistency guards prevent false-pass registry/matrix drift.
+
   # === ARCHITECTURE RULES ===
 
   - id: PX-ARCH-001
@@ -309,6 +364,28 @@ rules:
     owner: engineering
     notes: null
 
+  - id: PX-CODE-005
+    title: No placeholder tests
+    severity: P1
+    category: code-quality
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [tests, scripts/__tests__, server/domains-v2/*/__tests__]
+    forbidden_patterns:
+      - "expect(true).toBe(true)"
+      - "test name contains placeholder"
+      - "expect(mod).toBeDefined() as the only assertion"
+      - "test with no real assertions"
+    required_patterns: []
+    enforced_by:
+      - scripts/check-no-placeholder-tests.mjs
+    evidence_required: gate log
+    status: active
+    owner: engineering
+    notes: >
+      This is a meta-quality rule: scaffolds and guards must ship real assertions.
+      The guard is intentionally strict and fails closed.
+
   # === STATUS / EVIDENCE RULES ===
 
   - id: PX-STATUS-001
@@ -332,7 +409,7 @@ rules:
     notes: null
 
   - id: PX-STATUS-002
-    title: No VISUAL_DONE without screenshots/manual evidence
+    title: No VISUAL_DONE without visual evidence; owner manual review allowed
     severity: P0
     category: status-truth
     source_docs:
@@ -340,11 +417,14 @@ rules:
     applies_to: [reports, status-docs]
     forbidden_patterns:
       - "VISUAL_DONE without screenshot or manual evidence"
-    required_patterns: []
+      - "agent requiring screenshots when status is MANUAL_OWNER_REVIEW"
+      - "agent self-declaring VISUAL_DONE"
+    required_patterns:
+      - "MANUAL_OWNER_REVIEW or MANUAL_REVIEW_REQUIRED can use owner manual review as evidence"
     enforced_by:
       - scripts/check-fake-done.mjs
       - manual_gate
-    evidence_required: screenshot or manual visual evidence
+    evidence_required: screenshot, screen recording, or owner manual visual evidence
     status: active
     owner: governance
     notes: null
@@ -474,10 +554,10 @@ rules:
     required_patterns: []
     enforced_by:
       - manual_gate
-    evidence_required: screenshots or manual visual comparison
+    evidence_required: owner manual visual comparison; screenshots allowed but not required from agent
     status: active
     owner: product
-    notes: null
+    notes: Visual profile status may remain MANUAL_OWNER_REVIEW. Agents must not demand screenshots or claim VISUAL_DONE.
 
   - id: PX-PROFILE-002
     title: Professional profile is layer of personal profile in identity
@@ -1269,9 +1349,9 @@ rules:
     enforced_by:
       - manual_gate
     evidence_required: contracts status field + tests
-    status: active
+    status: deprecated_alias
     owner: architecture
-    notes: Aligns with PX-LIFECYCLE-001
+    notes: Deprecated alias of canonical PX-LIFECYCLE-001. Keep for historical references; new docs and matrix rows should use PX-LIFECYCLE-001.
 
   - id: PX-IDEMP-001
     title: Retry-sensitive write operations require idempotency
@@ -1289,9 +1369,9 @@ rules:
     enforced_by:
       - manual_gate
     evidence_required: command contract + service handling or AIS exemption
-    status: active
+    status: deprecated_alias
     owner: architecture
-    notes: Aligns with PX-IDEMPOTENCY-001 when table lands
+    notes: Deprecated alias of canonical PX-IDEMPOTENCY-001. Keep for historical references; new docs and matrix rows should use PX-IDEMPOTENCY-001.
 
   - id: PX-AIS-002
     title: Backend tasks require Architecture Impact Statement

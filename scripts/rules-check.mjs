@@ -76,6 +76,10 @@ const GUARDS = [
   "check-owner-upload-intent-classification.mjs",
   "check-public-profile-id-exposure.mjs",
   "check-application-service-size.mjs",
+  "check-no-placeholder-tests.mjs",
+  "check-coding-standards-consistency.mjs",
+  "validate-audit-zip.mjs --help",
+  "check-guard-portability.mjs",
 ];
 
 let failed = 0;

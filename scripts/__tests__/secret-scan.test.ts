@@ -81,8 +81,8 @@ describe("secret-scan: sk_test pattern in source = FAIL", () => {
   });
 });
 
-describe("secret-scan: placeholder in .env.example = PASS", () => {
-  it("allows placeholder values in safe files", () => {
+describe("secret-scan: example env values in .env.example = PASS", () => {
+  it("allows example values in safe files", () => {
     const findings = scanLine('DATABASE_URL=postgresql://your-host/example-db', ".env.example", 1, true);
     expect(findings.length).toBe(0);
   });
@@ -114,7 +114,7 @@ describe("secret-scan: safe patterns", () => {
     expect(findings.length).toBe(0);
   });
 
-  it("skips placeholder-looking values everywhere", () => {
+  it("skips example-looking values everywhere", () => {
     const findings = scanLine('DATABASE_URL=postgresql://your-host/example-db', "server/config.ts", 1, false);
     expect(findings.length).toBe(0);
   });

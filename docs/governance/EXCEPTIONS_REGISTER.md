@@ -9,6 +9,25 @@ Registry of active exceptions to governance rules. Every exception must be justi
 
 ## Format
 
+Canonical inline exception block:
+
+```txt
+PLATFORMAX_EXCEPTION:
+Rule:
+Scope:
+Reason:
+Risk:
+Owner:
+Expiry:
+Removal plan:
+Evidence:
+```
+
+All code-quality, file-size, structure, and lint exceptions use this format.
+Deprecated markers (`ALLOW_FILE_SIZE_EXCEPTION`, `QUALITY_STRUCTURE_EXCEPTION`,
+`COMPLEXITY_EXCEPTION`, `eslint-disable max-lines`) are aliases only and are
+valid only when accompanied by this canonical block or a matching register row.
+
 | Field | Description |
 |---|---|
 | Exception ID | Unique identifier (EXC-NNN) |

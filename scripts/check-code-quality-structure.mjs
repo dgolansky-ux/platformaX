@@ -3,7 +3,25 @@ import { join, relative } from "path";
 
 const ROOT = process.cwd();
 const SCAN_DIRS = ["client/src/app-v2", "client/src/features-v2", "server/domains-v2", "shared"];
-const EXCEPTION_MARKER = "QUALITY_STRUCTURE_EXCEPTION";
+const EXCEPTIONS_REGISTER = existsSync(join(ROOT, "docs/governance/EXCEPTIONS_REGISTER.md"))
+  ? readFileSync(join(ROOT, "docs/governance/EXCEPTIONS_REGISTER.md"), "utf-8")
+  : "";
+const DEPRECATED_EXCEPTION_MARKERS = [
+  "QUALITY_STRUCTURE_EXCEPTION",
+  "ALLOW_FILE_SIZE_EXCEPTION",
+  "COMPLEXITY_EXCEPTION",
+];
+const CANONICAL_EXCEPTION_FIELDS = [
+  "PLATFORMAX_EXCEPTION:",
+  "Rule:",
+  "Scope:",
+  "Reason:",
+  "Risk:",
+  "Owner:",
+  "Expiry:",
+  "Removal plan:",
+  "Evidence:",
+];
 
 const FILE_LIMITS = {
   routePage: { test: (r) => /app-v2\/.*\/(page|route|layout)\.(tsx|ts)$/.test(r) || /app-v2\/.*Route\.tsx$/.test(r) || /app-v2\/.*Page\.tsx$/.test(r) || /app-v2\/.*Flow\.tsx$/.test(r), limit: 280, label: "route/page" },
@@ -34,6 +52,18 @@ function walk(dir) {
     }
   }
   return results;
+}
+
+function hasCanonicalException(content) {
+  return CANONICAL_EXCEPTION_FIELDS.every((field) => content.includes(field));
+}
+
+function hasDeprecatedExceptionMarker(content) {
+  return DEPRECATED_EXCEPTION_MARKERS.some((marker) => content.includes(marker));
+}
+
+function hasRegisteredException(rel) {
+  return EXCEPTIONS_REGISTER.includes(rel);
 }
 
 function countFunctionLines(content, isTsx) {
@@ -186,7 +216,14 @@ for (const scanDir of SCAN_DIRS) {
 
     let content;
     try { content = readFileSync(fp, "utf-8"); } catch { continue; }
-    if (content.includes(EXCEPTION_MARKER)) continue;
+    const hasDeprecatedMarker = hasDeprecatedExceptionMarker(content);
+    const hasCanonicalBlock = hasCanonicalException(content);
+    if (hasDeprecatedMarker && !hasCanonicalBlock && !hasRegisteredException(rel)) {
+      console.error(`CODE_QUALITY_VIOLATION: ${rel} uses deprecated exception marker without PLATFORMAX_EXCEPTION block or EXCEPTIONS_REGISTER entry`);
+      violations++;
+      continue;
+    }
+    if (hasDeprecatedMarker || hasCanonicalBlock) continue;
 
     const lineCount = content.split("\n").length;
 

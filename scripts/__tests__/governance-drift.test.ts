@@ -23,16 +23,4 @@ describe("check-governance-drift", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("CHECK_GOVERNANCE_DRIFT_PASS");
   });
-
-  it("text with Rule ID passes", () => {
-    expect(true).toBe(true);
-  });
-
-  it("LOCAL_NOTE marker passes", () => {
-    expect(true).toBe(true);
-  });
-
-  it("HISTORICAL_REPORT_ONLY marker passes", () => {
-    expect(true).toBe(true);
-  });
 });

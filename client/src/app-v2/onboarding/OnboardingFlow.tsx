@@ -1,6 +1,13 @@
-// QUALITY_STRUCTURE_EXCEPTION: Multi-step onboarding flow with form state — splitting step logic
-// into separate files scheduled for next iteration. Scope: file+component level.
-// Removal plan: refactor steps into subcomponents when step count stabilizes.
+// QUALITY_STRUCTURE_EXCEPTION
+// PLATFORMAX_EXCEPTION:
+// Rule: PX-CODE-002
+// Scope: client/src/app-v2/onboarding/OnboardingFlow.tsx
+// Reason: multi-step onboarding flow owns transitional form state until step count stabilizes.
+// Risk: component can become harder to review if new steps keep accumulating here.
+// Owner: engineering
+// Expiry: 2026-11-30
+// Removal plan: refactor step orchestration into smaller containers when step count changes again.
+// Evidence: docs/review/step-30-architecture-quality-scalability-guards/STEP_30_REVIEW.md
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./OnboardingFlow.module.css";

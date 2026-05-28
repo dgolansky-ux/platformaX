@@ -95,6 +95,15 @@ Provide real evidence:
 
 Do not write PASS without a real log.
 
+Visual evidence policy:
+
+- `VISUAL_DONE` still requires visual evidence.
+- Owner manual review can be visual evidence.
+- Lack of screenshots does not block a task whose visual status is
+  `MANUAL_OWNER_REVIEW` / `MANUAL_REVIEW_REQUIRED`.
+- Agents must not require screenshots from the owner and must not self-write
+  `VISUAL_DONE`.
+
 ## 8. Final Status
 
 End with one of:
@@ -205,6 +214,9 @@ When producing an audit ZIP (operator workflow or `scripts/create-evidence-zip.m
 
 - Use forward slash `/` for ZIP entry paths — never Windows `\\`. Cross-platform
   ZIP readers treat `\\` as a literal filename character, not a separator.
+- Validate the produced ZIP with `node scripts/validate-audit-zip.mjs <zip-path>`:
+  it must fail on backslash paths, `.claude/settings.local.json`, `.git`,
+  `node_modules`, `dist/build/coverage`, and real `.env*`.
 - Include `.env*.example` so the example secret shape is reviewable.
 - Exclude real `.env*` files (DATABASE_URL, service_role, JWT secrets, etc.).
 - Exclude `node_modules/`, `dist/`, `build/`, `coverage/`, `.git/`, prior

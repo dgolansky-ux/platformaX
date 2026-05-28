@@ -20,16 +20,4 @@ describe("check-scalability-hot-paths", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("CHECK_SCALABILITY_HOT_PATHS_PASS");
   });
-
-  it("validates no sync fanout in service/router/public-api", () => {
-    expect(true).toBe(true);
-  });
-
-  it("validates no unbounded loops in hot paths", () => {
-    expect(true).toBe(true);
-  });
-
-  it("validates full scans require limit/cursor", () => {
-    expect(true).toBe(true);
-  });
 });

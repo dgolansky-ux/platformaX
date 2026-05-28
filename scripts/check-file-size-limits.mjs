@@ -11,19 +11,38 @@ import { join, relative } from "path";
  * its limit, forcing CSS to be split into focused modules.
  *
  * Limits (hard, fail-closed):
- *   - *.module.css  : 360 lines
+ *   - *.module.css  : 320 lines
  *   - *.css (global): 500 lines
  *
- * Escape hatch: a file containing ALLOW_FILE_SIZE_EXCEPTION (in a comment) is
- * skipped — use only with explicit justification in a report.
+ * Escape hatch: use a full PLATFORMAX_EXCEPTION block. Deprecated markers such
+ * as ALLOW_FILE_SIZE_EXCEPTION require the canonical block or an
+ * EXCEPTIONS_REGISTER entry.
  */
 
 const ROOT = process.cwd();
 const SCAN_DIRS = ["client/src", "server", "shared"];
-const EXCEPTION_MARKER = "ALLOW_FILE_SIZE_EXCEPTION";
+const EXCEPTIONS_REGISTER = existsSync(join(ROOT, "docs/governance/EXCEPTIONS_REGISTER.md"))
+  ? readFileSync(join(ROOT, "docs/governance/EXCEPTIONS_REGISTER.md"), "utf-8")
+  : "";
+const DEPRECATED_EXCEPTION_MARKERS = [
+  "ALLOW_FILE_SIZE_EXCEPTION",
+  "QUALITY_STRUCTURE_EXCEPTION",
+  "COMPLEXITY_EXCEPTION",
+];
+const CANONICAL_EXCEPTION_FIELDS = [
+  "PLATFORMAX_EXCEPTION:",
+  "Rule:",
+  "Scope:",
+  "Reason:",
+  "Risk:",
+  "Owner:",
+  "Expiry:",
+  "Removal plan:",
+  "Evidence:",
+];
 
 const LIMITS = [
-  { label: "CSS module", test: (rel) => rel.endsWith(".module.css"), limit: 360 },
+  { label: "CSS module", test: (rel) => rel.endsWith(".module.css"), limit: 320 },
   {
     label: "global CSS",
     test: (rel) => rel.endsWith(".css") && !rel.endsWith(".module.css"),
@@ -43,6 +62,18 @@ function walk(dir) {
   return out;
 }
 
+function hasCanonicalException(content) {
+  return CANONICAL_EXCEPTION_FIELDS.every((field) => content.includes(field));
+}
+
+function hasDeprecatedExceptionMarker(content) {
+  return DEPRECATED_EXCEPTION_MARKERS.some((marker) => content.includes(marker));
+}
+
+function hasRegisteredException(rel) {
+  return EXCEPTIONS_REGISTER.includes(rel);
+}
+
 let violations = 0;
 
 for (const scanDir of SCAN_DIRS) {
@@ -57,7 +88,16 @@ for (const scanDir of SCAN_DIRS) {
     } catch {
       continue;
     }
-    if (content.includes(EXCEPTION_MARKER)) continue;
+    const hasDeprecatedMarker = hasDeprecatedExceptionMarker(content);
+    const hasCanonicalBlock = hasCanonicalException(content);
+    if (hasDeprecatedMarker && !hasCanonicalBlock && !hasRegisteredException(rel)) {
+      console.error(
+        `FILE_SIZE_VIOLATION: ${rel} uses deprecated exception marker without PLATFORMAX_EXCEPTION block or EXCEPTIONS_REGISTER entry`,
+      );
+      violations++;
+      continue;
+    }
+    if (hasDeprecatedMarker || hasCanonicalBlock) continue;
 
     const lineCount = content.split("\n").length;
     if (lineCount > rule.limit) {

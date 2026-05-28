@@ -13,9 +13,9 @@ Defines all allowed status labels, when each may be used, and what evidence is r
 
 ### SCAFFOLD_ONLY
 
-- **When allowed:** Folder/stubs/README exist. No usable runtime.
+- **When allowed:** Scaffold files exist (`README.md`, `public-api.ts`, `contracts.ts`, `dto.ts`, `policy.ts`, `events.ts`, `index.ts`) and status evidence is present. No usable runtime.
 - **When NOT allowed:** Any runtime, router, or service exists.
-- **Evidence required:** README in domain folder. No runtime claims.
+- **Evidence required:** README, public scaffold files, `domain-registry.ts`, `DOMAIN_STATUS_REGISTRY.yml`, and scaffold contract test without placeholder assertions. No runtime claims.
 
 ### UI_SHELL_ONLY
 
@@ -39,7 +39,7 @@ Defines all allowed status labels, when each may be used, and what evidence is r
 
 - **When allowed:** Some real contracts/use-cases/tests exist but full runtime is missing.
 - **When NOT allowed:** Everything is scaffold, or everything is fully implemented.
-- **Evidence required:** public-api/contracts/tests exist. Missing parts listed.
+- **Evidence required:** scaffold files plus `service.ts` or explicit reason why service has not started; repository/interface or explicit no-storage status; mapper when raw mapping exists; policy tests; DTO/public mapper tests; public-api tests; missing parts listed.
 
 ### AUTH_RUNTIME_PARTIAL
 
@@ -57,13 +57,19 @@ Defines all allowed status labels, when each may be used, and what evidence is r
 
 - **When allowed:** Cannot be accepted automatically. Needs human review.
 - **When NOT allowed:** Automated gates can verify the state.
-- **Evidence required:** Review target and reason documented.
+- **Evidence required:** Review target and reason documented. Owner manual visual review can be evidence.
+
+### MANUAL_OWNER_REVIEW
+
+- **When allowed:** Owner must manually review visual/product state. This is not an agent-declared completion label.
+- **When NOT allowed:** When the agent is trying to claim `VISUAL_DONE` without evidence.
+- **Evidence required:** Owner review target, reason, and expected review scope. Screenshots are allowed but not required from the agent.
 
 ### VISUAL_DONE
 
 - **When allowed:** ONLY with screenshots or explicit manual visual evidence.
 - **When NOT allowed:** Without visual evidence. Never self-declare without proof.
-- **Evidence required:** Screenshots, screen recordings, or manual review sign-off.
+- **Evidence required:** Screenshots, screen recordings, or owner manual review sign-off. Agents must not require screenshots when status is `MANUAL_OWNER_REVIEW` / `MANUAL_REVIEW_REQUIRED`, and must not self-write `VISUAL_DONE`.
 
 ### BACKEND_PARTIAL
 
@@ -73,7 +79,7 @@ Defines all allowed status labels, when each may be used, and what evidence is r
 
 ### IMPLEMENTED
 
-- **When allowed:** Full runtime exists: router/service/repository/policy/mapper, tests, README, gates green.
+- **When allowed:** Full runtime exists: service/repository or adapter/policy/mapper, router only when HTTP transport is exposed, tests, README, runtime evidence, gates green.
 - **When NOT allowed:** Any required piece is missing.
 - **Evidence required:** Gate logs, test results, domain README updated.
 

@@ -20,8 +20,4 @@ describe("check-dependency-change-policy", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("CHECK_DEPENDENCY_CHANGE_POLICY_PASS");
   });
-
-  it("validates that dependency additions require DEPENDENCY_DECISION", () => {
-    expect(true).toBe(true);
-  });
 });

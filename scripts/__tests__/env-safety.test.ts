@@ -59,7 +59,7 @@ describe("env-safety: secret detection", () => {
     expect(detectSecret("# OPENAI_API_KEY=sk-abc")).toBeNull();
   });
 
-  it("skips placeholders in safe files", () => {
+  it("skips example values in safe files", () => {
     expect(
       detectSecret("DATABASE_URL=placeholder", true),
     ).toBeNull();

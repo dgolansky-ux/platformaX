@@ -7,7 +7,7 @@ guards:
     command: node scripts/check-fake-done.mjs
     file: scripts/check-fake-done.mjs
     blocks: commit, merge
-    rules_enforced: [PX-GOV-001, PX-STATUS-001]
+    rules_enforced: [PX-GOV-001, PX-STATUS-001, PX-STATUS-002, PX-STATUS-003]
     runs_in: [pre-commit, pre-push, ci]
     required: true
     status: active
@@ -43,7 +43,7 @@ guards:
     command: node scripts/audit-domain-boundaries.mjs
     file: scripts/audit-domain-boundaries.mjs
     blocks: commit, merge
-    rules_enforced: [PX-ARCH-003, PX-ARCH-004, PX-ARCH-006, PX-ARCH-007]
+    rules_enforced: [PX-ARCH-003, PX-ARCH-004, PX-ARCH-006, PX-ARCH-007, PX-DB-004]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -52,7 +52,7 @@ guards:
     command: node scripts/check-test-env-safety.mjs
     file: scripts/check-test-env-safety.mjs
     blocks: commit, merge
-    rules_enforced: [PX-SEC-002]
+    rules_enforced: [PX-SEC-002, PX-SEED-001]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -70,7 +70,7 @@ guards:
     command: node scripts/check-public-dto-pii.mjs
     file: scripts/check-public-dto-pii.mjs
     blocks: commit, merge
-    rules_enforced: [PX-SEC-001, PX-DTO-002]
+    rules_enforced: [PX-SEC-001, PX-DTO-002, PX-CONTRACT-001]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -79,7 +79,7 @@ guards:
     command: node scripts/check-media-base64.mjs
     file: scripts/check-media-base64.mjs
     blocks: commit, merge
-    rules_enforced: [PX-MEDIA-001]
+    rules_enforced: [PX-MEDIA-001, PX-MEDIA-004]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -88,7 +88,7 @@ guards:
     command: node scripts/check-pagination.mjs
     file: scripts/check-pagination.mjs
     blocks: commit, merge
-    rules_enforced: [PX-LIST-001]
+    rules_enforced: [PX-LIST-001, PX-LIST-004, PX-SCALE-003, PX-CURSOR-001]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -241,7 +241,7 @@ guards:
     command: node scripts/check-scalability-patterns.mjs
     file: scripts/check-scalability-patterns.mjs
     blocks: commit, merge
-    rules_enforced: [PX-LIST-001]
+    rules_enforced: [PX-LIST-001, PX-LIST-004, PX-CURSOR-001]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -277,7 +277,7 @@ guards:
     command: node scripts/check-logging-pii-security.mjs
     file: scripts/check-logging-pii-security.mjs
     blocks: commit, merge
-    rules_enforced: [PX-SEC-001]
+    rules_enforced: [PX-SEC-001, PX-OBS-002, PX-DTO-002]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -297,7 +297,7 @@ guards:
     command: node scripts/check-governance-registry.mjs
     file: scripts/check-governance-registry.mjs
     blocks: commit, merge
-    rules_enforced: [PX-GOV-001, PX-GOV-002]
+    rules_enforced: [PX-GOV-001, PX-GOV-002, PX-GOV-GUARD-PORTABILITY-001]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -315,7 +315,7 @@ guards:
     command: node scripts/check-rules-to-guards-coverage.mjs
     file: scripts/check-rules-to-guards-coverage.mjs
     blocks: commit, merge
-    rules_enforced: [PX-GOV-001, PX-GOV-002]
+    rules_enforced: [PX-GOV-001, PX-GOV-002, PX-GOV-GUARD-PORTABILITY-001]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -344,7 +344,7 @@ guards:
     command: node scripts/check-architecture-import-graph.mjs
     file: scripts/check-architecture-import-graph.mjs
     blocks: commit, merge
-    rules_enforced: [PX-ARCH-008, PX-ARCH-009]
+    rules_enforced: [PX-ARCH-008, PX-ARCH-009, PX-DB-004]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -389,7 +389,7 @@ guards:
     command: node scripts/check-adr-required.mjs
     file: scripts/check-adr-required.mjs
     blocks: commit, merge
-    rules_enforced: [PX-ADR-001]
+    rules_enforced: [PX-ADR-001, PX-AIS-002]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -407,7 +407,7 @@ guards:
     command: node scripts/check-dto-privacy-classification.mjs
     file: scripts/check-dto-privacy-classification.mjs
     blocks: commit, merge
-    rules_enforced: [PX-DTO-001]
+    rules_enforced: [PX-DTO-001, PX-DTO-002]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -416,7 +416,7 @@ guards:
     command: node scripts/check-scalability-hot-paths.mjs
     file: scripts/check-scalability-hot-paths.mjs
     blocks: commit, merge
-    rules_enforced: [PX-SCALE-001, PX-SCALE-002, PX-SCALE-003]
+    rules_enforced: [PX-SCALE-001, PX-SCALE-002, PX-SCALE-003, PX-LIST-004, PX-EVENT-001]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -632,6 +632,42 @@ guards:
     file: scripts/check-application-service-size.mjs
     blocks: commit, merge
     rules_enforced: [PX-CODE-001, PX-APP-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-070
+    command: node scripts/check-no-placeholder-tests.mjs
+    file: scripts/check-no-placeholder-tests.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CODE-005]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-071
+    command: node scripts/validate-audit-zip.mjs --help
+    file: scripts/validate-audit-zip.mjs
+    blocks: audit-export, merge
+    rules_enforced: [PX-GOV-ZIP-001]
+    runs_in: [manual, ci]
+    required: true
+    status: active
+
+  - id: GUARD-072
+    command: node scripts/check-guard-portability.mjs
+    file: scripts/check-guard-portability.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-GUARD-PORTABILITY-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-073
+    command: node scripts/check-coding-standards-consistency.mjs
+    file: scripts/check-coding-standards-consistency.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-ZIP-001, PX-GOV-GUARD-PORTABILITY-001, PX-CODE-001, PX-CODE-002, PX-CODE-003, PX-CODE-004, PX-CODE-005, PX-EXC-001]
     runs_in: [pre-push, ci]
     required: true
     status: active

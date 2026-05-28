@@ -6,7 +6,7 @@ const REGISTRY_PATH = join(ROOT, "docs/governance/RULES_REGISTRY.yml");
 
 const REQUIRED_FIELDS = ["id", "title", "severity", "category", "source_docs", "enforced_by", "status"];
 const ALLOWED_SEVERITIES = ["P0", "P1", "P2"];
-const ALLOWED_STATUSES = ["active", "deprecated", "proposed"];
+const ALLOWED_STATUSES = ["active", "deprecated", "deprecated_alias", "proposed"];
 
 let violations = 0;
 

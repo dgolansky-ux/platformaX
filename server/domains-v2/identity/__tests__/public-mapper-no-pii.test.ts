@@ -43,7 +43,7 @@ describe("identity public mapper — PII safety", () => {
     expect(toPublicProfileDTO(FULL_RECORD).displayName).toBe("Anna Kowalska");
   });
 
-  it("public DTO falls back to a safe placeholder when names are missing", () => {
+  it("public DTO falls back to a safe displayName when names are missing", () => {
     const recordWithoutNames: PrivateProfileRecord = {
       ...FULL_RECORD,
       firstName: null,

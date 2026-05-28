@@ -20,12 +20,4 @@ describe("check-observability-logging", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("CHECK_OBSERVABILITY_LOGGING_PASS");
   });
-
-  it("validates no console.log in runtime code", () => {
-    expect(true).toBe(true);
-  });
-
-  it("validates no PII in log output", () => {
-    expect(true).toBe(true);
-  });
 });
