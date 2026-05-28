@@ -25,6 +25,13 @@ const SAFE_FILE_PATTERNS = [
   /\.md$/,
   /\.test\.(ts|tsx|js|mjs)$/,
   /\.example$/,
+  // Narrow allowlist: gitleaks config + architecture-tooling red-case
+  // fixtures intentionally reference secret keywords / patterns. The
+  // PlatformaX-specific secret guards keep blocking these strings
+  // EVERYWHERE ELSE. Real secrets in these files would still be caught
+  // by check-secret-scan + check-local-secret-scan + gitleaks itself.
+  /^\.gitleaks\.toml$/,
+  /^tests\/architecture\/fixtures\//,
 ];
 
 function isSafeFile(filePath) {

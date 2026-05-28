@@ -1,0 +1,48 @@
+# Gitleaks config — PlatformaX V2
+#
+# Runs PARALLEL_WITH_TOOLING with the existing project-specific secret guards
+# (scripts/check-secret-scan.mjs, scripts/check-local-secret-scan.mjs,
+# scripts/check-env-safety.mjs, scripts/check-diff-safety.mjs). The custom
+# guards stay because they encode PlatformaX-specific rules (banned .env
+# files, ZIP path validation, Supabase URL/service-role guards). Gitleaks
+# adds broader generic coverage that complements them.
+#
+# Gitleaks binary is NOT bundled with pnpm — install separately on dev/CI:
+#   - macOS: brew install gitleaks
+#   - Linux: download from https://github.com/gitleaks/gitleaks/releases
+#   - CI: gitleaks/gitleaks-action
+# The pnpm script wrapper (`pnpm secrets:gitleaks`) noop-passes if the binary
+# is not installed locally and explicitly logs that fact, so a developer
+# without gitleaks on PATH is not blocked. CI installs it explicitly.
+
+title = "PlatformaX V2 Gitleaks config"
+
+[extend]
+# Inherit the default upstream rules (AWS, GCP, GitHub, JWT, PEM, etc.)
+useDefault = true
+
+# === Allowlist =============================================================
+# Paths and patterns we never want flagged. Test fixtures and the documented
+# Gitleaks red-case fixture are explicitly safe.
+[[allowlists]]
+description = "test fixtures, audit artifacts and documented red-case fixtures"
+paths = [
+    '''(^|/)__tests__(/|$)''',
+    '''(^|/)tests/architecture/fixtures(/|$)''',
+    '''(^|/)audit-out(/|$)''',
+    '''(^|/)dist(/|$)''',
+    '''(^|/)node_modules(/|$)''',
+    '''(^|/)coverage(/|$)''',
+    '''\.env\.example$''',
+    '''\.env\.test\.example$''',
+    '''(^|/)pnpm-lock\.yaml$''',
+    '''(^|/)package-lock\.json$''',
+]
+
+[[allowlists]]
+description = "documented fake/example strings used in docs and rule descriptions"
+regexes = [
+    '''DATABASE_URL=postgres://user:pass@host:5432/db''',  # docs example
+    '''service_role''',                                    # rule keyword reference
+    '''AKIAIOSFODNN7EXAMPLE''',                            # AWS docs example key
+]

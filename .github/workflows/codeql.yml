@@ -1,0 +1,50 @@
+name: CodeQL
+
+# Status: CODEQL_NEEDS_GITHUB_SETUP until the repo owner enables CodeQL on the
+# GitHub plan. This workflow file is committed so enablement is one click in
+# the repo Settings → Code security and analysis → Code scanning → Set up.
+#
+# Does NOT replace the project-specific secret/PII/env guards under
+# scripts/check-*.mjs — runs PARALLEL_WITH_TOOLING.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly deep scan — Monday 04:17 UTC
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    name: CodeQL analyze (javascript-typescript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["javascript-typescript"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Use the security-extended pack for OWASP-leaning rules.
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

@@ -9,3 +9,5 @@ Thumbs.db
 coverage/
 .claude/
 audit-out/
+.wip-safety/
+claude-auto.cmd

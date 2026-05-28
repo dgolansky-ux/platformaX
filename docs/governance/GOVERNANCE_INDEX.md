@@ -42,8 +42,8 @@ Central map of all governance rules, organized by category. Every rule has a sta
 |---|---|---|
 | PX-CODE-001 | No functions over 80 lines | PlatformaX-V2-coding-standards.md §6 |
 | PX-CODE-002 | No components over 140 lines | PlatformaX-V2-coding-standards.md §6 |
-| PX-CODE-003 | No `as any` without exception block | PlatformaX-V2-coding-standards.md §3 |
-| PX-CODE-004 | No `transition: all` | PlatformaX-V2-coding-standards.md §22 |
+| PX-CODE-003 | No unsafe any / ts-ignore without registered exception | PlatformaX-V2-coding-standards.md §3 |
+| PX-CODE-004 | Frontend performance and list/render hygiene | PlatformaX-V2-coding-standards.md §22 |
 
 ## Status / Evidence Rules
 

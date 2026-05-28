@@ -1,0 +1,57 @@
+name: V2 Weekly Audit
+
+# WEEKLY lane: Knip (unused code candidates), dependency graph artifact,
+# clean audit ZIP. Does NOT block PRs — produces artifacts for review.
+
+on:
+  schedule:
+    # Sundays 03:11 UTC
+    - cron: "11 3 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  weekly:
+    name: Weekly tooling audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Knip unused code/exports/deps
+        run: pnpm knip:check
+        continue-on-error: true
+
+      - name: Dependency graph (.dot)
+        run: |
+          mkdir -p audit-out
+          pnpm depcruise:graph
+
+      - name: Audit ZIP (requires clean HEAD)
+        run: pnpm auditzip
+
+      - name: Upload audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-audit-artifacts
+          path: audit-out/
+          retention-days: 30

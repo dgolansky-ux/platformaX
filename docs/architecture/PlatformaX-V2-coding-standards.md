@@ -485,6 +485,39 @@ These rules are enforced by `scripts/check-code-quality-structure.mjs`, `scripts
 10. **Any exception must be registered.** Inline markers alone are not enough — see §3a; `scripts/check-inline-exceptions-registered.mjs` fails the build when an inline marker is missing from `EXCEPTIONS_REGISTER.md` (and when a register row points at a file that no longer carries the marker).
 11. **Profile/feed/social runtime must be batch/cursor/read-model ready.** No unbounded queries, no full-table scans, no raw DB records in public output.
 
+## 22a. Architecture tooling spike (parallel with custom guards)
+
+Spike branch: `tooling/architecture-boundaries-quality-spike`. None of the
+existing custom guards is removed by the spike; each new tool runs
+**PARALLEL_WITH_TOOLING** with its custom counterpart and is verified
+against documented red-case fixtures in `tests/architecture/fixtures/`.
+
+| Tool | Local script | What it covers | Custom guard it parallels |
+|---|---|---|---|
+| `eslint-plugin-boundaries` | `pnpm boundaries:check` (folded into `pnpm lint`) | Element-type + entry-point boundaries (client/server, features, app-v2, server-domains) | `audit-domain-boundaries.mjs` |
+| `dependency-cruiser` | `pnpm depcruise:check` / `pnpm depcruise:graph` | Cycles, `no-client-to-server`, cross-domain internals, legacy runtime, shared-no-runtime | `audit-domain-boundaries.mjs`, `check-architecture-import-graph.mjs`, `check-no-legacy-imports.mjs` |
+| Architecture tests (Vitest) | `pnpm archunit:check` | Executable specs for the same invariants as above (PX-ARCH-001/003/004/008/009, PX-APP-001) | Custom regex umbrella + ad-hoc walks |
+| `knip` | `pnpm knip:check` | Unused files / exports / dependencies (weekly lane) | — (new coverage) |
+| `gitleaks` | `pnpm secrets:gitleaks` (wrapper noop-passes if binary not on PATH) | Generic secret patterns (AWS/GCP/GH/JWT/PEM) | `check-secret-scan.mjs`, `check-local-secret-scan.mjs` (PlatformaX-specific rules stay) |
+| GitHub CodeQL | `.github/workflows/codeql.yml` | OWASP-extended JS/TS scanning | — (status: `CODEQL_NEEDS_GITHUB_SETUP` until enabled in repo Settings) |
+
+Aggregate convenience commands:
+
+- `pnpm tooling:check` — runs boundaries + depcruise + archunit + gitleaks.
+- `pnpm tooling:weekly` — runs knip + dependency graph + audit ZIP.
+
+CI lanes (`.github/workflows/v2-gates.yml` + `v2-weekly-audit.yml`):
+
+- **STANDARD**: type/lint+boundaries/test+archunit/build/guards/arch (every PR).
+- **DEEP**: dependency-cruiser + Gitleaks (every PR, gated separately).
+- **WEEKLY**: Knip + dependency graph artifact + audit ZIP (Sunday cron + manual dispatch).
+
+`GUARDS_REGISTRY.yml` marks custom guards that now have parallel tooling
+with `parallel_status: PARALLEL_WITH_TOOLING` and lists the corresponding
+tools under `parallel_tools`. No custom guard is removed yet — removal
+needs a separate spike that proves each tool catches every red case the
+custom guard does.
+
 ## 23. Coding rules integration model
 
 Coding rules are governed by six artifacts that must agree. If they
