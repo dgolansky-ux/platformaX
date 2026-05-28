@@ -1,7 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { execSync } from "child_process";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 const ROOT = process.cwd();
+const GUARD_SRC = readFileSync(
+  join(ROOT, "scripts/check-scalability-hot-paths.mjs"),
+  "utf-8",
+);
 
 function runGuard() {
   try {
@@ -21,15 +27,19 @@ describe("check-scalability-hot-paths", () => {
     expect(result.stdout).toContain("CHECK_SCALABILITY_HOT_PATHS_PASS");
   });
 
-  it("validates no sync fanout in service/router/public-api", () => {
-    expect(true).toBe(true);
+  it("checks for sync fanout loops in service/router/public-api", () => {
+    expect(GUARD_SRC).toContain("sync-fanout-loop");
+    expect(GUARD_SRC).toContain("recipients");
   });
 
-  it("validates no unbounded loops in hot paths", () => {
-    expect(true).toBe(true);
+  it("checks for unbounded hot-path loops without cap/batch/outbox", () => {
+    expect(GUARD_SRC).toContain("unbounded-hot-loop");
+    expect(GUARD_SRC).toMatch(/BATCH_SIZE|outbox|queue|chunk/);
   });
 
-  it("validates full scans require limit/cursor", () => {
-    expect(true).toBe(true);
+  it("checks that full scans require limit/cursor pagination", () => {
+    expect(GUARD_SRC).toContain("full-scan-runtime");
+    expect(GUARD_SRC).toContain("paginationMarkers");
+    expect(GUARD_SRC).toMatch(/limit|cursor/);
   });
 });

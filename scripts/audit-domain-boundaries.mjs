@@ -89,13 +89,46 @@ let violations = 0;
 
 function checkPublicApiExportsInternals(fp, rel, content) {
   if (!rel.endsWith("public-api.ts")) return;
-  const blockedExports = ["repository", "router", "mapper", "cache-keys", "cacheKeys", "schema"];
+  const blockedExports = [
+    "repository",
+    "router",
+    "mapper",
+    "cache-keys",
+    "cacheKeys",
+    "schema",
+    "internal",
+  ];
+  // Collapse multiline `export {\n ... \n} from "..."` onto one logical line so
+  // an export spread across several lines cannot hide a repository/internal leak.
+  const normalized = content.replace(/\}\s*\n\s*from\s+/g, "} from ");
   for (const blocked of blockedExports) {
-    const pat = new RegExp(`export.*from\\s+["'].*${blocked}`, "i");
-    if (pat.test(content)) {
+    // `[^;]*` keeps the match scoped to a single (possibly multiline) statement;
+    // `[^"']*` keeps it scoped to the imported module specifier.
+    const pat = new RegExp(`export[^;]*from\\s+["'][^"']*${blocked}`, "im");
+    if (pat.test(normalized)) {
       console.error(`BOUNDARY_VIOLATION: public-api.ts exports internal "${blocked}" in ${rel}`);
       violations++;
     }
+  }
+}
+
+function checkClientServerBoundary(fp, rel, content) {
+  // Frontend production code must never import the server runtime directly.
+  // It depends on `@shared/contracts/*` (type-only) and `@shared/wiring/*`
+  // (the single composition point that is allowed to touch `@server/*`).
+  if (!rel.startsWith("client/")) return;
+  if (
+    rel.includes("__tests__/") ||
+    rel.endsWith(".test.ts") ||
+    rel.endsWith(".test.tsx")
+  ) {
+    return;
+  }
+  if (/from\s+["']@server\//.test(content) || /import\(\s*["']@server\//.test(content)) {
+    console.error(
+      `BOUNDARY_VIOLATION: client production file imports @server/* in ${rel} — use @shared/contracts/ (types) or @shared/wiring/ instead`,
+    );
+    violations++;
   }
 }
 
@@ -159,9 +192,18 @@ for (const scanDir of SCAN_DIRS) {
     const importPaths = extractImportPaths(content);
 
     checkPublicApiExportsInternals(fp, rel, content);
+    checkClientServerBoundary(fp, rel, content);
     checkSharedUiDomainImports(fp, rel, content);
     checkAppV2BackendInternals(fp, rel, content);
     checkFeatureCrossDomainInternals(fp, rel, content);
+
+    // Test files legitimately compose concrete implementations across domains
+    // (they wire identity + media + application to exercise an adapter), so the
+    // cross-domain *module* checks below do not apply to them — consistent with
+    // check-architecture-import-graph.mjs, which skips __tests__ entirely.
+    const isTestFile =
+      /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(rel) || rel.includes("__tests__/");
+    if (isTestFile) continue;
 
     for (const imp of importPaths) {
       if (rel.startsWith("client/src/app-v2/")) {

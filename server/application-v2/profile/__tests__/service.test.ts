@@ -9,16 +9,16 @@
 import { describe, expect, it } from "vitest";
 import {
   createIdentityService,
-  createInMemoryIdentityProfileRepository,
   type IdentityService,
 } from "@server/domains-v2/identity/public-api";
+import { createInMemoryIdentityProfileRepository } from "@server/domains-v2/identity/repository";
 import {
-  createInMemoryMediaRepository,
   createMediaService,
   type MediaService,
   type MediaStoragePort,
   type UploadFileMeta,
 } from "@server/domains-v2/media/public-api";
+import { createInMemoryMediaRepository } from "@server/domains-v2/media/repository";
 import {
   createProfileApplicationService,
   type ProfileApplicationService,

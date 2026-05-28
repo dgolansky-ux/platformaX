@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { ProfilePage } from "../ProfilePage";
+import { ownerPersonalProfile } from "../fixtures";
 
 // jsdom does not implement object URLs — stub them so the local preview path works.
 beforeAll(() => {
@@ -11,11 +12,13 @@ beforeAll(() => {
   (URL as unknown as { revokeObjectURL: () => void }).revokeObjectURL = vi.fn();
 });
 
+// Avatar/banner edit are owner-only affordances, so render the OWNER view
+// explicitly — the runtime fallback is intentionally a non-owner public view.
 function renderProfile() {
   return render(
     <MemoryRouter initialEntries={["/profile"]}>
       <Routes>
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile" element={<ProfilePage profile={ownerPersonalProfile} />} />
         <Route path="/" element={<div>LANDING</div>} />
       </Routes>
     </MemoryRouter>,

@@ -3,11 +3,16 @@ import { join } from "node:path";
 
 const ROOT = process.cwd();
 const RULES_PATH = join(ROOT, "docs/governance/RULES_REGISTRY.yml");
+const MATRIX_PATH = join(ROOT, "docs/governance/RULES_TO_GUARDS_MATRIX.md");
 
 let violations = 0;
 
 if (!existsSync(RULES_PATH)) {
   console.error("RULES_COVERAGE_VIOLATION: docs/governance/RULES_REGISTRY.yml does not exist");
+  process.exit(1);
+}
+if (!existsSync(MATRIX_PATH)) {
+  console.error("RULES_COVERAGE_VIOLATION: docs/governance/RULES_TO_GUARDS_MATRIX.md does not exist");
   process.exit(1);
 }
 
@@ -62,6 +67,17 @@ function parseRules(filePath) {
 }
 
 const rules = parseRules(RULES_PATH);
+
+// Every registered rule must have a row in the human-readable mapping matrix,
+// so the rules→guards traceability never silently drifts (this is how the
+// PX-CODE-001..004 coverage gap slipped through previously).
+const matrixContent = readFileSync(MATRIX_PATH, "utf-8");
+for (const rule of rules) {
+  if (!matrixContent.includes(rule.id)) {
+    console.error(`RULES_COVERAGE_VIOLATION: rule "${rule.id}" (${rule.title}) is missing from RULES_TO_GUARDS_MATRIX.md`);
+    violations++;
+  }
+}
 
 const p0ActiveRules = rules.filter(
   (r) => r.severity === "P0" && r.status === "active"

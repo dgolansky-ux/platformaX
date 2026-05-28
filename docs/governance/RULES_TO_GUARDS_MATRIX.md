@@ -39,6 +39,10 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 
 | PX-ARCH-008 | No circular domain dependencies | architecture-enforcement §5 | check-architecture-import-graph | NO | — |
 | PX-ARCH-009 | Import graph matches domain ownership | DOMAIN_OWNERSHIP_MATRIX | check-architecture-import-graph | NO | — |
+| PX-CODE-001 | No functions over 80 lines | coding-standards | check-file-complexity, check-code-quality-structure, check-file-size-limits | NO | — |
+| PX-CODE-002 | No components over 140 lines | coding-standards | check-file-complexity, check-code-quality-structure, check-file-size-limits | NO | — |
+| PX-CODE-003 | No as any without exception | coding-standards | check-code-quality-structure | NO | — |
+| PX-CODE-004 | No transition all in CSS | coding-standards | check-frontend-performance-patterns | NO | — |
 | PX-RUNTIME-001 | PARTIAL requires runtime evidence | domain-status §6 | check-runtime-readiness-status | NO | — |
 | PX-RUNTIME-002 | IMPLEMENTED requires full evidence | domain-status §6 | check-runtime-readiness-status | NO | — |
 | PX-DB-001 | No live db push without decision | AI_FORBIDDEN_ACTIONS | check-migration-safety, manual_gate | NO | — |
@@ -84,11 +88,11 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 
 ## Summary
 
-- **Total rules:** 70
-- **Fully automated:** 38
-- **Automated + manual gate:** 8
-- **Manual gate only / PARTIAL:** 24
-- **Documented governance gaps (TODO_GUARD):** 10 — see rows marked TODO_GUARD; P0 rules retain manual_gate until guards land
+- **Total rules:** 73
+- **Fully automated (manual-gate column = NO):** 46
+- **Manual gate only (YES):** 22
+- **Partial automation (PARTIAL):** 5
+- **Documented governance gaps (TODO_GUARD):** 11 — see rows marked TODO_GUARD; P0 rules retain manual_gate until guards land
 
 ## Gap Analysis
 

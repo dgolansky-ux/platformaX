@@ -1,11 +1,17 @@
 import { describe, it, expect } from "vitest";
 
 describe("media domain contract", () => {
-  it("public-api exposes the service + composition factories", async () => {
+  it("public-api exposes the service factory", async () => {
     const mod = await import("../public-api");
     expect(typeof mod.createMediaService).toBe("function");
-    expect(typeof mod.createInMemoryMediaRepository).toBe("function");
-    expect(typeof mod.createEnvRequiredStoragePort).toBe("function");
+  });
+
+  it("does NOT expose in-memory repository / env-required storage factories", async () => {
+    // These are implementation details. Composition imports them from
+    // ./repository directly, never through the public API.
+    const mod: Record<string, unknown> = await import("../public-api");
+    expect(mod.createInMemoryMediaRepository).toBeUndefined();
+    expect(mod.createEnvRequiredStoragePort).toBeUndefined();
   });
 
   it("public-api exposes policy helpers and validation limits", async () => {

@@ -88,7 +88,14 @@ function codeForFieldErrors(fields: Record<string, string>): MediaErrorCode {
 function defaultIdGen(): string {
   const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
   if (c && typeof c.randomUUID === "function") return c.randomUUID();
-  return `media_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  // No Math.random()/Date.now() fallback: those produce collision-prone,
+  // non-cryptographic ids that would silently weaken asset identity. Tests must
+  // inject a deterministic `idGen` via MediaServiceDeps; runtime requires a
+  // crypto-capable environment.
+  throw new Error(
+    "MEDIA_ID_GEN_UNAVAILABLE: crypto.randomUUID() is required. " +
+      "Inject a deterministic idGen via MediaServiceDeps.idGen in tests.",
+  );
 }
 
 async function buildUploadIntent(

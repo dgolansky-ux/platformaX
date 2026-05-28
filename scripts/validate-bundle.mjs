@@ -72,6 +72,9 @@ function validateZip(zipPath) {
   const zipEntries = zip.getEntries();
   const entryNames = zipEntries
     .map((e) => e.entryName)
+    // Normalize a leading "./" so required-file detection (and classification)
+    // never reports a false "missing" for entries written as "./path".
+    .map((n) => (typeof n === "string" ? n.replace(/^\.\//, "") : n))
     .filter((n) => n && !n.endsWith("/"));
 
   let backslashCount = 0;

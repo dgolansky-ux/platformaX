@@ -4,7 +4,7 @@ import type {
   ProfilePreviewKind,
   ProfileViewMode,
 } from "./types";
-import { ownerPersonalProfile } from "./fixtures";
+import { publicPersonalProfile } from "./fixtures";
 import { ProfileHeader } from "./sections/ProfileHeader";
 import { ProfileSocialLinks } from "./sections/ProfileSocialLinks";
 import { ProfilePortalCards } from "./sections/ProfilePortalCards";
@@ -79,8 +79,14 @@ export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {})
     setPreviewOpen(false);
   }
 
-  const runtimeProfile =
-    state.kind === "ready" ? state.view : ownerPersonalProfile;
+  // Only a "ready" runtime state may carry owner identity. loading / anonymous /
+  // empty / error MUST fall back to a non-owner public view so owner-only
+  // controls (edit avatar/banner/bio, professional layer) can never activate
+  // before the runtime actually confirms the viewer owns the profile.
+  const runtimeProfile: PersonalProfileView =
+    state.kind === "ready"
+      ? state.view
+      : { ...publicPersonalProfile, isOwner: false };
   const baseProfile = explicitProfile ?? runtimeProfile;
   const profile: PersonalProfileView =
     localBioOverride !== undefined

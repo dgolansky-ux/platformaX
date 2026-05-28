@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { createIdentityService } from "@server/domains-v2/identity/public-api";
+import { createInMemoryIdentityProfileRepository } from "@server/domains-v2/identity/repository";
 import {
-  createIdentityService,
-  createInMemoryIdentityProfileRepository,
-} from "@server/domains-v2/identity/public-api";
-import {
-  createInMemoryMediaRepository,
   createMediaService,
   type MediaStoragePort,
 } from "@server/domains-v2/media/public-api";
+import { createInMemoryMediaRepository } from "@server/domains-v2/media/repository";
 import { createProfileApplicationService } from "@server/application-v2/profile/public-api";
 import { createProfileAdapter } from "../profile-adapter";
 

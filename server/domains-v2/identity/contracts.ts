@@ -12,8 +12,11 @@ import type {
   SocialLinks,
 } from "./dto";
 
-/** Stable identifier for an authenticated subject owned by identity. */
-export type UserId = string;
+/**
+ * Stable identifier for an authenticated subject owned by identity.
+ * Branded (PX-ID-001, ADR-012) — defined in `@shared/contracts/branded-ids`.
+ */
+export type { UserId } from "@shared/contracts/branded-ids";
 
 /** Input accepted by the onboarding use-case. Mirrors the V2 onboarding shell. */
 export type CompleteOnboardingInput = {

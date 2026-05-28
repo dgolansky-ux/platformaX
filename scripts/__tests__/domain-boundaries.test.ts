@@ -109,3 +109,96 @@ describe("domain-boundaries: relative cross-domain detection", () => {
     expect(r.violation).toBe(false);
   });
 });
+
+// Mirrors checkPublicApiExportsInternals in scripts/audit-domain-boundaries.mjs.
+function publicApiLeaksInternal(content: string): boolean {
+  const blockedExports = [
+    "repository",
+    "router",
+    "mapper",
+    "cache-keys",
+    "cacheKeys",
+    "schema",
+    "internal",
+  ];
+  const normalized = content.replace(/\}\s*\n\s*from\s+/g, "} from ");
+  return blockedExports.some((blocked) =>
+    new RegExp(`export[^;]*from\\s+["'][^"']*${blocked}`, "im").test(normalized),
+  );
+}
+
+describe("public-api.ts internal/repository export guard", () => {
+  it("catches a single-line export from ./repository", () => {
+    const content = `export { createInMemoryRepo } from "./repository";`;
+    expect(publicApiLeaksInternal(content)).toBe(true);
+  });
+
+  it("catches a multiline export from ./internal/validation", () => {
+    const content = `export {\n  LIMITS,\n  helper,\n} from "./internal/validation";`;
+    expect(publicApiLeaksInternal(content)).toBe(true);
+  });
+
+  it("catches a multiline export type from ./repository", () => {
+    const content = `export type {\n  Repo,\n  Input,\n} from "./repository";`;
+    expect(publicApiLeaksInternal(content)).toBe(true);
+  });
+
+  it("allows exports from domain-root facades (./ports, ./limits, ./private-dto)", () => {
+    const content = [
+      `export { createService } from "./service";`,
+      `export type { Repo } from "./ports";`,
+      `export { LIMITS } from "./limits";`,
+      `export type { PrivateDTO } from "./private-dto";`,
+      `export type { PublicDTO } from "./dto";`,
+    ].join("\n");
+    expect(publicApiLeaksInternal(content)).toBe(false);
+  });
+});
+
+// Mirrors checkClientServerBoundary in scripts/audit-domain-boundaries.mjs.
+function clientFileImportsServer(rel: string, content: string): boolean {
+  if (!rel.startsWith("client/")) return false;
+  if (
+    rel.includes("__tests__/") ||
+    rel.endsWith(".test.ts") ||
+    rel.endsWith(".test.tsx")
+  ) {
+    return false;
+  }
+  return (
+    /from\s+["']@server\//.test(content) ||
+    /import\(\s*["']@server\//.test(content)
+  );
+}
+
+describe("domain-boundaries: client must not import @server/*", () => {
+  it("flags a static @server/* import in a non-test client file", () => {
+    const rel = "client/src/app-v2/some-component.ts";
+    const content = `import { foo } from "@server/domains-v2/identity/service";`;
+    expect(clientFileImportsServer(rel, content)).toBe(true);
+  });
+
+  it("flags a dynamic @server/* import in a non-test client file", () => {
+    const rel = "client/src/features-v2/media/loader.ts";
+    const content = `const m = await import("@server/domains-v2/media/repository");`;
+    expect(clientFileImportsServer(rel, content)).toBe(true);
+  });
+
+  it("allows @server/* import in a client test file", () => {
+    const rel = "client/src/features-v2/identity/__tests__/adapter.test.ts";
+    const content = `import { x } from "@server/domains-v2/identity/public-api";`;
+    expect(clientFileImportsServer(rel, content)).toBe(false);
+  });
+
+  it("allows @shared/* imports in client production files", () => {
+    const rel = "client/src/features-v2/identity/profile/profile-adapter.ts";
+    const content = `export { profileAdapter } from "@shared/wiring/profile-wiring";`;
+    expect(clientFileImportsServer(rel, content)).toBe(false);
+  });
+
+  it("does not flag @server/* mentioned only in a comment", () => {
+    const rel = "client/src/features-v2/media/index.ts";
+    const content = `/* no @server/* imports exist anywhere in client */\nexport {} from "./types";`;
+    expect(clientFileImportsServer(rel, content)).toBe(false);
+  });
+});

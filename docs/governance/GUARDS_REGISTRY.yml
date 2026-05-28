@@ -268,7 +268,7 @@ guards:
     command: node scripts/check-dependency-discipline.mjs
     file: scripts/check-dependency-discipline.mjs
     blocks: commit, merge
-    rules_enforced: []
+    rules_enforced: [PX-DEPS-001]
     runs_in: [pre-push, ci]
     required: true
     status: active

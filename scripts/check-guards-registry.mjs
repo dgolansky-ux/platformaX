@@ -98,6 +98,12 @@ for (const guard of guards) {
         violations++;
       }
     }
+    // Every guard must trace to at least one rule — an empty rules_enforced
+    // means the guard runs but is not tied to any governed requirement.
+    if (enforced.filter(Boolean).length === 0) {
+      console.error(`GUARDS_REGISTRY_VIOLATION: guard "${guard.id}" has empty rules_enforced — map it to at least one rule`);
+      violations++;
+    }
   }
 }
 

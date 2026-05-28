@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createIdentityService,
-  createInMemoryIdentityProfileRepository,
   type IdentityEvent,
   type IdentityService,
 } from "../public-api";
+import { createInMemoryIdentityProfileRepository } from "../repository";
 
 const OWNER = "user-1";
 const STRANGER = "user-2";

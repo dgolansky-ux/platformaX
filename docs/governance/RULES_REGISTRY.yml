@@ -67,7 +67,7 @@ rules:
     enforced_by:
       - scripts/check-ai-agent-permissions.mjs
       - manual_gate
-    evidence_required: null
+    evidence_required: git log / hook config showing no --no-verify usage, or an explicit owner-approved ADR exception
     status: active
     owner: governance
     notes: Allowed only with explicit owner approval documented in ADR
@@ -87,7 +87,7 @@ rules:
     enforced_by:
       - branch-protection
       - scripts/check-ai-agent-permissions.mjs
-    evidence_required: null
+    evidence_required: branch-protection policy log or PR merge record proving no direct push to main
     status: active
     owner: governance
     notes: null

@@ -8,68 +8,26 @@
  * raw `PrivateProfileDTO` / `PublicProfileDTO` from the identity domain are
  * intentionally NOT re-exposed here.
  *
- * Identity backend types (`CompleteOnboardingInput`, `UpdatePrivateProfileInput`)
- * are re-used as request shapes since the application service forwards them.
+ * Types come from `@shared/contracts/` — never directly from `@server/*`.
  */
-import type {
-  CompleteOnboardingInput,
-  UpdatePersonalStatusInput,
-  UpdatePrivateProfileInput,
-} from "@server/domains-v2/identity/public-api";
-import type {
-  OwnerProfileView,
-  ProfileApplicationResult,
-  PublicProfileView,
-} from "@server/application-v2/profile/public-api";
-
-export type CompleteOnboardingResult = ProfileApplicationResult<OwnerProfileView>;
-export type GetMyProfileViewResult = ProfileApplicationResult<OwnerProfileView>;
-export type GetPublicProfileViewResult = ProfileApplicationResult<PublicProfileView>;
-export type UpdateMyProfileResult = ProfileApplicationResult<OwnerProfileView>;
-export type AttachProfileMediaRefResult = ProfileApplicationResult<OwnerProfileView>;
-
-export type OnboardingProfileAdapter = {
-  /**
-   * Whether the adapter persists across reloads. The current in-memory adapter
-   * returns `false` (state is volatile until the Supabase repository is wired).
-   */
-  isPersistent(): boolean;
-  completeOnboarding(
-    userId: string,
-    input: CompleteOnboardingInput,
-  ): Promise<CompleteOnboardingResult>;
-  getMyProfileView(userId: string): Promise<GetMyProfileViewResult>;
-  getPublicProfileView(
-    viewerId: string | null,
-    profileUserId: string,
-  ): Promise<GetPublicProfileViewResult>;
-  updateMyProfile(
-    userId: string,
-    input: UpdatePrivateProfileInput,
-  ): Promise<UpdateMyProfileResult>;
-  updatePersonalStatus(
-    userId: string,
-    input: UpdatePersonalStatusInput,
-  ): Promise<UpdateMyProfileResult>;
-  clearPersonalStatus(userId: string): Promise<UpdateMyProfileResult>;
-  attachProfileAvatarRef(
-    userId: string,
-    assetId: string,
-  ): Promise<AttachProfileMediaRefResult>;
-  attachProfileBannerRef(
-    userId: string,
-    assetId: string,
-  ): Promise<AttachProfileMediaRefResult>;
-  attachProfileStatusPhotoRef(
-    userId: string,
-    assetId: string,
-  ): Promise<AttachProfileMediaRefResult>;
-};
+export type {
+  OnboardingProfileAdapter,
+  ProfileAdapterDeps,
+  CompleteOnboardingResult,
+  GetMyProfileViewResult,
+  GetPublicProfileViewResult,
+  UpdateMyProfileResult,
+  AttachProfileMediaRefResult,
+} from "@shared/wiring/profile-wiring";
 
 export type {
   CompleteOnboardingInput,
   UpdatePrivateProfileInput,
   UpdatePersonalStatusInput,
+} from "@shared/contracts/identity";
+
+export type {
   OwnerProfileView,
   PublicProfileView,
-};
+  ProfileApplicationResult,
+} from "@shared/contracts/profile";

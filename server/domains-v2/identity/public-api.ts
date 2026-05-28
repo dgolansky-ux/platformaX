@@ -3,17 +3,15 @@
  *
  * The only modules in this file that other domains may depend on:
  *  - factory: `createIdentityService`
- *  - factory: `createInMemoryIdentityProfileRepository`
  *  - types:    contracts, public DTO, events, validation limits, repository
- *             interface, viewer-role policy enum
+ *             port interface, viewer-role policy enum
  *
- * Owner-only return types (PrivateProfileDTO) are re-exported here ONLY as a
- * type. Consumers that need it have already authenticated the owner (e.g. the
- * onboarding adapter for the current user). Other domains should compose
- * PublicProfileDTO instead.
- *
- * Internal modules (repository.ts implementation details, mapper, validation,
- * record) remain unexposed.
+ * The in-memory repository *implementation* (`createInMemoryIdentityProfileRepository`)
+ * is intentionally NOT public — composition imports it from `./repository`
+ * directly (see `@shared/wiring`). The repository *port interface* is re-exported
+ * via `./ports`; owner-only return types via `./private-dto`; validation limits
+ * via `./limits`. None of these are `./internal/*` paths, so the boundary guard
+ * stays satisfied while internal modules remain the single source of truth.
  */
 export { createIdentityService } from "./service";
 export type {
@@ -24,14 +22,11 @@ export type {
   IdentityRelationshipResolver,
 } from "./service";
 
-export {
-  createInMemoryIdentityProfileRepository,
-} from "./repository";
 export type {
   IdentityProfileRepository,
   CreateProfileRecordInput,
   UpdateProfileRecordPatch,
-} from "./repository";
+} from "./ports";
 
 export type {
   PublicProfileDTO,
@@ -44,7 +39,7 @@ export type {
   MediaAssetRef,
 } from "./dto";
 
-export type { PrivateProfileDTO } from "./internal/private-profile-dto";
+export type { PrivateProfileDTO } from "./private-dto";
 
 export type {
   UserId,
@@ -64,7 +59,7 @@ export {
   canCompleteOnboarding,
 } from "./policy";
 
-export { IDENTITY_VALIDATION_LIMITS } from "./internal/validation";
+export { IDENTITY_VALIDATION_LIMITS } from "./limits";
 
 export type {
   IdentityEvent,

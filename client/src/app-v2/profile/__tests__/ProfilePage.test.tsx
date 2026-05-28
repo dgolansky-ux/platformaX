@@ -6,11 +6,29 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { describe, expect, test } from "vitest";
 import { ProfilePage } from "../ProfilePage";
+import { ownerPersonalProfile, publicPersonalProfile } from "../fixtures";
+import type { PersonalProfileView } from "../types";
 
 const ROOT = process.cwd();
 const PROFILE_DIR = join(ROOT, "client/src/app-v2/profile");
 
-function renderProfile() {
+// The shell tests exercise the OWNER experience, so they pass the owner fixture
+// explicitly instead of relying on the runtime fallback (which is intentionally
+// a non-owner public view — see the owner-controls tests at the bottom).
+function renderProfile(profile: PersonalProfileView = ownerPersonalProfile) {
+  return render(
+    <MemoryRouter initialEntries={["/profile"]}>
+      <Routes>
+        <Route path="/profile" element={<ProfilePage profile={profile} />} />
+        <Route path="/" element={<div>LANDING</div>} />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
+// Renders without an explicit profile, so the page uses the live runtime state
+// (which starts in "loading" → the non-owner public fallback).
+function renderProfileRuntime() {
   return render(
     <MemoryRouter initialEntries={["/profile"]}>
       <Routes>
@@ -298,5 +316,32 @@ describe("ProfilePage — personal profile mobile shell", () => {
         expect(content.toLowerCase()).not.toContain(needle.toLowerCase());
       }
     }
+  });
+
+  test("explicit non-owner (public) profile activates no owner-only controls", () => {
+    renderProfile(publicPersonalProfile);
+    // avatar edit + preview eye are owner-only affordances
+    expect(
+      screen.queryByRole("button", { name: /zmień zdjęcie profilowe/i }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /podgląd profilu/i }),
+    ).toBeNull();
+  });
+
+  test("non-ready runtime (loading/anonymous) falls back to a non-owner view", () => {
+    // No explicit profile → live runtime state, which starts "loading".
+    renderProfileRuntime();
+    // The fallback is the public profile ("Profil"), never the owner mock.
+    expect(
+      screen.getByRole("heading", { level: 1, name: /profil/i }),
+    ).toBeDefined();
+    // Owner-only controls must not be active before ownership is confirmed.
+    expect(
+      screen.queryByRole("button", { name: /zmień zdjęcie profilowe/i }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /podgląd profilu/i }),
+    ).toBeNull();
   });
 });

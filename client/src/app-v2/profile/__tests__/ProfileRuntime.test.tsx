@@ -44,13 +44,18 @@ function profileSourceFiles(): string[] {
 describe("ProfilePage — runtime wiring (step-33)", () => {
   test("renders the visual shell while the runtime is loading/anonymous", async () => {
     renderProfile();
-    // demo fixture is rendered while there is no authenticated user — the shell
-    // never crashes and never blocks on a missing identity boundary.
+    // While there is no authenticated owner the shell renders a NON-OWNER public
+    // view ("Profil"), never the owner mock — it must not present owner-only
+    // controls before identity confirms ownership. The shell never crashes and
+    // never blocks on a missing identity boundary.
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { level: 1, name: /anna kowalska/i }),
+        screen.getByRole("heading", { level: 1, name: /profil/i }),
       ).toBeDefined();
     });
+    expect(
+      screen.queryByRole("button", { name: /zmień zdjęcie profilowe/i }),
+    ).toBeNull();
   });
 
   test("edit affordance stays disabled until identity returns an owner profile", () => {
