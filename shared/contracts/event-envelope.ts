@@ -7,6 +7,7 @@
  * public API if they need private data.
  */
 import type { UserId } from "./ids";
+import { createUuid } from "./uuid";
 
 export interface EventEnvelope<
   Type extends string,
@@ -44,14 +45,13 @@ export interface EventEnvelopeDeps {
   now?: () => Date;
 }
 
-type CryptoLike = { randomUUID?: () => string };
-
+/**
+ * Default id generator — UUID-formatted, aligned with the
+ * `outbox_messages.event_id uuid` column type in supabase/migrations.
+ * Callers may inject `deps.generateId` (tests use deterministic UUID fixtures).
+ */
 function defaultGenerateId(): string {
-  const cryptoObj = (globalThis as { crypto?: CryptoLike }).crypto;
-  if (cryptoObj?.randomUUID) return cryptoObj.randomUUID();
-  // Deterministic-enough fallback for environments without WebCrypto.
-  const rand = Math.floor(Math.random() * 0xffffffff).toString(16);
-  return `evt_${Date.now().toString(36)}_${rand}`;
+  return createUuid();
 }
 
 export function createEventEnvelope<

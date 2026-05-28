@@ -1,0 +1,15 @@
+
+> platformax-v2@0.0.1 arch:check:v2
+> node scripts/arch-check-v2.mjs
+
+  PASS  audit-domain-boundaries.mjs
+  PASS  check-no-legacy-imports.mjs
+  PASS  check-removed-product-areas.mjs
+  PASS  check-public-dto-pii.mjs
+  PASS  check-media-base64.mjs
+  PASS  check-pagination.mjs
+  PASS  check-domain-registry.mjs
+  PASS  check-domain-scaffold.mjs
+  PASS  check-feature-registry.mjs
+
+ARCH_CHECK_V2_PASS

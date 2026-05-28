@@ -63,7 +63,7 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-MEDIA-004 | Media attach owner/purpose | BACKEND_ARCHITECTURE_INVARIANTS | check-media-purpose-migration, check-media-base64, manual_gate | PARTIAL | Attach-path tests still required; migration↔runtime purpose drift now blocked |
 | PX-LIST-004 | limit/cursor/stable order | BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns, check-scalability-hot-paths | NO | Extends PX-LIST-001 |
 | PX-DB-004 | No raw DB outside domain | BACKEND_ARCHITECTURE_INVARIANTS | audit-domain-boundaries, check-architecture-import-graph | NO | — |
-| PX-EVENT-001 | EventEnvelope + outbox fanout | BACKEND_ARCHITECTURE_INVARIANTS, ADR-009 | check-scalability-hot-paths, manual_gate | PARTIAL | TODO_GUARD: check-event-envelope-contract |
+| PX-EVENT-001 | EventEnvelope + outbox fanout | BACKEND_ARCHITECTURE_INVARIANTS, ADR-009 | check-event-envelope-contract, check-scalability-hot-paths, manual_gate | PARTIAL | Envelope contract blocked in code; sync-fanout still partial via hot-paths + manual_gate |
 | PX-EVENT-002 | Transactional outbox same TX | ADR-009 | manual_gate | YES | TODO_GUARD: outbox transaction pattern |
 | PX-LC-001 | Explicit lifecycle statuses | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
 | PX-IDEMP-001 | Idempotency retry writes | BACKEND_ARCHITECTURE_INVARIANTS, ADR-015 | manual_gate | YES | TODO_GUARD: check-idempotency-flows |
@@ -80,7 +80,8 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-UI-001 | Design tokens | PROFILE_BLUEPRINT | check-design-tokens, manual_gate | PARTIAL | Central tokens.css imported at app entry; gate verifies presence, import, profile CSS consumption, and `transition: all` ban. Visual parity remains MANUAL_OWNER_REVIEW |
 | PX-UI-002 | Presentational/container | coding-standards | check-presentational-container-boundary | NO | Gate fails when profile sections/ import the data layer, a feature adapter, or call a data hook |
 | PX-OBS-003 | Correlation ID | active-rules §10 | manual_gate | PARTIAL | shared/contracts/correlation.ts (RequestContext + createCorrelationId) with tests; end-to-end wiring still manual_gate, check-correlation-id-boundary.mjs TODO |
-| PX-SEED-001 | Deterministic PII-safe seeds | active-rules §10 | check-deterministic-seeds, check-test-env-safety | NO | Gate enforces PII patterns + non-determinism + stable seed-* IDs across shared/test-seeds and server/seeds |
+| PX-SEED-001 | Deterministic PII-safe seeds | active-rules §10 | check-deterministic-seeds, check-test-env-safety | NO | Both gates run via rules:check and guards:runtime-invariants; enforces PII patterns + non-determinism + stable seed-* IDs across shared/test-seeds and server/seeds |
+| PX-GOV-FINALIZE-001 | Successful tasks must commit + push + PR | AGENT_COMMAND_STANDARD §11, AI_AGENT_PERMISSIONS_POLICY | check-successful-task-finalization-docs, manual_gate | PARTIAL | Docs guard keeps policy aligned across AGENT_COMMAND_STANDARD §11, AI_AGENT_PERMISSIONS_POLICY, RULES_REGISTRY and this matrix. Per-task finalization itself is manual_gate (FINALIZATION block in agent response). |
 
 ## Summary
 
@@ -89,6 +90,7 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 - **Automated + manual gate:** 14 (+6: PX-APP-001, PX-CONTRACT-001, PX-ID-001, PX-ERROR-001, PX-UI-001, PX-IDEMPOTENCY-001 gained partial guard or shared contract)
 - **Manual gate only / PARTIAL:** 15
 - **Documented governance gaps (TODO_GUARD):** 5 — remaining gaps: check-application-use-cases-boundary (PX-APP-001 placement), check-public-dto-contract-tests (PX-CONTRACT-001), check-branded-id-types (PX-ID-001), check-correlation-id-boundary (PX-OBS-003), check-backend-ownership-invariants (PX-OWN-001)
+- **Mandatory task finalization (PX-GOV-FINALIZE-001):** active — agent must end every successful task with commit + push + PR (create or update). Docs guard keeps the policy aligned across AGENT_COMMAND_STANDARD §11, AI_AGENT_PERMISSIONS_POLICY, RULES_REGISTRY and this matrix.
 
 ## Gap Analysis
 

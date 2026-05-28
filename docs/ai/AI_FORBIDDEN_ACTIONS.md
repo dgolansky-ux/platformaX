@@ -16,6 +16,7 @@ This file lists actions an AI agent must not perform.
 
 The agent must not:
 
+- end a successful task with local-only uncommitted changes — successful tasks must finalize with commit + push + PR (PX-GOV-FINALIZE-001),
 - use `--no-verify` unless explicitly instructed by owner,
 - commit when gates fail,
 - mark work DONE without evidence,

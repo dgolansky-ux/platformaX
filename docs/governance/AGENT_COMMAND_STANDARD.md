@@ -165,3 +165,63 @@ db push/Railway without separate decision, --no-verify, fake DONE.
 ```
 
 Rule IDs: see `docs/governance/RULES_REGISTRY.yml` and `docs/governance/RULES_TO_GUARDS_MATRIX.md`.
+
+---
+
+## 11. MANDATORY SUCCESSFUL TASK FINALIZATION (PX-GOV-FINALIZE-001)
+
+Every task that succeeds must be **finalized** — the agent does not finish with
+local-only edits. After green gates the agent's responsibility extends to commit,
+push, and PR.
+
+### Rules
+
+- Every successful task must end with a commit on the working branch.
+- Every commit must be pushed (`git push -u origin <current-branch>`).
+- Every push must open a PR (or update an existing PR for the same branch).
+- It is forbidden to end a successful task with uncommitted local edits.
+- It is forbidden to commit when gates fail. Fix or report `BLOCKED`.
+- It is forbidden to push to `main` directly. Always work on a branch.
+- It is forbidden to use `--no-verify`, `git push --force`, or any other
+  bypass listed in `AI_AGENT_PERMISSIONS_POLICY.md`.
+- It is forbidden to commit unrelated files, secrets, ZIP/log/build artefacts,
+  `node_modules`, `dist`, or `coverage`.
+- It is forbidden to merge the PR in the same task unless a separate
+  controlled auto-merge policy is in place and its eligibility check passes.
+
+### Exemptions
+
+The finalization requirement does not apply when:
+
+- The task is `READ_ONLY_EXPORT_ONLY` or `AUDIT_ONLY` with no repo changes.
+- The task ended `BLOCKED` (uncommitted state preserved on purpose).
+- Gates failed and the failure is outside the task scope (BLOCKED with reason).
+- The working tree contains unrelated changes that did not originate from this
+  task (BLOCKED — owner decision required).
+
+### Mandatory final-response block
+
+Every agent response that closes a task must include this block:
+
+```
+FINALIZATION:
+- Status: <SUCCESS|BLOCKED|READ_ONLY|EXPORT_ONLY>
+- Gates: <list of gate names + result>
+- Commit SHA: <short SHA or N/A>
+- Branch: <branch name>
+- Push: <success|fail|N/A>
+- PR: <PR URL or N/A>
+- Working tree clean: <yes|no>
+- Not performed:
+  - no direct push to main
+  - no force push
+  - no --no-verify
+  - no secrets committed
+  - no ZIP/log/build artefacts committed
+```
+
+For exempt tasks (`READ_ONLY_EXPORT_ONLY`, `AUDIT_ONLY`) the `Commit SHA`,
+`Push` and `PR` fields are `N/A` with a `Reason:` line explaining why.
+
+For `BLOCKED` tasks the same three fields are `N/A` with a concrete blocker
+reason (what is missing, who must decide).

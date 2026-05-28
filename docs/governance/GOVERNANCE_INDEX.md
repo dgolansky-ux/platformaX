@@ -80,6 +80,14 @@ Central map of all governance rules, organized by category. Every rule has a sta
 | PX-AI-001 | Agent must read governance first | AGENT_OPERATING_STANDARD.md §2 |
 | PX-AI-002 | Agent must self-audit before DONE | AGENT_SELF_AUDIT_PROTOCOL.md |
 | PX-AI-003 | Agent must stop as BLOCKED when rules conflict | AI_FORBIDDEN_ACTIONS.md §2 |
+| PX-GOV-FINALIZE-001 | Successful tasks must be committed, pushed and opened as PR | AGENT_COMMAND_STANDARD.md §11 |
+
+### Successful task finalization workflow
+
+Every successful agent task ends with: gates → commit → push → PR (create or
+update). Local-only edits do not count as task completion. See
+`AGENT_COMMAND_STANDARD.md` §11 for the mandatory FINALIZATION block, and
+`AI_AGENT_PERMISSIONS_POLICY.md` for the matching forbidden actions.
 
 ## Architecture Import Graph Rules
 

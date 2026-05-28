@@ -12,6 +12,7 @@ import {
   decodeOpaqueCursor,
   encodeOpaqueCursor,
 } from "@shared/contracts/cursor";
+import { createUuid } from "@shared/contracts/uuid";
 
 export type OutboxStatus = "pending" | "dispatched" | "failed";
 
@@ -61,10 +62,12 @@ export interface CreateOutboxMessageDeps {
   now?: () => Date;
 }
 
+/**
+ * Default outbox row id — UUID-formatted, aligned with the
+ * `outbox_messages.id uuid` column type in supabase/migrations.
+ */
 function defaultId(): string {
-  const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
-  if (c?.randomUUID) return c.randomUUID();
-  return `obx_${Date.now().toString(36)}_${Math.floor(Math.random() * 0xffffff).toString(16)}`;
+  return createUuid();
 }
 
 export function createOutboxMessageFromEnvelope(

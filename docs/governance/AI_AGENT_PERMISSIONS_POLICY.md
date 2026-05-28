@@ -105,3 +105,21 @@ Use `IN_PROGRESS` or `BLOCKED` with concrete blockers. See `docs/governance/BACK
 | Push | All commit gates + `pnpm arch:check:v2` |
 | PR creation | All push gates + Architecture Impact Statement |
 | Merge | CI green + CODEOWNERS approval + branch protection |
+
+## Mandatory Task Finalization (PX-GOV-FINALIZE-001)
+
+- The agent **must** commit, push, and open or update a PR after every
+  successful task (gates green, scope satisfied).
+- The agent **must not** end a successful task with uncommitted local edits.
+- The agent **must not** push directly to `main`. Use a working branch.
+- The agent **must not** use `git push --force`, `--no-verify`, or any bypass.
+- The agent **must not** commit secrets, ZIPs, logs, build artefacts,
+  `node_modules`, `dist`, or `coverage`.
+- The agent **must not** commit when gates fail. Fix in scope or report
+  `BLOCKED`.
+- The agent **must not** merge the PR unless a separate controlled
+  auto-merge policy is in place and its eligibility check passes.
+- Exemptions: `READ_ONLY_EXPORT_ONLY`, `AUDIT_ONLY`, or `BLOCKED` tasks.
+
+See `AGENT_COMMAND_STANDARD.md` §11 for the mandatory `FINALIZATION:` block
+that every closing agent response must contain.

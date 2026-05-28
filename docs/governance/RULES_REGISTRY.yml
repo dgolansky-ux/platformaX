@@ -1135,12 +1135,18 @@ rules:
     required_patterns:
       - "validate asset ownerUserId ownerType purpose status before attach"
     enforced_by:
-      - manual_gate
       - scripts/check-media-base64.mjs
-    evidence_required: media policy tests + attach service tests
+      - scripts/check-media-purpose-migration.mjs
+      - manual_gate
+    evidence_required: media policy tests + attach service tests + purpose/migration drift gate log
     status: active
     owner: architecture
-    notes: Dedicated attach guard TODO; base64 path blocked by PX-MEDIA-001
+    notes: >
+      check-media-purpose-migration.mjs blocks drift between MediaPurpose
+      (server/domains-v2/media/dto.ts) and the persisted CHECK in
+      supabase/migrations. Attach-path verification (verifyProfileAssetForAttach)
+      stays manual_gate until a dedicated attach guard lands. base64 path
+      remains blocked by PX-MEDIA-001.
 
   - id: PX-LIST-004
     title: Runtime lists feed search require limit maxLimit cursor stable order
@@ -1204,12 +1210,18 @@ rules:
       - "EventEnvelope id type version occurredAt actorId payload idempotencyKey"
       - "fanout via events outbox worker"
     enforced_by:
+      - scripts/check-event-envelope-contract.mjs
       - scripts/check-scalability-hot-paths.mjs
       - manual_gate
-    evidence_required: events.ts contracts + ADR-009 + no sync fanout in touched paths
+    evidence_required: events.ts contracts + envelope contract gate log + ADR-009 + no sync fanout in touched paths
     status: active
     owner: architecture
-    notes: Extends PX-SCALE-001; envelope guard TODO
+    notes: >
+      check-event-envelope-contract.mjs blocks regressions in real (PARTIAL+)
+      domains: requires @shared/contracts/event-envelope import, namespaced
+      event types, no bare `at:` payload field, no PII payload keys. Sync
+      fanout in hot paths remains check-scalability-hot-paths.mjs + manual_gate
+      (PX-EVENT-002 covers the in-TX outbox write).
 
   - id: PX-EVENT-002
     title: Outbox event persisted in same DB transaction as source write
@@ -1579,9 +1591,54 @@ rules:
     required_patterns:
       - "stable IDs deterministic dates MOCK fixtures"
     enforced_by:
+      - scripts/check-deterministic-seeds.mjs
       - scripts/check-test-env-safety.mjs
-      - manual_gate
-    evidence_required: fixture builders + seed scripts review
+    evidence_required: fixture builders + seed scripts review + deterministic-seeds gate log
     status: active
     owner: engineering
-    notes: check-deterministic-seeds.mjs TODO
+    notes: >
+      check-deterministic-seeds.mjs enforces PII patterns, non-determinism
+      (Math.random/Date.now/new Date) and stable seed-* IDs across
+      shared/test-seeds and server/seeds. Both gates run via rules:check and
+      guards:runtime-invariants.
+
+  # === MANDATORY TASK FINALIZATION ===
+
+  - id: PX-GOV-FINALIZE-001
+    title: Successful tasks must be committed, pushed and opened as PR
+    severity: P0
+    category: governance
+    source_docs:
+      - docs/governance/AGENT_COMMAND_STANDARD.md
+      - docs/governance/AI_AGENT_PERMISSIONS_POLICY.md
+    applies_to: [agent-output, PRs]
+    forbidden_patterns:
+      - "ending successful task with local uncommitted changes"
+      - "committing failing gates"
+      - "pushing directly to main"
+      - "force push"
+      - "--no-verify"
+      - "committing secrets/build artefacts/logs/ZIPs/node_modules/dist/coverage"
+      - "merging PR without controlled auto-merge eligibility check"
+    required_patterns:
+      - "successful task ends with commit + push + PR (create or update)"
+      - "agent final response includes FINALIZATION block"
+    enforced_by:
+      - scripts/check-successful-task-finalization-docs.mjs
+      - manual_gate
+    evidence_required:
+      - gate results
+      - commit SHA
+      - pushed branch
+      - PR link (created or updated)
+      - clean working tree after commit
+      - FINALIZATION block in the agent response
+    status: active
+    owner: governance
+    notes: >
+      Documentation guard ensures AGENT_COMMAND_STANDARD §11,
+      AI_AGENT_PERMISSIONS_POLICY (Mandatory Task Finalization),
+      RULES_REGISTRY (this entry) and RULES_TO_GUARDS_MATRIX all stay aligned
+      so the policy cannot quietly disappear from any one place.
+      Per-task finalization itself stays manual_gate — automating "did the
+      agent actually create the PR" would require parsing every agent turn.

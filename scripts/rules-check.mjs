@@ -49,6 +49,17 @@ const GUARDS = [
   "check-dto-privacy-classification.mjs",
   "check-scalability-hot-paths.mjs",
   "check-governance-drift.mjs",
+  // Runtime invariants code-alignment guards (step-50). Required + run in
+  // pre-push/ci — must execute through rules-check so CI actually enforces them.
+  "check-client-server-boundary.mjs",
+  "check-presentational-container-boundary.mjs",
+  "check-policy-pure-functions.mjs",
+  "check-design-tokens.mjs",
+  "check-media-purpose-migration.mjs",
+  "check-deterministic-seeds.mjs",
+  "check-event-envelope-contract.mjs",
+  // Documentation guard for the mandatory successful-task finalization policy.
+  "check-successful-task-finalization-docs.mjs",
 ];
 
 let failed = 0;

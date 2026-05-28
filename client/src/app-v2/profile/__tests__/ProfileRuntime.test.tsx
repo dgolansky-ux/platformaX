@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, statSync } from "fs";
 import { join } from "path";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeAll, describe, expect, test, vi } from "vitest";
 import { ProfilePage } from "../ProfilePage";
@@ -15,16 +15,22 @@ beforeAll(() => {
   (URL as unknown as { revokeObjectURL: () => void }).revokeObjectURL = vi.fn();
 });
 
-function renderProfile() {
-  return render(
-    <MemoryRouter initialEntries={["/profile"]}>
-      <Routes>
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/" element={<div>LANDING</div>} />
-        <Route path="/onboarding" element={<div>ONBOARDING</div>} />
-      </Routes>
-    </MemoryRouter>,
-  );
+
+async function renderProfile() {
+  let utils!: ReturnType<typeof render>;
+  await act(async () => {
+    utils = render(
+      <MemoryRouter initialEntries={["/profile"]}>
+        <Routes>
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/" element={<div>LANDING</div>} />
+          <Route path="/onboarding" element={<div>ONBOARDING</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await Promise.resolve();
+  });
+  return utils;
 }
 
 function profileSourceFiles(): string[] {
@@ -43,7 +49,7 @@ function profileSourceFiles(): string[] {
 
 describe("ProfilePage — runtime wiring (step-33)", () => {
   test("renders the visual shell while the runtime is loading/anonymous", async () => {
-    renderProfile();
+    await renderProfile();
     // demo fixture is rendered while there is no authenticated user — the shell
     // never crashes and never blocks on a missing identity boundary.
     await waitFor(() => {
@@ -53,8 +59,8 @@ describe("ProfilePage — runtime wiring (step-33)", () => {
     });
   });
 
-  test("edit affordance stays disabled until identity returns an owner profile", () => {
-    renderProfile();
+  test("edit affordance stays disabled until identity returns an owner profile", async () => {
+    await renderProfile();
     const edit = screen.getByRole("button", { name: /edytuj profil — wkrótce/i });
     expect((edit as HTMLButtonElement).disabled).toBe(true);
   });
@@ -86,8 +92,8 @@ describe("ProfilePage — runtime wiring (step-33)", () => {
     }
   });
 
-  test("bio edit button is the only edit affordance in the topbar", () => {
-    renderProfile();
+  test("bio edit button is the only edit affordance in the topbar", async () => {
+    await renderProfile();
     // anonymous state: edit is disabled-policy, not a hidden no-op.
     const edit = screen.getByRole("button", { name: /edytuj profil — wkrótce/i });
     expect(edit.getAttribute("disabled")).not.toBeNull();

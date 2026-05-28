@@ -19,7 +19,7 @@ import { ProfileRuntimeBanner } from "./sections/ProfileRuntimeBanner";
 import type { MediaPurpose } from "../../features-v2/media";
 import { FloatingNav } from "../navigation/FloatingNav";
 import { DesktopSidebar } from "../navigation/DesktopSidebar";
-import { useProfileData } from "./data/useProfileData";
+import { useProfileData, type UseProfileDataDeps } from "./data/useProfileData";
 import layout from "./styles/profile-layout.module.css";
 import header from "./styles/profile-header.module.css";
 
@@ -29,6 +29,12 @@ type ProfilePageProps = {
    * the runtime composition (auth + identity + media) defined below.
    */
   profile?: PersonalProfileView;
+  /**
+   * Test seam: inject auth + profile adapters so tests can drive the data
+   * state machine into "ready" (or any other state) deterministically without
+   * touching the real runtime adapters.
+   */
+  dataDeps?: UseProfileDataDeps;
 };
 
 const PREVIEW_COPY: Record<
@@ -63,8 +69,11 @@ function shareProfile(): void {
   }
 }
 
-export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {}) {
-  const { state, reload } = useProfileData();
+export function ProfilePage({
+  profile: explicitProfile,
+  dataDeps,
+}: ProfilePageProps = {}) {
+  const { state, reload } = useProfileData(dataDeps);
   const [mode, setMode] = useState<ProfileViewMode>("personal");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewKind, setPreviewKind] = useState<ProfilePreviewKind>("none");
@@ -89,8 +98,11 @@ export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {})
 
   const activePreview = previewKind !== "none" ? PREVIEW_COPY[previewKind] : null;
   const ownerUserId = state.kind === "ready" ? state.userId : null;
-  const editEnabled = ownerUserId !== null && profile.isOwner;
-  const mediaUserId = ownerUserId ?? "me";
+  // Owner edit affordances must only activate when the runtime has resolved an
+  // authenticated owner. Anonymous/loading renders the visual shell (fixture
+  // `isOwner: true` carries no privilege), but never wires owner controls.
+  const canEditProfile =
+    state.kind === "ready" && ownerUserId !== null && profile.isOwner;
 
   const sidebarName = profile.displayName || "Profil";
   const sidebarHandle = profile.displayName
@@ -108,7 +120,7 @@ export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {})
       />
       <div className={layout.shell}>
         <ProfileTopBar
-          editEnabled={editEnabled}
+          editEnabled={canEditProfile}
           onEditBio={() => setBioSheetOpen(true)}
         />
         <ProfileRuntimeBanner state={state} onReload={reload} />
@@ -123,8 +135,8 @@ export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {})
             onSelectPersonal={() => setMode("personal")}
             onSelectProfessional={() => setMode("professional")}
             onShare={shareProfile}
-            onEditAvatar={profile.isOwner ? () => setMediaTarget("avatar") : undefined}
-            onEditBanner={profile.isOwner ? () => setMediaTarget("banner") : undefined}
+            onEditAvatar={canEditProfile ? () => setMediaTarget("avatar") : undefined}
+            onEditBanner={canEditProfile ? () => setMediaTarget("banner") : undefined}
           />
 
           {activePreview ? (
@@ -166,10 +178,10 @@ export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {})
 
       <FloatingNav active="profil" />
 
-      {mediaTarget ? (
+      {mediaTarget && ownerUserId ? (
         <ProfileMediaSheet
           purpose={mediaTarget}
-          userId={mediaUserId}
+          userId={ownerUserId}
           onClose={() => setMediaTarget(null)}
         />
       ) : null}

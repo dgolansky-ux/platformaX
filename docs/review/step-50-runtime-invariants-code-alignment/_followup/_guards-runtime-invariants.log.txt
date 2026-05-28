@@ -1,0 +1,11 @@
+
+> platformax-v2@0.0.1 guards:runtime-invariants
+> node scripts/check-client-server-boundary.mjs && node scripts/check-presentational-container-boundary.mjs && node scripts/check-policy-pure-functions.mjs && node scripts/check-design-tokens.mjs && node scripts/check-media-purpose-migration.mjs && node scripts/check-deterministic-seeds.mjs && node scripts/check-event-envelope-contract.mjs
+
+CHECK_CLIENT_SERVER_BOUNDARY_PASS
+CHECK_PRESENTATIONAL_CONTAINER_BOUNDARY_PASS
+CHECK_POLICY_PURE_FUNCTIONS_PASS (15 policy files validated)
+CHECK_DESIGN_TOKENS_PASS
+CHECK_MEDIA_PURPOSE_MIGRATION_PASS
+CHECK_DETERMINISTIC_SEEDS_PASS (2 seed file(s) validated)
+CHECK_EVENT_ENVELOPE_CONTRACT_PASS

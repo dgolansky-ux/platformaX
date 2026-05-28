@@ -14,6 +14,7 @@ BRAMKA is the governance framework that ensures code quality, architectural inte
 3. **GitHub CI** — Automated check on every PR (v2-gates.yml)
 4. **Branch protection** — PR required, 1 approval, CODEOWNERS, status checks
 5. **Documentation** — PRE-COMMIT DECISION + SELF-AUDIT in all Step 17+ reports
+6. **Task finalization (PX-GOV-FINALIZE-001)** — successful tasks do not end with local-only edits. After green gates the agent must commit, push the working branch and open or update a PR. See `docs/governance/AGENT_COMMAND_STANDARD.md` §11.
 
 ## Acceptance matrix
 

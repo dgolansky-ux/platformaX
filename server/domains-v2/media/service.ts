@@ -25,6 +25,7 @@ import { maxBytesFor, validateUploadFileMeta } from "./internal/validation";
 import { toMediaAssetDTO, toUploadIntentDTO } from "./mapper";
 import { canCreateUploadIntent } from "./policy";
 import type { MediaRepository, MediaStoragePort } from "./repository";
+import { createUuid } from "@shared/contracts/uuid";
 
 export type MediaClock = () => string;
 export type MediaIdGenerator = () => string;
@@ -86,10 +87,13 @@ function codeForFieldErrors(fields: Record<string, string>): MediaErrorCode {
   return "INVALID_INPUT";
 }
 
+/**
+ * Default media asset id — UUID-formatted, aligned with the
+ * `media_assets.id uuid` column type in supabase/migrations.
+ * Tests inject deterministic UUID fixtures; production hits WebCrypto.
+ */
 function defaultIdGen(): string {
-  const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
-  if (c && typeof c.randomUUID === "function") return c.randomUUID();
-  return `media_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  return createUuid();
 }
 
 async function buildUploadIntent(

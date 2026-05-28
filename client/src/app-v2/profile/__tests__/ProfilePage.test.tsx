@@ -2,7 +2,7 @@
    @testing-library DOM queries, not runtime list fetches. */
 import { readdirSync, readFileSync, statSync, existsSync } from "fs";
 import { join } from "path";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { describe, expect, test } from "vitest";
 import { ProfilePage } from "../ProfilePage";
@@ -10,15 +10,26 @@ import { ProfilePage } from "../ProfilePage";
 const ROOT = process.cwd();
 const PROFILE_DIR = join(ROOT, "client/src/app-v2/profile");
 
-function renderProfile() {
-  return render(
-    <MemoryRouter initialEntries={["/profile"]}>
-      <Routes>
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/" element={<div>LANDING</div>} />
-      </Routes>
-    </MemoryRouter>,
-  );
+/**
+ * Render the profile shell and drain the async useProfileData transition
+ * (loading → anonymous when no auth) inside act() so React never logs
+ * "update inside a test was not wrapped in act(...)" warnings.
+ */
+async function renderProfile() {
+  let utils!: ReturnType<typeof render>;
+  await act(async () => {
+    utils = render(
+      <MemoryRouter initialEntries={["/profile"]}>
+        <Routes>
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/" element={<div>LANDING</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    // Yield once so the queued setState lands inside this act() block.
+    await Promise.resolve();
+  });
+  return utils;
 }
 
 function profileSourceFiles(): string[] {
@@ -36,15 +47,15 @@ function profileSourceFiles(): string[] {
 }
 
 describe("ProfilePage — personal profile mobile shell", () => {
-  test("renders the personal profile at /profile", () => {
-    renderProfile();
+  test("renders the personal profile at /profile", async () => {
+    await renderProfile();
     expect(
       screen.getByRole("heading", { level: 1, name: /anna kowalska/i }),
     ).toBeDefined();
   });
 
-  test("mobile-critical sections are present", () => {
-    renderProfile();
+  test("mobile-critical sections are present", async () => {
+    await renderProfile();
     expect(screen.getByText(/^O mnie$/)).toBeDefined();
     expect(screen.getByRole("tab", { name: /osobisty/i })).toBeDefined();
     expect(screen.getByRole("tab", { name: /zawodowy/i })).toBeDefined();
@@ -58,14 +69,14 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.getByRole("heading", { name: /Ważne wydarzenia/ })).toBeDefined();
   });
 
-  test("empty content states render for posts and milestones", () => {
-    renderProfile();
+  test("empty content states render for posts and milestones", async () => {
+    await renderProfile();
     expect(screen.getByText(/Brak postów/)).toBeDefined();
     expect(screen.getByText(/Brak ważnych wydarzeń/)).toBeDefined();
   });
 
-  test("desktop adaptation: personal content sections share one responsive grid wrapper", () => {
-    renderProfile();
+  test("desktop adaptation: personal content sections share one responsive grid wrapper", async () => {
+    await renderProfile();
     const presentation = screen.getByRole("region", { name: /Prezentacja profilu/ });
     const milestones = screen.getByRole("region", { name: /Ważne wydarzenia/ });
     // both sections live under the same wrapper div (desktop turns it into a grid;
@@ -75,8 +86,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(presentation.parentElement?.tagName).toBe("DIV");
   });
 
-  test("desktop-critical regions and the mobile header order both remain present", () => {
-    renderProfile();
+  test("desktop-critical regions and the mobile header order both remain present", async () => {
+    await renderProfile();
     // same content the desktop layout re-flows — must keep existing on all widths
     expect(screen.getByRole("heading", { level: 1, name: /anna kowalska/i })).toBeDefined();
     expect(screen.getByRole("region", { name: /Kontakty/ })).toBeDefined();
@@ -85,23 +96,23 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.getByRole("region", { name: /Ważne wydarzenia/ })).toBeDefined();
   });
 
-  test("preview eye CTA toggles local preview state (not a no-op)", () => {
-    renderProfile();
+  test("preview eye CTA toggles local preview state (not a no-op)", async () => {
+    await renderProfile();
     fireEvent.click(screen.getByRole("button", { name: /podgląd profilu/i }));
     fireEvent.click(screen.getByRole("menuitem", { name: /widok znajomego/i }));
     expect(screen.getByText(/widok znajomego/i)).toBeDefined();
     expect(screen.getByText(/Znajomi widzą Twój feed/i)).toBeDefined();
   });
 
-  test("quick feed CTA expands via local state", () => {
-    renderProfile();
+  test("quick feed CTA expands via local state", async () => {
+    await renderProfile();
     const toggle = screen.getByRole("button", { name: /ostatnie posty/i });
     fireEvent.click(toggle);
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
   });
 
   test("quick feed tile click opens a local post-detail sheet (visual shell)", async () => {
-    renderProfile();
+    await renderProfile();
     const toggle = screen.getByRole("button", { name: /ostatnie posty/i });
     fireEvent.click(toggle);
     // skeleton runs for ~350ms on first open; tile accessible name = author + body,
@@ -118,8 +129,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.getByText(/podgląd posta jest wizualnym szkieletem/i)).toBeDefined();
   });
 
-  test("no undefined classname leaks through the split CSS modules", () => {
-    const { container } = renderProfile();
+  test("no undefined classname leaks through the split CSS modules", async () => {
+    const { container } = await renderProfile();
     // switching to the professional tab activates the second module set
     fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
     // any `class="undefined"` or "_undefined_" means a section is importing a
@@ -128,8 +139,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(container.querySelectorAll('[class*="_undefined_"]').length).toBe(0);
   });
 
-  test("specialists toggle (visibility switch) flips local state", () => {
-    renderProfile();
+  test("specialists toggle (visibility switch) flips local state", async () => {
+    await renderProfile();
     fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
     const toggle = screen.getByRole("button", { name: /ukryj sekcję specjalistów/i });
     expect(toggle.getAttribute("aria-pressed")).toBe("true");
@@ -139,8 +150,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     ).toBe("false");
   });
 
-  test("professional Klasyczny tab renders 'Moja praca' disabled anchor + 'Moduł w budowie'", () => {
-    renderProfile();
+  test("professional Klasyczny tab renders 'Moja praca' disabled anchor + 'Moduł w budowie'", async () => {
+    await renderProfile();
     fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
     const mojaPraca = screen.getByRole("button", { name: /moja praca/i });
     expect((mojaPraca as HTMLButtonElement).disabled).toBe(true);
@@ -148,28 +159,28 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.getByText(/sekcja miejsce pracy będzie dostępna wkrótce/i)).toBeDefined();
   });
 
-  test("floating navigation is mounted on /profile with profil as active", () => {
-    renderProfile();
+  test("floating navigation is mounted on /profile with profil as active", async () => {
+    await renderProfile();
     const profil = screen.getByRole("button", { name: /^profil$/i });
     expect(profil.getAttribute("aria-current")).toBe("page");
   });
 
-  test("contacts tabs filter the carousel via local state", () => {
-    renderProfile();
+  test("contacts tabs filter the carousel via local state", async () => {
+    await renderProfile();
     expect(screen.getByText(/Wójcik/)).toBeDefined(); // family_extended visible under "Wszyscy"
     fireEvent.click(screen.getByRole("tab", { name: /^Bliscy/ }));
     expect(screen.queryByText(/Wójcik/)).toBeNull(); // filtered out of "Bliscy"
   });
 
-  test("CTAs that need a backend are disabled-policy, never silent no-ops", () => {
-    renderProfile();
+  test("CTAs that need a backend are disabled-policy, never silent no-ops", async () => {
+    await renderProfile();
     const matchedCommunities = screen.queryAllByText(/^Społeczności$/);
     const portalBtn = matchedCommunities.map((el) => el.closest("button")).find((b) => b?.disabled);
     expect(portalBtn?.disabled).toBe(true);
   });
 
-  test("professional layer is a MODE of the same profile, not a separate domain/route", () => {
-    renderProfile();
+  test("professional layer is a MODE of the same profile, not a separate domain/route", async () => {
+    await renderProfile();
     // default mode is personal: professional content is not shown
     expect(screen.queryByText(/Specjaliści/)).toBeNull();
     // switching to the professional tab reveals the professional layer in place
@@ -182,8 +193,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(existsSync(join(ROOT, "client/src/features-v2/professional-profile"))).toBe(false);
   });
 
-  test("can switch back to personal after professional (mode is local view state)", () => {
-    renderProfile();
+  test("can switch back to personal after professional (mode is local view state)", async () => {
+    await renderProfile();
     fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
     expect(screen.getByRole("region", { name: /Zawód/ })).toBeDefined();
     fireEvent.click(screen.getByRole("tab", { name: /^Osobisty$/ }));
@@ -191,8 +202,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.queryByRole("heading", { name: /Specjaliści/ })).toBeNull();
   });
 
-  test("professional layer renders its sections and CTAs are not no-ops", () => {
-    renderProfile();
+  test("professional layer renders its sections and CTAs are not no-ops", async () => {
+    await renderProfile();
     fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
     expect(screen.getByRole("region", { name: /^Zawód$/ })).toBeDefined();
     expect(screen.getByRole("region", { name: /Specjaliści/ })).toBeDefined();
@@ -206,8 +217,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.getByRole("dialog", { name: /Co chcesz dodać/ })).toBeDefined();
   });
 
-  test("desktop adaptation: professional sections share one responsive grid wrapper", () => {
-    renderProfile();
+  test("desktop adaptation: professional sections share one responsive grid wrapper", async () => {
+    await renderProfile();
     fireEvent.click(screen.getByRole("tab", { name: /^Zawodowy$/ }));
     const zawod = screen.getByRole("region", { name: /^Zawód$/ });
     const specialists = screen.getByRole("region", { name: /Specjaliści/ });
@@ -219,8 +230,8 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(zawod.parentElement?.tagName).toBe("DIV");
   });
 
-  test("public render contains no private PII (phone / dateOfBirth / private email)", () => {
-    const { container } = renderProfile();
+  test("public render contains no private PII (phone / dateOfBirth / private email)", async () => {
+    const { container } = await renderProfile();
     const text = container.textContent ?? "";
     expect(text).not.toMatch(/\+?\d[\d\s().-]{6,}\d/); // phone-like
     expect(text.toLowerCase()).not.toContain("dateofbirth");
@@ -230,13 +241,13 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(text).not.toMatch(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
   });
 
-  test("desktop sidebar is rendered", () => {
-    renderProfile();
+  test("desktop sidebar is rendered", async () => {
+    await renderProfile();
     expect(screen.getByRole("complementary", { name: /menu boczne/i })).toBeDefined();
   });
 
-  test("portal cards render in fixed order: Społeczności, Kanały, Feed znajomych", () => {
-    const { container } = renderProfile();
+  test("portal cards render in fixed order: Społeczności, Kanały, Feed znajomych", async () => {
+    const { container } = await renderProfile();
     const portalBtns = Array.from(
       container.querySelectorAll("button[aria-disabled='true'][title]"),
     ).filter((b) => (b.getAttribute("title") ?? "").includes("wkrótce"));

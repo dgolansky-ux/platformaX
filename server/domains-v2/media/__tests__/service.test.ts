@@ -6,6 +6,7 @@ import {
   type MediaStoragePort,
   type UploadFileMeta,
 } from "../public-api";
+import { isUuid } from "@shared/contracts/uuid";
 
 function deps(storage: MediaStoragePort) {
   let n = 0;
@@ -83,6 +84,19 @@ describe("media service — upload intents", () => {
     });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error.code).toBe("TOO_LARGE");
+  });
+
+  it("default media id generator (no idGen injected) is UUID-compatible", async () => {
+    // No `idGen` dep → service uses its UUID default (aligned with
+    // media_assets.id uuid in supabase/migrations).
+    const svc = createMediaService({
+      repository: createInMemoryMediaRepository(),
+      storage: connectedStorage(),
+      clock: () => "2026-05-25T00:00:00.000Z",
+    });
+    const res = await svc.createAvatarUploadIntent("user-1", goodAvatar);
+    expect(res.ok).toBe(true);
+    if (res.ok) expect(isUuid(res.value.assetId)).toBe(true);
   });
 
   it("rejects an inline data: scheme source ref", async () => {

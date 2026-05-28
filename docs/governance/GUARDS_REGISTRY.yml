@@ -487,3 +487,21 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+
+  - id: GUARD-054
+    command: node scripts/check-event-envelope-contract.mjs
+    file: scripts/check-event-envelope-contract.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-EVENT-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-055
+    command: node scripts/check-successful-task-finalization-docs.mjs
+    file: scripts/check-successful-task-finalization-docs.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-FINALIZE-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active

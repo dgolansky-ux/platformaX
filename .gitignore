@@ -8,3 +8,9 @@ Thumbs.db
 .vite/
 coverage/
 .claude/
+
+# Local audit export artefacts (operator ZIP/audit workflow). Never source.
+AUDIT_*.txt
+AUDIT_*.patch
+last-audit-export-report.json
+_zip-helper.ps1

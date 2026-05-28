@@ -117,3 +117,89 @@ New guards individually verified PASS:
 
 STATUS: RUNTIME_INVARIANTS_CODE_ALIGNED  
 EVIDENCE: see `_*.log.txt` in this folder
+
+---
+
+## Follow-up enforcement fix (2026-05-28)
+
+Post-commit audit on `92fb524` surfaced enforcement gaps. This follow-up closes
+them on the same branch:
+
+- **`rules-check` now includes GUARD-048..GUARD-053 and the new event-envelope
+  guard.** The six runtime-invariants gates plus
+  `check-event-envelope-contract.mjs` are registered in
+  `scripts/rules-check.mjs`, so CI and pre-push actually enforce them.
+- **`guards:runtime-invariants` package script** runs the same seven gates as a
+  named bundle; `guards:all-local` chains into it.
+- **Meta-guard prevents re-occurrence.** `scripts/check-guards-registry.mjs` was
+  extended: any `required: true` guard with `runs_in: [pre-push|ci]` must be
+  invoked through `rules-check.mjs` or a CI package script
+  (`rules:check`, `arch:check:v2`, `guards:all-local`, `guards:runtime-invariants`)
+  — otherwise the gate fails. Tests in
+  `scripts/__tests__/guards-registry.test.ts` cover PASS (wired through
+  rules-check), PASS (wired through a CI package script), and FAIL (un-wired).
+- **`check-event-envelope-contract.mjs` (GUARD-054)** blocks regressions in
+  real (PARTIAL+) domains: events must import `EventEnvelope` /
+  `createEventEnvelope` from `@shared/contracts/event-envelope`, use dot-namespaced
+  event types, carry no PII payload keys, and never re-introduce a bare `at:`
+  field. SCAFFOLD_ONLY domains are skipped per
+  `docs/governance/DOMAIN_STATUS_REGISTRY.yml`.
+- **UUID/migration id format aligned.** New `shared/contracts/uuid.ts` exposes
+  `createUuid()` and `isUuid()`. `event-envelope.ts`, `runtime/outbox.ts`, and
+  `media/service.ts` default to UUID-formatted ids — aligned with the `uuid`
+  column types in `supabase/migrations` (`media_assets.id`,
+  `outbox_messages.id`, `outbox_messages.event_id`, `outbox_messages.actor_id`).
+  Tests use UUID-shaped fixtures
+  (`00000000-0000-4000-8000-000000000001`, …) and assert
+  `isUuid(defaultGenerated)`. `IdempotencyKey` intentionally stays `text` per
+  the migration (namespaced keys allowed).
+- **Anonymous owner-controls fixed.** `ProfilePage` now derives
+  `canEditProfile = state.kind === "ready" && ownerUserId !== null &&
+  profile.isOwner` and uses it for avatar/banner/bio/topbar affordances. The
+  `mediaUserId = ownerUserId ?? "me"` fake fallback is removed —
+  `ProfileMediaSheet` is rendered only when an authenticated owner exists. New
+  tests cover (a) ready owner still gets edit affordances, (b) anonymous
+  renders the shell but no edit buttons, (c) source contains no `"me"` fake
+  userId. A `dataDeps` prop on `ProfilePage` is the test seam.
+- **React act warnings eliminated.** `renderProfile` helpers in
+  `ProfilePage.test.tsx`, `ProfileMediaSheet.test.tsx`, and
+  `ProfileRuntime.test.tsx` now wrap render in `act(async () => { … })` and the
+  affected tests are `async () => { await renderProfile(); … }`. Vitest output
+  for the profile tests is now warning-free.
+- **AUDIT export artefacts ignored.** `.gitignore` now excludes
+  `AUDIT_*.txt`, `AUDIT_*.patch`, `last-audit-export-report.json`, and
+  `_zip-helper.ps1`. The four prior `AUDIT_WIP_*` snapshots were removed from
+  the working tree.
+- **Governance drift removed.** `RULES_REGISTRY.yml` `enforced_by` /
+  `evidence_required` / `notes` for PX-SEED-001 and PX-MEDIA-004 now reference
+  the landed guards (no more `TODO`). `RULES_TO_GUARDS_MATRIX.md` mirrors this
+  and gains a new row for PX-GOV-FINALIZE-001.
+- **Mandatory task finalization policy (PX-GOV-FINALIZE-001).** New P0 rule:
+  every successful task must finalize with commit + push + PR (create or
+  update). Documented in:
+  - `AGENT_COMMAND_STANDARD.md` §11 (MANDATORY SUCCESSFUL TASK FINALIZATION
+    + the required `FINALIZATION:` block),
+  - `AI_AGENT_PERMISSIONS_POLICY.md` ("Mandatory Task Finalization"),
+  - `RULES_REGISTRY.yml` (`PX-GOV-FINALIZE-001`),
+  - `RULES_TO_GUARDS_MATRIX.md` (row),
+  - `GOVERNANCE_INDEX.md` (AI Agent Rules + workflow note),
+  - `BRAMKA.md` (enforcement layers),
+  - `docs/ai/AI_FORBIDDEN_ACTIONS.md` (hard-forbidden).
+  Manual gate for per-task finalization (FINALIZATION block in agent response);
+  documentation alignment automated via `check-successful-task-finalization-docs.mjs`
+  (GUARD-055).
+- **Visual profile status: MANUAL_OWNER_REVIEW.** No screenshots required, no
+  UI polish in this follow-up. `PROFILE_VISUAL_MANUAL_OWNER_REVIEW` continues
+  to apply.
+
+### Non-changes / confirmations (follow-up)
+
+- NO_DB_PUSH — migrations 0002/0004 stay SHIPPED_AS_CODE.
+- NO_RAILWAY.
+- NO_DEPENDENCY_ADDED.
+- NO_LEGACY_REVIVED.
+- NO_GUARD_WEAKENED — the meta-guard explicitly tightens the contract.
+- NO_VISUAL_POLISH.
+- NO_SCREENSHOTS_CLAIMED.
+
+STATUS: RUNTIME_INVARIANTS_ENFORCEMENT_FIXED + SUCCESSFUL_TASK_FINALIZATION_POLICY_READY
