@@ -15,8 +15,9 @@ function runGuard() {
       encoding: "utf-8", cwd: ROOT, stdio: ["pipe", "pipe", "pipe"],
     });
     return { exitCode: 0, stdout: out, stderr: "" };
-  } catch (err: any) {
-    return { exitCode: err.status, stdout: err.stdout || "", stderr: err.stderr || "" };
+  } catch (err) {
+    const e = err as { status?: number; stdout?: string; stderr?: string };
+    return { exitCode: e.status ?? 1, stdout: e.stdout || "", stderr: e.stderr || "" };
   }
 }
 

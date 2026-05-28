@@ -4,7 +4,8 @@
  *
  * The bundle is a snapshot an external reviewer can open offline to understand
  * exactly what is in the working tree, what changed, and prove the snapshot is
- * clean (no secrets, no local-only config, forward-slash paths only).
+ * clean (no secrets, no local-only config, forward-slash paths only) AND that
+ * the working tree was committed-clean at the time the bundle was generated.
  *
  * What it produces (into <outDir>, default ./audit-out):
  *   <stem>.zip              — the audit bundle
@@ -15,19 +16,25 @@
  *   AUDIT_MANIFEST.txt              — every bundled path + byte size
  *   AUDIT_TREE.txt                  — directory tree of the bundle
  *   AUDIT_REQUIRED_FILES_CHECK.txt  — PRESENT/MISSING per required path
- *   AUDIT_GIT_DIFF_UNSTAGED.patch   — `git diff`
- *   AUDIT_GIT_DIFF_STAGED.patch     — `git diff --cached`
- *   AUDIT_UNTRACKED_FILES.txt       — `git ls-files --others --exclude-standard`
+ *   AUDIT_GIT_DIFF_UNSTAGED.patch   — `git diff`             (MUST be empty)
+ *   AUDIT_GIT_DIFF_STAGED.patch     — `git diff --cached`    (MUST be empty)
+ *   AUDIT_UNTRACKED_FILES.txt       — `git ls-files --others --exclude-standard` (MUST be empty)
+ *   AUDIT_GIT_STATUS.txt            — `git status --porcelain` snapshot (MUST be empty)
  *
  * Guarantees enforced by the embedded validator (reflected in the JSON report):
+ *   - working tree is clean (no unstaged, staged, or untracked changes)
  *   - required files + required directories are present
  *   - banned files are absent (.env, .env.local, .claude/settings.local.json)
  *   - every entry uses forward slashes (no backslash paths)
  *   - the secret scanner passes over the working tree
  *
  * Usage:
- *   node scripts/create-audit-zip.mjs [outDir]
+ *   node scripts/create-audit-zip.mjs [outDir] [--allow-dirty]
  *   pnpm auditzip [outDir]
+ *
+ * Pass `--allow-dirty` ONLY for diagnostic snapshots — the produced JSON will
+ * report `treeClean: false` and `checksPass: false`, and the script will exit
+ * non-zero so callers cannot mistake a dirty snapshot for a final audit.
  *
  * Exit code is 0 only when the validation report's checksPass is true.
  */
@@ -45,7 +52,10 @@ import { createHash } from "crypto";
 import { execSync } from "child_process";
 
 const ROOT = process.cwd();
-const OUT_DIR = process.argv[2] ? process.argv[2] : join(ROOT, "audit-out");
+const RAW_ARGS = process.argv.slice(2);
+const ALLOW_DIRTY = RAW_ARGS.includes("--allow-dirty");
+const POSITIONAL = RAW_ARGS.filter((a) => !a.startsWith("--"));
+const OUT_DIR = POSITIONAL[0] ? POSITIONAL[0] : join(ROOT, "audit-out");
 
 // Directories never worth bundling (build output, deps, VCS internals).
 const EXCLUDE_DIRS = new Set([
@@ -74,6 +84,7 @@ const REQUIRED_FILES = [
   "AUDIT_GIT_DIFF_UNSTAGED.patch",
   "AUDIT_GIT_DIFF_STAGED.patch",
   "AUDIT_UNTRACKED_FILES.txt",
+  "AUDIT_GIT_STATUS.txt",
   ".env.example",
   ".env.test.example",
   ".claude/settings.example.json",
@@ -160,6 +171,21 @@ function renderTree(node, prefix = "") {
 function main() {
   if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });
 
+  // Hard precondition: a final audit bundle must come from a committed clean HEAD.
+  // Without this gate the ZIP can be sealed over uncommitted, unreviewable changes
+  // and still pass validation, which is exactly the trust hole the bundle is meant
+  // to close. Set --allow-dirty for diagnostic snapshots; that still produces a
+  // ZIP but marks the JSON as checksPass:false and exits non-zero.
+  const earlyStatus = safeGit("git status --porcelain");
+  if (!ALLOW_DIRTY && earlyStatus.trim() !== "") {
+    console.error("CREATE_AUDIT_ZIP_FAIL_DIRTY_TREE");
+    console.error("Working tree is not clean — commit or stash changes before generating a final audit ZIP.");
+    console.error("Offending entries (first 50):");
+    console.error(earlyStatus.split("\n").slice(0, 50).join("\n"));
+    console.error("Re-run with --allow-dirty for a diagnostic snapshot (will still fail validation).");
+    process.exit(2);
+  }
+
   const branch = gitShort("git rev-parse --abbrev-ref HEAD", "nobranch").replace(/[^\w.-]/g, "-");
   const commit = gitShort("git rev-parse --short HEAD", "nocommit");
   const fullCommit = gitShort("git rev-parse HEAD", "nocommit");
@@ -173,9 +199,20 @@ function main() {
   const bundledRels = files.map((f) => f.rel).sort();
 
   // --- Generated AUDIT_* manifests (added at the ZIP root) ---
+  // Tree-clean is a hard precondition for a final audit ZIP. We capture each
+  // signal explicitly so the validation JSON can prove cleanliness — a final
+  // bundle from a dirty HEAD is exactly the trust hole the audit is meant to close.
   const diffUnstaged = safeGit("git diff");
   const diffStaged = safeGit("git diff --cached");
   const untracked = safeGit("git ls-files --others --exclude-standard");
+  const porcelainStatus = safeGit("git status --porcelain");
+
+  const unstagedDiffEmpty = diffUnstaged.trim() === "";
+  const stagedDiffEmpty = diffStaged.trim() === "";
+  const untrackedFilesEmpty = untracked.trim() === "";
+  const porcelainEmpty = porcelainStatus.trim() === "";
+  const treeClean =
+    unstagedDiffEmpty && stagedDiffEmpty && untrackedFilesEmpty && porcelainEmpty;
 
   const allRelsForCheck = new Set([...bundledRels, ...REQUIRED_FILES]);
   const requiredCheckLines = [];
@@ -217,6 +254,7 @@ function main() {
     "AUDIT_GIT_DIFF_UNSTAGED.patch": diffUnstaged,
     "AUDIT_GIT_DIFF_STAGED.patch": diffStaged,
     "AUDIT_UNTRACKED_FILES.txt": untracked,
+    "AUDIT_GIT_STATUS.txt": porcelainStatus,
   };
 
   // --- Build the ZIP (addFile guarantees forward-slash entry names) ---
@@ -260,6 +298,10 @@ function main() {
     bannedFilesAbsent: bannedFound.length === 0,
     forwardSlashPathsOnly: backslashPaths.length === 0,
     secretScanPass,
+    treeClean,
+    unstagedDiffEmpty,
+    stagedDiffEmpty,
+    untrackedFilesEmpty,
   };
   const checksPass = Object.values(checks).every(Boolean);
 
@@ -271,6 +313,7 @@ function main() {
     sha256,
     fileCount: entries.length,
     bundledFileCount: files.length,
+    allowDirty: ALLOW_DIRTY,
     checks,
     checksPass,
     missingRequired,

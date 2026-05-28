@@ -1530,6 +1530,28 @@ rules:
     owner: engineering
     notes: check-correlation-id-boundary.mjs TODO
 
+  - id: PX-TEST-001
+    title: No placeholder or tautological assertions in tests
+    severity: P0
+    category: code-quality
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/governance/EXCEPTIONS_REGISTER.md
+    applies_to: [server, client, scripts]
+    forbidden_patterns:
+      - "expect(true).toBe(true)"
+      - "expect(false).toBe(false)"
+      - "expect(true).toBeTruthy()"
+      - "expect(1).toBe(1)"
+    required_patterns:
+      - "tests assert real observable behavior of the system under test"
+    enforced_by:
+      - scripts/check-placeholder-tests.mjs
+    evidence_required: gate log
+    status: active
+    owner: engineering
+    notes: Scaffold generators must not emit tautological placeholders; existing scaffolds assert real module structure
+
   - id: PX-SEED-001
     title: Dev and test seeds must be deterministic and PII-safe
     severity: P1

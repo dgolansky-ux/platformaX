@@ -1,77 +1,21 @@
 /**
- * identity — cross-domain contracts
+ * identity — cross-domain contracts.
  *
- * Stable contract types shared with other domains (social, content-v2, etc.).
- * Anything referenced here must be a type or a constant — not runtime
+ * Stable contract types shared with other domains (social, content-v2, …).
+ * The canonical definitions live in `@shared/contracts/identity` so the client
+ * sees the same shape without ever importing from `@server/*`. This file
+ * re-exports them so existing `from "./contracts"` imports inside the identity
+ * domain keep working without further indirection.
+ *
+ * Anything referenced here MUST be a type or a constant — never runtime
  * implementation. Implementation lives behind `public-api.ts`.
  */
-import type {
-  CivilStatus,
-  PersonalStatusVisibility,
-  ProfileVisibility,
-  SocialLinks,
-} from "./dto";
-
-/**
- * Stable identifier for an authenticated subject owned by identity.
- * Branded (PX-ID-001, ADR-012) — defined in `@shared/contracts/branded-ids`.
- */
-export type { UserId } from "@shared/contracts/branded-ids";
-
-/** Input accepted by the onboarding use-case. Mirrors the V2 onboarding shell. */
-export type CompleteOnboardingInput = {
-  firstName: string;
-  lastName: string;
-  /** ISO date string (YYYY-MM-DD). Private. */
-  dateOfBirth: string;
-  /** Owner-only contact field. Private. */
-  phone: string;
-  /** Optional avatar asset ref produced by the media domain. */
-  avatarMediaRef?: { assetId: string } | null;
-  /** Optional initial bio. */
-  bio?: string | null;
-};
-
-/** Input accepted by the private profile update use-case. */
-export type UpdatePrivateProfileInput = {
-  firstName?: string;
-  lastName?: string;
-  dateOfBirth?: string | null;
-  phone?: string | null;
-  avatarMediaRef?: { assetId: string } | null;
-  bannerMediaRef?: { assetId: string } | null;
-  bio?: string | null;
-  location?: string | null;
-  profileSlug?: string | null;
-  civilStatus?: CivilStatus | null;
-  socialLinks?: SocialLinks | null;
-  visibility?: ProfileVisibility;
-};
-
-/** Input accepted by `updatePersonalStatus`. `text` is required (a status exists or is cleared). */
-export type UpdatePersonalStatusInput = {
-  text: string;
-  emoji?: string | null;
-  description?: string | null;
-  visibility: PersonalStatusVisibility;
-  /** Optional status photo asset ref produced by the media domain. */
-  photoMediaRef?: { assetId: string } | null;
-};
-
-/** Discriminated result type for owner-gated identity use-cases. */
-export type IdentityResult<T> =
-  | { ok: true; value: T }
-  | { ok: false; error: IdentityError };
-
-export type IdentityErrorCode =
-  | "NOT_FOUND"
-  | "FORBIDDEN"
-  | "INVALID_INPUT"
-  | "ALREADY_COMPLETED";
-
-export type IdentityError = {
-  code: IdentityErrorCode;
-  message: string;
-  /** Optional field-level validation map. Safe for UI display. */
-  fields?: Record<string, string>;
-};
+export type {
+  UserId,
+  CompleteOnboardingInput,
+  UpdatePrivateProfileInput,
+  UpdatePersonalStatusInput,
+  IdentityResult,
+  IdentityError,
+  IdentityErrorCode,
+} from "@shared/contracts/identity";

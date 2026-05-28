@@ -1,8 +1,12 @@
-# application-v2/profile
+# application-v2/use-cases/profile
 
 Status: `PARTIAL`
 Owner: @dgolansky-ux
 Type: APPLICATION_LAYER
+
+> Canonical location per ADR-010 / PX-APP-001 — flows touching 2+ domains live
+> under `server/application-v2/use-cases/<flow>/`. Identity + media composition
+> for the profile view lives here, never inside an identity or media service.
 
 ## Purpose
 
@@ -43,9 +47,9 @@ code-set and composes media URL refs into the profile view.
 
 ## Canonical governance
 
-- [Rules Registry](../../../docs/governance/RULES_REGISTRY.yml)
-- [Governance Index](../../../docs/governance/GOVERNANCE_INDEX.md)
-- [Domain Status Registry](../../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
-- [Status Taxonomy](../../../docs/governance/STATUS_TAXONOMY.md)
+- [Rules Registry](../../../../docs/governance/RULES_REGISTRY.yml)
+- [Governance Index](../../../../docs/governance/GOVERNANCE_INDEX.md)
+- [Domain Status Registry](../../../../docs/governance/DOMAIN_STATUS_REGISTRY.yml)
+- [Status Taxonomy](../../../../docs/governance/STATUS_TAXONOMY.md)
 
 Local exceptions: none

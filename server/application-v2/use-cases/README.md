@@ -11,12 +11,11 @@ service.
 
 ## Active use-cases
 
-- `profile.ts` — composes the **identity** and **media** domains into the
-  profile view (owner + public). Canonical entry point for the frontend feature
-  adapter wiring (`@shared/wiring/profile-wiring`) and a future HTTP controller.
-  The implementation currently lives in `../profile/` (service/dto/errors) and is
-  re-exported here per ADR-010's incremental migration path; `../profile/` will
-  fold into this file as the move completes.
+- `profile/` — composes the **identity** and **media** domains into the
+  profile view (owner + public). Canonical implementation under this directory
+  (`service.ts`, `dto.ts`, `errors.ts`, `public-api.ts`, `__tests__/`). The
+  frontend feature adapter depends only on `@shared/contracts/profile`; a
+  future HTTP controller will mount on top of `./profile/public-api`.
 
 ## Note
 

@@ -45,7 +45,7 @@ a persisted profile.
 - `updatePrivateProfile(userId, input)` — owner-only; partial update across the personal-profile core fields (bio, location, profileSlug, civilStatus, socialLinks, visibility, name, phone, dateOfBirth, avatar/banner ref).
 - `updatePersonalStatus(userId, input)` — owner-only; sets the typed personal status (text, emoji, description, visibility, photo ref).
 - `clearPersonalStatus(userId)` — owner-only; removes the active status block in one call.
-- `attachAvatarMediaRef`, `attachBannerMediaRef`, `attachStatusPhotoMediaRef(userId, mediaAssetId)` — thin setters for the media refs. Media-asset ownership/purpose/ready validation is performed one layer up by `application-v2/profile`, which calls `media.verifyProfileAssetForAttach` before invoking these methods.
+- `attachAvatarMediaRef`, `attachBannerMediaRef`, `attachStatusPhotoMediaRef(userId, mediaAssetId)` — thin setters for the media refs. Media-asset ownership/purpose/ready validation is performed one layer up by `application-v2/use-cases/profile`, which calls `media.verifyProfileAssetForAttach` before invoking these methods.
 - `getPublicProfile(viewerId, profileUserId)` — visibility-gated; returns PII-free `PublicProfileDTO`. The mapper additionally filters the personal status by `statusVisibility` + viewer role (friends-only stays hidden from strangers, private stays owner-only).
 
 ## PII policy
@@ -60,6 +60,8 @@ a persisted profile.
 - No real media storage runtime — `MEDIA_UPLOAD_NOT_STARTED`. Identity stores only `MediaAssetRef` for avatar / banner / status photo.
 - `friends_only` status visibility relies on the `friend` viewer role; the social graph runtime does not exist yet, so no viewer resolves to "friend" and friends-only status correctly stays hidden from strangers (`FRIENDS_RUNTIME_NOT_CONNECTED`).
 - Admin role is a policy placeholder; no runtime path.
+- Outbox / idempotency: events now leave the domain wrapped in `EventEnvelope` (PX-EVENT-001) and each envelope carries an `idempotencyKey` (PX-IDEMP-001), but there is **no transactional outbox table yet** — publishing is in-process via the injected `publish` callback. Status: `OUTBOX_NOT_IMPLEMENTED` / `IDEMPOTENCY_KEY_ON_ENVELOPE_ONLY`.
+- Branded IDs (`UserId`): the brand is intentionally optional (ADR-012, incremental migration) — `UserId` is declared in `@shared/contracts/branded-ids` and used as a documentation marker, but service signatures still accept raw `string`. Status: `BRANDED_IDS_OPTIONAL_BRAND_ONLY`.
 
 ## Canonical governance
 

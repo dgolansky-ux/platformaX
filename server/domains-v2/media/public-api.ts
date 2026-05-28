@@ -7,10 +7,11 @@
  *
  * The in-memory repository and env-required storage *implementation factories*
  * (`createInMemoryMediaRepository`, `createEnvRequiredStoragePort`) are
- * intentionally NOT public — composition imports them from `./repository`
- * directly (see `@shared/wiring`). Port interfaces are re-exported via `./ports`,
- * limits via `./limits`. Internal modules (mapper, internal/record,
- * internal/validation impl details) stay unexposed.
+ * intentionally NOT public — server-side composition (today: tests; future:
+ * an HTTP/Supabase wiring under `server/`) imports them from `./repository`
+ * directly. Port interfaces are re-exported via `./ports`, limits via `./limits`.
+ * Internal modules (mapper, internal/record, internal/validation impl details)
+ * stay unexposed.
  */
 export { createMediaService } from "./service";
 export type {
@@ -60,4 +61,5 @@ export type {
   MediaEvent,
   MediaUploadIntentCreatedEvent,
   MediaUploadConfirmedEvent,
+  MediaEventEnvelope,
 } from "./events";

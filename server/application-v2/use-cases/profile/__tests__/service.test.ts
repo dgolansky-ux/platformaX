@@ -1,5 +1,5 @@
 /**
- * application-v2/profile — service tests
+ * application-v2/use-cases/profile — service tests
  *
  * Verifies the composition behavior (identity + media), the safe error mapping
  * and PII discipline of the composed view DTOs. The service is exercised

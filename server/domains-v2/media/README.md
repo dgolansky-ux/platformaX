@@ -23,6 +23,17 @@ Missing (not in this slice): a connected storage backend
 (`STORAGE_ADAPTER_ENV_REQUIRED`), real presigned upload (`LIVE_UPLOAD_NOT_STARTED`),
 image processing/CDN, feed/chat media.
 
+Events / outbox / idempotency: events now leave the domain wrapped in
+`EventEnvelope` (PX-EVENT-001) and each envelope carries an `idempotencyKey`
+(PX-IDEMP-001), but there is **no transactional outbox table yet** — publishing
+is in-process via the injected `publish` callback. Status:
+`OUTBOX_NOT_IMPLEMENTED` / `IDEMPOTENCY_KEY_ON_ENVELOPE_ONLY`.
+
+DB constraint alignment: `supabase/migrations/0004_media_assets_status_photo.sql`
+extends the original `purpose` CHECK enum to include `statusPhoto`, matching the
+runtime; without this the original 0002 migration would have rejected status
+photo writes at the DB boundary once persistence is wired.
+
 ## Owns
 - Media assets metadata
 - Upload intents / validation

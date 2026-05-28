@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createIdentityService,
-  type IdentityEvent,
+  type IdentityEventEnvelope,
   type IdentityService,
 } from "../public-api";
 import { createInMemoryIdentityProfileRepository } from "../repository";
@@ -10,7 +10,7 @@ const OWNER = "user-1";
 const STRANGER = "user-2";
 const NOW = "2026-05-25T12:00:00.000Z";
 
-function buildService(events: IdentityEvent[] = []) {
+function buildService(events: IdentityEventEnvelope[] = []) {
   const repository = createInMemoryIdentityProfileRepository();
   const service: IdentityService = createIdentityService({
     repository,
@@ -21,7 +21,7 @@ function buildService(events: IdentityEvent[] = []) {
 }
 
 describe("identity service — completeOnboarding", () => {
-  let captured: IdentityEvent[];
+  let captured: IdentityEventEnvelope[];
   let service: IdentityService;
 
   beforeEach(() => {
@@ -125,7 +125,7 @@ describe("identity service — getMyProfile / updatePrivateProfile", () => {
   });
 
   it("updatePrivateProfile patches owner fields and emits a public-summary event", async () => {
-    const events: IdentityEvent[] = [];
+    const events: IdentityEventEnvelope[] = [];
     const { service } = buildService(events);
     await service.completeOnboarding(OWNER, {
       firstName: "Anna",

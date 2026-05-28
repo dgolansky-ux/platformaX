@@ -7,11 +7,12 @@
  *             port interface, viewer-role policy enum
  *
  * The in-memory repository *implementation* (`createInMemoryIdentityProfileRepository`)
- * is intentionally NOT public — composition imports it from `./repository`
- * directly (see `@shared/wiring`). The repository *port interface* is re-exported
- * via `./ports`; owner-only return types via `./private-dto`; validation limits
- * via `./limits`. None of these are `./internal/*` paths, so the boundary guard
- * stays satisfied while internal modules remain the single source of truth.
+ * is intentionally NOT public — server-side composition (today: tests; future:
+ * an HTTP/Supabase wiring under `server/`) imports it from `./repository`
+ * directly. The repository *port interface* is re-exported via `./ports`;
+ * owner-only return types via `./private-dto`; validation limits via `./limits`.
+ * None of these are `./internal/*` paths, so the boundary guard stays satisfied
+ * while internal modules remain the single source of truth.
  */
 export { createIdentityService } from "./service";
 export type {
@@ -65,4 +66,5 @@ export type {
   IdentityEvent,
   OnboardingCompletedEvent,
   ProfilePublicSummaryChangedEvent,
+  IdentityEventEnvelope,
 } from "./events";

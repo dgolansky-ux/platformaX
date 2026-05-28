@@ -431,3 +431,36 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+
+  # === TEST QUALITY GUARDS ===
+
+  - id: GUARD-048
+    command: node scripts/check-placeholder-tests.mjs
+    file: scripts/check-placeholder-tests.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-TEST-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  # === EXCEPTION DISCIPLINE GUARDS ===
+
+  - id: GUARD-049
+    command: node scripts/check-inline-exceptions-registered.mjs
+    file: scripts/check-inline-exceptions-registered.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-EXC-001, PX-EXC-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  # === TYPE-SAFETY GUARDS ===
+
+  - id: GUARD-050
+    command: node scripts/check-no-any-types.mjs
+    file: scripts/check-no-any-types.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CODE-003]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active

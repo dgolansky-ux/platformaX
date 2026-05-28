@@ -190,9 +190,9 @@ describe("domain-boundaries: client must not import @server/*", () => {
     expect(clientFileImportsServer(rel, content)).toBe(false);
   });
 
-  it("allows @shared/* imports in client production files", () => {
+  it("allows @shared/contracts/* type imports in client production files", () => {
     const rel = "client/src/features-v2/identity/profile/profile-adapter.ts";
-    const content = `export { profileAdapter } from "@shared/wiring/profile-wiring";`;
+    const content = `import type { OnboardingProfileAdapter } from "@shared/contracts/profile";`;
     expect(clientFileImportsServer(rel, content)).toBe(false);
   });
 
@@ -200,5 +200,77 @@ describe("domain-boundaries: client must not import @server/*", () => {
     const rel = "client/src/features-v2/media/index.ts";
     const content = `/* no @server/* imports exist anywhere in client */\nexport {} from "./types";`;
     expect(clientFileImportsServer(rel, content)).toBe(false);
+  });
+});
+
+// Mirrors checkSharedNoServerImports in scripts/audit-domain-boundaries.mjs.
+function sharedFileImportsServer(rel: string, content: string): boolean {
+  if (!rel.startsWith("shared/")) return false;
+  if (
+    rel.includes("__tests__/") ||
+    rel.endsWith(".test.ts") ||
+    rel.endsWith(".test.tsx")
+  ) {
+    return false;
+  }
+  return (
+    /from\s+["']@server\//.test(content) ||
+    /import\(\s*["']@server\//.test(content)
+  );
+}
+
+describe("domain-boundaries: shared/** must not import @server/*", () => {
+  it("flags a static @server/* import in a shared contract file", () => {
+    const rel = "shared/contracts/profile.ts";
+    const content = `import type { ProfileApplicationService } from "@server/application-v2/use-cases/profile/public-api";`;
+    expect(sharedFileImportsServer(rel, content)).toBe(true);
+  });
+
+  it("flags a dynamic @server/* import in a shared wiring-like file", () => {
+    const rel = "shared/wiring/legacy.ts";
+    const content = `const m = await import("@server/domains-v2/identity/service");`;
+    expect(sharedFileImportsServer(rel, content)).toBe(true);
+  });
+
+  it("allows @server/* import in a shared test file", () => {
+    const rel = "shared/contracts/__tests__/profile.test.ts";
+    const content = `import { createIdentityService } from "@server/domains-v2/identity/public-api";`;
+    expect(sharedFileImportsServer(rel, content)).toBe(false);
+  });
+});
+
+// Mirrors the new @shared/wiring branch in checkClientServerBoundary.
+function clientFileImportsSharedWiring(rel: string, content: string): boolean {
+  if (!rel.startsWith("client/")) return false;
+  if (
+    rel.includes("__tests__/") ||
+    rel.endsWith(".test.ts") ||
+    rel.endsWith(".test.tsx")
+  ) {
+    return false;
+  }
+  return (
+    /from\s+["']@shared\/wiring\//.test(content) ||
+    /import\(\s*["']@shared\/wiring\//.test(content)
+  );
+}
+
+describe("domain-boundaries: client must not import @shared/wiring/*", () => {
+  it("flags a static @shared/wiring/* import in a client production file", () => {
+    const rel = "client/src/features-v2/identity/profile/profile-adapter.ts";
+    const content = `import { profileAdapter } from "@shared/wiring/profile-wiring";`;
+    expect(clientFileImportsSharedWiring(rel, content)).toBe(true);
+  });
+
+  it("flags a dynamic @shared/wiring/* import in a client production file", () => {
+    const rel = "client/src/features-v2/media/loader.ts";
+    const content = `const m = await import("@shared/wiring/media-wiring");`;
+    expect(clientFileImportsSharedWiring(rel, content)).toBe(true);
+  });
+
+  it("allows @shared/contracts/* imports in client production files", () => {
+    const rel = "client/src/features-v2/identity/profile/profile-adapter.ts";
+    const content = `import type { OnboardingProfileAdapter } from "@shared/contracts/profile";`;
+    expect(clientFileImportsSharedWiring(rel, content)).toBe(false);
   });
 });

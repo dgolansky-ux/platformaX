@@ -9,7 +9,6 @@ import type {
   CompleteOnboardingInput,
   IdentityResult,
 } from "../contracts";
-import type { IdentityEvent } from "../events";
 import type { PrivateProfileDTO } from "./private-profile-dto";
 import type { PrivateProfileRecord } from "./record";
 import { canCompleteOnboarding } from "../policy";
@@ -19,10 +18,11 @@ import type {
   CreateProfileRecordInput,
   IdentityProfileRepository,
 } from "../repository";
+import { wrapIdentityEvent, type IdentityEventEnvelope } from "./envelope";
 
 export type OnboardingHooks = {
   clock: () => string;
-  publish: (event: IdentityEvent) => void;
+  publish: (envelope: IdentityEventEnvelope) => void;
 };
 
 function errInvalid(fields: Record<string, string>): IdentityResult<PrivateProfileDTO> {
@@ -84,7 +84,15 @@ export async function completeOnboardingFlow(
   const record: PrivateProfileRecord = existing
     ? ((await repo.update(userId, payload, now)) as PrivateProfileRecord)
     : await repo.create(payload, now);
-  hooks.publish({ type: "identity.onboarding.completed", userId, at: now });
-  hooks.publish({ type: "identity.profile.public_summary_changed", userId, at: now });
+  hooks.publish(
+    wrapIdentityEvent({ type: "identity.onboarding.completed", userId, at: now }),
+  );
+  hooks.publish(
+    wrapIdentityEvent({
+      type: "identity.profile.public_summary_changed",
+      userId,
+      at: now,
+    }),
+  );
   return { ok: true, value: toPrivateProfileDTO(record) };
 }

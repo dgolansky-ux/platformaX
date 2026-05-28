@@ -1,5 +1,5 @@
 /**
- * application-v2/profile — public API surface
+ * application-v2/use-cases/profile — public API surface
  *
  * The only entry point the frontend feature adapter (or a future HTTP
  * controller) may depend on. Exposes the service factory plus the view DTOs

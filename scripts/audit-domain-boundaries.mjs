@@ -7,6 +7,7 @@ const SCAN_DIRS = [
   "server/domains-v2",
   "client/src/features-v2",
   "client/src/app-v2",
+  "shared",
 ];
 
 const CROSS_DOMAIN_BLOCKED = [
@@ -113,9 +114,11 @@ function checkPublicApiExportsInternals(fp, rel, content) {
 }
 
 function checkClientServerBoundary(fp, rel, content) {
-  // Frontend production code must never import the server runtime directly.
-  // It depends on `@shared/contracts/*` (type-only) and `@shared/wiring/*`
-  // (the single composition point that is allowed to touch `@server/*`).
+  // Frontend production code must never reach the server runtime — neither
+  // directly (`@server/*`) nor transitively through `@shared/wiring/*`. The
+  // wiring module was deleted exactly because that path bundled server code
+  // into the client; depending only on `@shared/contracts/*` (type-only) keeps
+  // the boundary honest.
   if (!rel.startsWith("client/")) return;
   if (
     rel.includes("__tests__/") ||
@@ -126,7 +129,35 @@ function checkClientServerBoundary(fp, rel, content) {
   }
   if (/from\s+["']@server\//.test(content) || /import\(\s*["']@server\//.test(content)) {
     console.error(
-      `BOUNDARY_VIOLATION: client production file imports @server/* in ${rel} — use @shared/contracts/ (types) or @shared/wiring/ instead`,
+      `BOUNDARY_VIOLATION: client production file imports @server/* in ${rel} — use @shared/contracts/* (types only)`,
+    );
+    violations++;
+  }
+  if (/from\s+["']@shared\/wiring\//.test(content) || /import\(\s*["']@shared\/wiring\//.test(content)) {
+    console.error(
+      `BOUNDARY_VIOLATION: client production file imports @shared/wiring/* in ${rel} — that path was removed because it pulled @server/* into the client bundle; use @shared/contracts/* and a local mock/HTTP adapter`,
+    );
+    violations++;
+  }
+}
+
+function checkSharedNoServerImports(fp, rel, content) {
+  // Anything under `shared/**` is reachable from the client bundle graph. A
+  // single `@server/*` import there is exactly the transitive bypass the wiring
+  // module used to be (`client -> @shared/wiring -> @server`). Tests under
+  // `shared/**/__tests__` are still allowed to compose concrete server
+  // implementations to verify the contract end-to-end.
+  if (!rel.startsWith("shared/")) return;
+  if (
+    rel.includes("__tests__/") ||
+    rel.endsWith(".test.ts") ||
+    rel.endsWith(".test.tsx")
+  ) {
+    return;
+  }
+  if (/from\s+["']@server\//.test(content) || /import\(\s*["']@server\//.test(content)) {
+    console.error(
+      `BOUNDARY_VIOLATION: shared production file imports @server/* in ${rel} — shared modules are reachable from the client bundle; keep server runtime out of the shared graph`,
     );
     violations++;
   }
@@ -193,6 +224,7 @@ for (const scanDir of SCAN_DIRS) {
 
     checkPublicApiExportsInternals(fp, rel, content);
     checkClientServerBoundary(fp, rel, content);
+    checkSharedNoServerImports(fp, rel, content);
     checkSharedUiDomainImports(fp, rel, content);
     checkAppV2BackendInternals(fp, rel, content);
     checkFeatureCrossDomainInternals(fp, rel, content);

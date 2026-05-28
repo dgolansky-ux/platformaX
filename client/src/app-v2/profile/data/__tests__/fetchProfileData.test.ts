@@ -2,7 +2,7 @@
  * Tests the auth-gated state machine in `fetchProfileDataOnce` against a fully
  * faked profile adapter that satisfies the application-boundary contract. The
  * real composition of identity + media (and the cross-domain wiring) is
- * exercised by `server/application-v2/profile/__tests__/service.test.ts` and
+ * exercised by `server/application-v2/use-cases/profile/__tests__/service.test.ts` and
  * `client/src/features-v2/identity/profile/__tests__/profile-adapter.test.ts`,
  * so app-v2 tests stay free of backend imports (`PX-ARCH-006`).
  */

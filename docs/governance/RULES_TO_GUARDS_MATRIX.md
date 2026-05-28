@@ -41,7 +41,7 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-ARCH-009 | Import graph matches domain ownership | DOMAIN_OWNERSHIP_MATRIX | check-architecture-import-graph | NO | — |
 | PX-CODE-001 | No functions over 80 lines | coding-standards | check-file-complexity, check-code-quality-structure, check-file-size-limits | NO | — |
 | PX-CODE-002 | No components over 140 lines | coding-standards | check-file-complexity, check-code-quality-structure, check-file-size-limits | NO | — |
-| PX-CODE-003 | No as any without exception | coding-standards | check-code-quality-structure | NO | — |
+| PX-CODE-003 | No as any without exception | coding-standards | check-no-any-types, check-code-quality-structure | NO | — |
 | PX-CODE-004 | No transition all in CSS | coding-standards | check-frontend-performance-patterns | NO | — |
 | PX-RUNTIME-001 | PARTIAL requires runtime evidence | domain-status §6 | check-runtime-readiness-status | NO | — |
 | PX-RUNTIME-002 | IMPLEMENTED requires full evidence | domain-status §6 | check-runtime-readiness-status | NO | — |
@@ -52,8 +52,8 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-ADR-001 | Arch changes require ADR decision | execution-map | check-adr-required | NO | — |
 | PX-OBS-001 | No unsafe console logging in runtime | coding-standards §17 | check-observability-logging | NO | — |
 | PX-OBS-002 | No PII in logs/errors/audit | coding-standards §17 | check-observability-logging, check-logging-pii-security | NO | — |
-| PX-EXC-001 | Exceptions require full metadata | EXCEPTIONS_REGISTER | check-exception-expiry | NO | — |
-| PX-EXC-002 | Expired exceptions fail gates | EXCEPTIONS_REGISTER | check-exception-expiry | NO | — |
+| PX-EXC-001 | Exceptions require full metadata | EXCEPTIONS_REGISTER | check-exception-expiry, check-inline-exceptions-registered | NO | — |
+| PX-EXC-002 | Expired exceptions fail gates | EXCEPTIONS_REGISTER | check-exception-expiry, check-inline-exceptions-registered | NO | — |
 | PX-DTO-001 | Public DTO privacy classification | architecture-enforcement §8 | check-dto-privacy-classification | NO | — |
 | PX-SCALE-001 | No sync fanout in request path | coding-standards §22 | check-scalability-hot-paths | NO | — |
 | PX-SCALE-002 | No unbounded hot-path loops | coding-standards §22 | check-scalability-hot-paths | NO | — |
@@ -85,11 +85,12 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-UI-002 | Presentational/container | coding-standards | manual_gate | YES | TODO_GUARD: presentational boundary |
 | PX-OBS-003 | Correlation ID | active-rules §10 | manual_gate | YES | TODO_GUARD: check-correlation-id-boundary |
 | PX-SEED-001 | Deterministic PII-safe seeds | active-rules §10 | check-test-env-safety, manual_gate | PARTIAL | TODO_GUARD: check-deterministic-seeds |
+| PX-TEST-001 | No placeholder/tautological tests | coding-standards | check-placeholder-tests | NO | — |
 
 ## Summary
 
-- **Total rules:** 73
-- **Fully automated (manual-gate column = NO):** 46
+- **Total rules:** 74
+- **Fully automated (manual-gate column = NO):** 47
 - **Manual gate only (YES):** 22
 - **Partial automation (PARTIAL):** 5
 - **Documented governance gaps (TODO_GUARD):** 11 — see rows marked TODO_GUARD; P0 rules retain manual_gate until guards land
