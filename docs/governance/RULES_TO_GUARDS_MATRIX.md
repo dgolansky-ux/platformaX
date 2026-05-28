@@ -41,8 +41,8 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-ARCH-009 | Import graph matches domain ownership | DOMAIN_OWNERSHIP_MATRIX | check-architecture-import-graph | NO | — |
 | PX-CODE-001 | No functions over 80 lines | coding-standards | check-file-complexity, check-code-quality-structure, check-file-size-limits | NO | — |
 | PX-CODE-002 | No components over 140 lines | coding-standards | check-file-complexity, check-code-quality-structure, check-file-size-limits | NO | — |
-| PX-CODE-003 | No as any without exception | coding-standards | check-no-any-types, check-code-quality-structure | NO | — |
-| PX-CODE-004 | No transition all in CSS | coding-standards | check-frontend-performance-patterns | NO | — |
+| PX-CODE-003 | No unsafe any or ts-ignore without registered exception | coding-standards, EXCEPTIONS_REGISTER | check-no-any-types, check-code-quality-structure, check-inline-exceptions-registered | NO | — |
+| PX-CODE-004 | Frontend performance and list/render hygiene | coding-standards | check-frontend-performance-patterns | NO | — |
 | PX-RUNTIME-001 | PARTIAL requires runtime evidence | domain-status §6 | check-runtime-readiness-status | NO | — |
 | PX-RUNTIME-002 | IMPLEMENTED requires full evidence | domain-status §6 | check-runtime-readiness-status | NO | — |
 | PX-DB-001 | No live db push without decision | AI_FORBIDDEN_ACTIONS | check-migration-safety, manual_gate | NO | — |
@@ -89,18 +89,45 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 
 ## Summary
 
+Counts are derived directly from the table above and verified by
+`scripts/check-rules-to-guards-coverage.mjs` — if a row's `Gap?` column
+changes, this summary must be updated in the same commit.
+
 - **Total rules:** 74
-- **Fully automated (manual-gate column = NO):** 47
-- **Manual gate only (YES):** 22
-- **Partial automation (PARTIAL):** 5
-- **Documented governance gaps (TODO_GUARD):** 11 — see rows marked TODO_GUARD; P0 rules retain manual_gate until guards land
+- **Fully automated (Gap? = NO):** 47
+- **Manual gate only (Gap? = YES):** 22
+- **Partial automation (Gap? = PARTIAL):** 5
+- **Documented governance gaps (TODO_GUARD markers in last column):** 11 — these rows stay manual or partial until the planned guard ships; counted within the 22 manual-only or 5 partial rows above.
 
 ## Gap Analysis
 
-The 4 gaps are inherently non-automatable:
-1. **PX-PROFILE-001**: Visual parity requires screenshots — no code can verify pixel match.
-2. **PX-PROFILE-002**: Domain structure review — partially coverable by domain-scaffold but needs human judgment.
-3. **PX-AI-001**: Agent reading docs — agent self-reports in baseline section.
-4. **PX-AI-003**: Agent stopping when blocked — agent must demonstrate honest behavior.
+The 22 manual-only and 5 partial rows split into three real categories — they
+are **not** a single "few inherently non-automatable items" set:
 
-These are appropriately covered by `manual_gate` and report requirements.
+1. **Inherently non-automatable (manual only, no planned guard) — 4 rules:**
+   - `PX-PROFILE-001` — visual parity requires screenshots; no code can verify pixel match.
+   - `PX-PROFILE-002` — domain structure review; partially coverable by `check-domain-scaffold.mjs` but needs human judgment.
+   - `PX-AI-001` — agent self-reports docs read in baseline section.
+   - `PX-AI-003` — agent must demonstrate honest BLOCKED behavior.
+
+2. **Planned automation (TODO_GUARD, not yet shipped) — 11 rules:**
+   See the rows whose `Required Improvement` column starts with `TODO_GUARD:`
+   (e.g. `PX-ID-001` branded IDs, `PX-EVENT-001/002` outbox envelope,
+   `PX-IDEMP-001`/`PX-IDEMPOTENCY-001` idempotency, `PX-APP-001`
+   application use-cases boundary, `PX-POLICY-001` pure policy functions,
+   `PX-OBS-003` correlation ID, `PX-UI-002` presentational boundary,
+   `PX-OWN-001`, `PX-SEED-001`, `PX-CONTRACT-001`). P0 rules in this
+   bucket retain `manual_gate` until the dedicated guard ships.
+
+3. **Manual review (judgment-bound, no scripted check planned yet) — the
+   remainder:** policy- or context-heavy rules where a guard would either
+   need semantic reasoning (e.g. `PX-OWN-002` viewerContext,
+   `PX-VIS-001` visibility matrix, `PX-CTX-001` context refs,
+   `PX-READMODEL-001` single read-model owner, `PX-MEDIA-004` attach
+   policy, `PX-LC-001`/`PX-LIFECYCLE-001` lifecycle status,
+   `PX-ERROR-001` typed Result boundary, `PX-UI-001` design tokens).
+   These are gated by required step-report sections and policy/contract
+   tests rather than a standalone guard script.
+
+Partial rules carry SOME automated coverage already and rely on a guard
+ship to graduate to fully automated (see the rows marked PARTIAL above).

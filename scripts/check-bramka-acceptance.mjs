@@ -122,11 +122,17 @@ check(17, "PR template contains Architecture Impact Statement", () =>
   fileContains(".github/pull_request_template.md", "Architecture Impact"),
 );
 
-check(18, "GitHub CI runs required gates", () =>
-  fileExists(".github/workflows/v2-gates.yml") &&
-  fileContains(".github/workflows/v2-gates.yml", "rules:check") &&
-  fileContains(".github/workflows/v2-gates.yml", "guards:secrets"),
-);
+check(18, "GitHub CI runs required gates", () => {
+  if (!fileExists(".github/workflows/v2-gates.yml")) return false;
+  // Either the workflow runs the `guards:all-local` umbrella (preferred —
+  // covers every guard marked runs_in: ci in one place, verified by
+  // check-guards-registry.mjs) or it still calls the older granular steps.
+  const hasUmbrella = fileContains(".github/workflows/v2-gates.yml", "guards:all-local");
+  const hasGranular =
+    fileContains(".github/workflows/v2-gates.yml", "rules:check") &&
+    fileContains(".github/workflows/v2-gates.yml", "guards:secrets");
+  return hasUmbrella || hasGranular;
+});
 
 check(19, "main has branch protection/ruleset", () => {
   return fileContains(".github/workflows/v2-gates.yml", "pull_request");

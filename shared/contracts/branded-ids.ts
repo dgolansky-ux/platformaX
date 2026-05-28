@@ -6,11 +6,23 @@
  * no compiler help. These branded aliases give nominal typing so the wrong id
  * is at least visible at call sites that opt in.
  *
+ * STATUS: `BRANDED_IDS_OPTIONAL_BRAND_ONLY` — PARTIAL_NOT_ENFORCED.
+ *
  * The brand is intentionally OPTIONAL so existing `string` call sites keep
- * compiling during the incremental migration — a plain string remains assignable
- * to a branded id and vice versa. Use the `toX` constructors at trust boundaries
- * (auth layer, repository reads, test factories) to document where a raw string
- * becomes a typed id.
+ * compiling during the incremental migration: a plain string is assignable to
+ * a branded id and vice versa. That means TypeScript will NOT today reject a
+ * `MediaAssetId` passed where a `UserId` is expected — these aliases are
+ * documentation, not enforcement. PX-ID-001 is therefore listed as a manual
+ * gate (`YES` in RULES_TO_GUARDS_MATRIX.md, with `TODO_GUARD:
+ * check-branded-id-types.mjs`) and MUST NOT be reported as fully satisfied.
+ *
+ * Use the `toX` constructors at trust boundaries (auth layer, repository
+ * reads, test factories) to document where a raw string becomes a typed id.
+ *
+ * TODO (before the first real transport/persistence adapter ships): flip the
+ * brand to non-optional, change active identity/media/application service
+ * signatures to accept `UserId` / `MediaAssetId`, and replace `manual_gate`
+ * with `scripts/check-branded-id-types.mjs` enforcement.
  */
 declare const __brand: unique symbol;
 

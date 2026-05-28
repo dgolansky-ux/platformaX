@@ -272,39 +272,62 @@ rules:
     notes: null
 
   - id: PX-CODE-003
-    title: No as any without exception block
+    title: No unsafe any or ts-ignore without registered exception
     severity: P1
     category: code-quality
     source_docs:
       - docs/architecture/PlatformaX-V2-coding-standards.md
-    applies_to: [server, client]
+      - docs/governance/EXCEPTIONS_REGISTER.md
+    applies_to: [server, client, shared]
     forbidden_patterns:
-      - "as any without PLATFORMAX_EXCEPTION block"
-    required_patterns: []
+      - "as any"
+      - ": any (type annotation)"
+      - "Record<string, any> or any other <..., any> generic"
+      - "generic <any> parameter"
+      - "catch (err: any)"
+      - "@ts-ignore"
+      - "@ts-expect-error without justification (<8 chars)"
+    required_patterns:
+      - "real types or `unknown` plus narrowing"
+      - "files needing escape hatches listed in EXCEPTIONS_REGISTER.md under PX-CODE-003"
     enforced_by:
+      - scripts/check-no-any-types.mjs
       - scripts/check-code-quality-structure.mjs
+      - scripts/check-inline-exceptions-registered.mjs
     evidence_required: gate log
     status: active
     owner: engineering
-    notes: null
+    notes: Inline PLATFORMAX_EXCEPTION block alone is NOT enough; the file must be listed in EXCEPTIONS_REGISTER.md under PX-CODE-003.
 
   - id: PX-CODE-004
-    title: No transition all in CSS
-    severity: P2
+    title: Frontend performance and list/render hygiene
+    severity: P1
     category: code-quality
     source_docs:
       - docs/architecture/PlatformaX-V2-coding-standards.md
-    applies_to: [client/CSS]
+    applies_to: [client/src/app-v2, client/src/features-v2, client/CSS]
     forbidden_patterns:
       - "transition: all"
+      - "key={index} or key={idx} in .map render"
+      - "list .map render without key prop"
+      - "addEventListener inside useEffect without removeEventListener cleanup"
+      - "setInterval inside useEffect without clearInterval cleanup"
+      - "setTimeout inside useEffect without clearTimeout cleanup"
+      - "large inline fixture array (>20 lines) inside component file"
+      - "<img> in list/card/feed/grid context without loading attribute"
     required_patterns:
-      - "specific transition properties"
+      - "specific transition properties (no `transition: all`)"
+      - "prefers-reduced-motion media query when animations/transitions are used"
+      - "stable unique key on every list .map render"
+      - "paired cleanup for every effect-registered listener/timer"
+      - "fixtures extracted out of component files"
+      - "loading='lazy' on images rendered inside list/card/feed/grid surfaces"
     enforced_by:
       - scripts/check-frontend-performance-patterns.mjs
     evidence_required: gate log
     status: active
     owner: engineering
-    notes: null
+    notes: Broadened from "No transition all in CSS" to match the actual guard surface (covers list hygiene, effect cleanup, fixture placement, lazy images, and motion accessibility).
 
   # === STATUS / EVIDENCE RULES ===
 

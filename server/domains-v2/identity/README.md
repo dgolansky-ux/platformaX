@@ -29,9 +29,10 @@ a persisted profile.
 - Professional layer runtime (still UI-shell)
 
 ## Public surface
-- `public-api.ts` — `createIdentityService`, `createInMemoryIdentityProfileRepository`, public DTOs, contracts, events, policy predicates, validation limits.
-- `contracts.ts` — `UserId`, `CompleteOnboardingInput`, `UpdatePrivateProfileInput`, `IdentityResult`, `IdentityError`.
-- `events.ts` — `OnboardingCompletedEvent`, `ProfilePublicSummaryChangedEvent`.
+- `public-api.ts` — `createIdentityService` (service factory), `PublicProfileDTO` / `PrivateProfileDTO` (the owner-only `PrivateProfileDTO` is re-exported from `./private-dto`, not `./internal`), contracts, events, policy predicates (`canReadPrivateProfile`, `canReadPublicProfile`, `canUpdatePrivateProfile`, `canCompleteOnboarding`), the `ViewerRole` enum, validation limits (`IDENTITY_VALIDATION_LIMITS`) and the `IdentityProfileRepository` **port interface** (with `CreateProfileRecordInput` / `UpdateProfileRecordPatch`).
+- `public-api.ts` does NOT export the in-memory repository implementation factory (`createInMemoryIdentityProfileRepository`) — server-side composition (today: tests; future: HTTP/Supabase wiring) imports it directly from `./repository`. The boundary guard treats `./repository` as importable by composition code but not by other domains.
+- `contracts.ts` — `UserId`, `CompleteOnboardingInput`, `UpdatePrivateProfileInput`, `UpdatePersonalStatusInput`, `IdentityResult`, `IdentityError`, `IdentityErrorCode`.
+- `events.ts` — `OnboardingCompletedEvent`, `ProfilePublicSummaryChangedEvent`, `IdentityEvent`, `IdentityEventEnvelope`.
 
 ## Internal modules (not importable cross-domain)
 - `service.ts`, `repository.ts`, `policy.ts`, `mapper.ts`
