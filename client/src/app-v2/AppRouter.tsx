@@ -16,6 +16,8 @@ import { CommunityFeedPage } from "./communities/CommunityFeedPage";
 import { CommunityModulesManagePage } from "./communities/CommunityModulesManagePage";
 import { CommunityChannelsPage } from "./communities/CommunityChannelsPage";
 import { CommunityHubPage } from "./communities/CommunityHubPage";
+import { ChannelsPage } from "./channels/ChannelsPage";
+import { ChannelProfilePage } from "./channels/ChannelProfilePage";
 import { ManageDashboard } from "./manage/ManageDashboard";
 import { PersonalProfileManageRoute } from "./manage/PersonalProfileManageRoute";
 import { ProfessionalSectionRoute } from "./manage/ProfessionalSectionRoute";
@@ -41,6 +43,8 @@ export function AppRouter() {
         <Route path="/communities/:slug/manage/modules" element={<CommunityModulesManagePage />} />
         <Route path="/communities/:slug/channels" element={<CommunityChannelsPage />} />
         <Route path="/communities/:slug/hub" element={<CommunityHubPage />} />
+        <Route path="/channels" element={<ChannelsPage />} />
+        <Route path="/channels/:slug" element={<ChannelProfilePage />} />
         <Route path="/manage" element={<ManageDashboard />} />
         <Route path="/manage/profil-osobisty" element={<PersonalProfileManageRoute />} />
         <Route path="/manage/sekcja-zawodowa" element={<ProfessionalSectionRoute />} />

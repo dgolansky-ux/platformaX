@@ -100,6 +100,14 @@ domains:
       - server/domains-v2/content-v2/store.ts
       - server/domains-v2/content-v2/service.ts
       - server/domains-v2/content-v2/mapper.ts
+      - server/domains-v2/content-v2/channel-posts/dto.ts
+      - server/domains-v2/content-v2/channel-posts/contracts.ts
+      - server/domains-v2/content-v2/channel-posts/policy.ts
+      - server/domains-v2/content-v2/channel-posts/store.ts
+      - server/domains-v2/content-v2/channel-posts/service.ts
+      - server/domains-v2/content-v2/channel-posts/mapper.ts
+      - server/domains-v2/content-v2/channel-posts/public-api.ts
+      - server/domains-v2/content-v2/channel-posts/__tests__/channel-post-service.test.ts
       - server/domains-v2/content-v2/events.ts
       - server/domains-v2/content-v2/index.ts
       - server/domains-v2/content-v2/__tests__/content-feed-service.test.ts
@@ -109,8 +117,10 @@ domains:
       foundation: createPost (EMPTY_BODY guard) and listFriendFeed (cursor +
       DEFAULT/MAX limit, canSeePost visibility filter). Feed is scoped to an
       explicit author set (viewer's friends) via PostRepository.listByAuthors —
-      NO global feed, NO ranking, NO write fanout. Comments/reactions/topics and
-      DB adapter remain out of scope.
+      NO global feed, NO ranking, NO write fanout. Channels Slice 8 adds
+      channel-posts for channel feed + one pinned post per channel; lead
+      permissions stay in channels. Channel comments/reactions/topics and DB
+      adapter remain out of scope.
 
   - name: communities-v2
     type: OWNER_DOMAIN
@@ -164,7 +174,9 @@ domains:
       Graduated SCAFFOLD_ONLY -> PARTIAL by the product-backend-foundations slice.
       In-memory runtime: channel owned by community; follows separate from
       membership; community authority enforced by application use-case (no
-      cross-domain internals). Public DTO no PII. DB + transport pending.
+      cross-domain internals). Slice 8 adds lead permissions for channel content
+      publishing/managing/pinning; post storage remains in content-v2. Public
+      DTO no PII. DB + transport pending.
       domain-status.md updated.
 
   - name: chat

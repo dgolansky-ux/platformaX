@@ -19,7 +19,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
   { name: "social", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "communities-v2", status: "UI_SHELL_ONLY", hasDomainLogic: false },
   { name: "content-v2", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
-  { name: "channels", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
+  { name: "channels", status: "UI_SHELL_ONLY", hasDomainLogic: false },
   { name: "chat", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "events", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "modules", status: "SCAFFOLD_ONLY", hasDomainLogic: false },

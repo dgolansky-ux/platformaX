@@ -10,7 +10,14 @@ is owned by a community (`ownerType="community"`); following a channel is a
 SEPARATE relation from community membership. Community authority is enforced by
 the application use-case (via communities public-api) before createChannel —
 this domain imports no communities internals. Public DTO has no PII. No
-RingPost/feed runtime. DB + transport pending.
+post/feed storage lives here: channel content belongs to `content-v2/channel-posts`
+and is orchestrated by `application-v2/use-cases/channel-content`. DB + transport
+pending.
+
+Slice 8 adds lead permissions for content: `publish_channel_content`,
+`manage_channel_content`, `pin_channel_post`, plus future-ready
+`view_channel_stats`. Community founder/admin authority does not bypass these
+channel lead permissions for publishing.
 
 ## Purpose
 Owns channel definitions, channel memberships, and channel settings.

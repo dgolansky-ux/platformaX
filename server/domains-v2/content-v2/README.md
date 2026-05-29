@@ -17,6 +17,13 @@ cursor read model and relational monthly count. Exposed via `public-api.ts`
 Owns posts/feed items only — never membership/roles (those stay in
 communities-v2; authority is enforced by application-v2/use-cases/community-feeds).
 
+### channel-posts (Channels Slice 8, BACKEND_PARTIAL)
+
+`channel-posts/` owns channel posts, channel feed ordering, soft deactivation
+and one active pinned post per channel. It does not own channel leads,
+permissions or follow state; those remain in `channels` and are enforced by
+`application-v2/use-cases/channel-content`.
+
 ## Implemented (BACKEND_PARTIAL)
 
 In-memory runtime foundation for posts + friend feed read model:
@@ -42,7 +49,7 @@ port when a DB adapter lands.
 
 ## NOT implemented (intentionally out of scope here)
 
-- comments / reactions runtime, topics taxonomy
+- channel comments / channel reactions runtime, topics taxonomy
 - global / discovery feed, ranking, recommendation
 - synchronous write fanout to followers
 - media payloads (only `mediaRefs` references pass through DTOs)

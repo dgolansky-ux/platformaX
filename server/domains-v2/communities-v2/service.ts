@@ -217,6 +217,8 @@ export function createCommunitiesService(deps: Deps): CommunitiesService {
     listCategories: () => [...COMMUNITY_CATEGORIES].sort((a, b) => a.sortOrder - b.sortOrder),
     canManageCommunity: async (communityId, userId) =>
       hasCommunityAuthority(await roleOf(deps, communityId, userId)),
+    isCommunityMember: async (communityId, userId) =>
+      (await roleOf(deps, communityId, userId)) !== null,
     async getPublicSummary(communityId): Promise<CommunityPublicSummary | null> {
       const c = await deps.communities.getById(communityId);
       return c ? { id: c.id, slug: c.slug, name: c.name, visibility: c.visibility } : null;

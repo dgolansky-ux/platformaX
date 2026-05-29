@@ -21,5 +21,9 @@ export type CommunityPublicSummary = {
  */
 export interface CommunityAuthorityResolver {
   canManageCommunity(communityId: string, userId: string): Promise<boolean>;
+  /** True when `userId` has an active role (founder/admin/moderator/member)
+   * in the community. Used by channels to enforce "a channel lead must be
+   * an active member of the owner community" without leaking the role. */
+  isCommunityMember(communityId: string, userId: string): Promise<boolean>;
   getPublicSummary(communityId: string): Promise<CommunityPublicSummary | null>;
 }

@@ -1,11 +1,11 @@
 /**
  * channels — record → public DTO. No PII; no internal fields beyond the
- * public channel shape.
+ * public channel/lead/follow shape.
  */
-import type { ChannelPublicDTO } from "./dto";
-import type { ChannelRecord } from "./ports";
+import type { ChannelLeadDTO, ChannelPublicDTO } from "./dto";
+import type { ChannelLeadRecord, ChannelRecord } from "./ports";
 
-export function toChannelPublicDTO(r: ChannelRecord, followerCount: number): ChannelPublicDTO {
+export function toChannelPublicDTO(r: ChannelRecord, followerCount: number, leadCount: number): ChannelPublicDTO {
   return {
     id: r.id,
     ownerType: r.ownerType,
@@ -16,5 +16,18 @@ export function toChannelPublicDTO(r: ChannelRecord, followerCount: number): Cha
     visibility: r.visibility,
     status: r.status,
     followerCount,
+    leadCount,
+  };
+}
+
+export function toChannelLeadDTO(r: ChannelLeadRecord): ChannelLeadDTO {
+  return {
+    channelId: r.channelId,
+    userId: r.userId,
+    role: r.role,
+    permissions: r.permissions,
+    status: r.status,
+    assignedByUserId: r.assignedByUserId,
+    assignedAt: r.assignedAt,
   };
 }

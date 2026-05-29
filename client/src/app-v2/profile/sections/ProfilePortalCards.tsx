@@ -63,6 +63,7 @@ const CARDS: ReadonlyArray<PortalCard> = [
     bg: "#FFFFFF",
     delayMs: 80,
     discoverCount: 0,
+    route: "/channels",
   },
   {
     id: "friends-feed",

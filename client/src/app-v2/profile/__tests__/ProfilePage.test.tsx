@@ -255,9 +255,7 @@ describe("ProfilePage — personal profile mobile shell", () => {
 
   test("portal cards render in fixed order: Społeczności, Kanały, Feed znajomych", () => {
     const { container } = renderProfile();
-    const portalBtns = Array.from(
-      container.querySelectorAll("button[aria-disabled='true'][title]"),
-    ).filter((b) => (b.getAttribute("title") ?? "").includes("wkrótce"));
+    const portalBtns = Array.from(container.querySelectorAll("button[title]"));
     const texts = portalBtns.map((b) => b.textContent ?? "");
     const commIdx = texts.findIndex((t) => t.includes("Społeczności"));
     const chanIdx = texts.findIndex((t) => t.includes("Kanały"));
