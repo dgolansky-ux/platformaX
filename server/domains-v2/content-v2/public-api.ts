@@ -23,3 +23,36 @@ export type {
   PostContextType,
 } from "./dto";
 export { canSeePost } from "./policy";
+
+// ── community-feeds (Slice 5) ──────────────────────────────────────────────
+export { createCommunityFeedService } from "./community-feeds/service";
+export type {
+  CommunityFeedService,
+  CommunityFeedServiceDeps,
+  CommunityFeedResult,
+  CommunityFeedErrorCode,
+  CommunityFeedClock,
+  CommunityFeedIdGenerator,
+} from "./community-feeds/service";
+export {
+  createInMemoryCommunityPostRepository,
+  createInMemoryCommunityFeedItemRepository,
+} from "./community-feeds/store";
+export type {
+  CommunityPostRepository,
+  CommunityFeedItemRepository,
+  CommunityPostRecord,
+  CommunityFeedItemRecord,
+} from "./community-feeds/ports";
+export type {
+  CommunityFeedType,
+  CommunityPostStatus,
+  CommunityPostDTO,
+  CommunityFeedItemDTO,
+  CommunityPostResult,
+  CreateCommunityPostInput,
+  DistributeCommunityPostInput,
+  ListCommunityFeedQuery,
+  RelationalCountQuery,
+} from "./community-feeds/dto";
+export { isValidFeedType, monthKeyOf } from "./community-feeds/policy";

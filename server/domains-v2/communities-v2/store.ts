@@ -3,9 +3,11 @@
  * the same ports later (status BACKEND_PARTIAL).
  */
 import type {
+  CommunityFeedSettingsRecord,
   CommunityHierarchyRecord,
   CommunityRecord,
   CommunityRepository,
+  FeedSettingsRepository,
   HierarchyRepository,
   InviteRecord,
   InviteRepository,
@@ -145,6 +147,19 @@ export function createInMemoryHierarchyRepository(): HierarchyRepository {
       const next: CommunityHierarchyRecord = { ...existing, ...patch };
       rows.set(communityId, next);
       return next;
+    },
+  };
+}
+
+export function createInMemoryFeedSettingsRepository(): FeedSettingsRepository {
+  const rows = new Map<string, CommunityFeedSettingsRecord>();
+  return {
+    async get(communityId) {
+      return rows.get(communityId) ?? null;
+    },
+    async upsert(record) {
+      rows.set(record.communityId, record);
+      return record;
     },
   };
 }

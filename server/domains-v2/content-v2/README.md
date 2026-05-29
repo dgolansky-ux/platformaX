@@ -8,6 +8,15 @@ Type: OWNER_DOMAIN
 
 Content domain for PlatformaX V2. Owns all content-related data and read models.
 
+### community-feeds (Slice 5, BACKEND_PARTIAL)
+
+`community-feeds/` adds community posts + per-community feed items for the three
+feeds (`community_all` / `relational` / `staff_only`) with idempotent dedupe,
+cursor read model and relational monthly count. Exposed via `public-api.ts`
+(`createCommunityFeedService`, in-memory repos, `CommunityFeedItemDTO`, …).
+Owns posts/feed items only — never membership/roles (those stay in
+communities-v2; authority is enforced by application-v2/use-cases/community-feeds).
+
 ## Implemented (BACKEND_PARTIAL)
 
 In-memory runtime foundation for posts + friend feed read model:

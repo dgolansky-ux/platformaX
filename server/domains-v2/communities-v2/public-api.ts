@@ -61,6 +61,38 @@ export {
   isDepthCreatable,
   wouldCreateCycle,
 } from "./policy-structure";
+
+// ── feed settings + policy (Slice 5) ───────────────────────────────────────
+export { createInMemoryFeedSettingsRepository } from "./store";
+export type { FeedSettingsRepository, CommunityFeedSettingsRecord } from "./ports";
+export { createCommunityFeedSettingsService } from "./service-feeds";
+export type {
+  CommunityFeedSettingsService,
+  FeedSettingsServiceDeps,
+} from "./service-feeds";
+export type {
+  CommunityFeedSettingsDTO,
+  CommunityFeedPostingPolicy,
+  DescendantPublishRole,
+  UpdateCommunityFeedSettingsInput,
+  FeedSettingsErrorCode,
+  FeedSettingsResult,
+} from "./dto-feeds";
+export { defaultFeedSettings } from "./dto-feeds";
+export {
+  RELATIONAL_LIMIT_MIN,
+  RELATIONAL_LIMIT_MAX,
+  isValidRelationalLimit,
+  isStaffRole,
+  canUpdateFeedSettings,
+  canPostToCommunityAll,
+  canPostRelational,
+  canPostStaffOnly,
+  canViewCommunityAll,
+  canViewRelational,
+  canViewStaffOnly,
+  canPublishToDescendants,
+} from "./policy-feeds";
 export type {
   CommunityPublicDTO,
   CommunityAdminDTO,

@@ -134,6 +134,7 @@ export function CommunityProfileShell({ slug }: CommunityProfileShellProps) {
       <nav className={styles.subnav} aria-label="Nawigacja społeczności">
         {viewer.canViewPrivateSections ? (
           <>
+            <Link to={`/communities/${profile.slug}/feed`} className={styles.subnavLink}>Feed</Link>
             <Link to={`/communities/${profile.slug}/structure`} className={styles.subnavLink}>Struktura</Link>
             <Link to={`/communities/${profile.slug}/hub`} className={styles.subnavLink}>Public Hub</Link>
             <Link to={`/communities/${profile.slug}/channels`} className={styles.subnavLink}>Kanały</Link>

@@ -116,3 +116,21 @@ export interface HierarchyRepository {
   update(communityId: string, patch: Partial<CommunityHierarchyRecord>): Promise<CommunityHierarchyRecord>;
 }
 
+/** Per-community feed configuration (Slice 5). One row per community. */
+export type CommunityFeedSettingsRecord = {
+  communityId: string;
+  communityAllEnabled: boolean;
+  communityAllPostingPolicy: "all_members" | "staff_only";
+  relationalEnabled: boolean;
+  relationalMonthlyLimit: number;
+  staffOnlyEnabled: boolean;
+  descendantPublishingEnabled: boolean;
+  descendantPublishingAllowedRoles: readonly ("founder" | "admin" | "moderator")[];
+  updatedAt: string;
+};
+
+export interface FeedSettingsRepository {
+  get(communityId: string): Promise<CommunityFeedSettingsRecord | null>;
+  upsert(record: CommunityFeedSettingsRecord): Promise<CommunityFeedSettingsRecord>;
+}
+

@@ -12,6 +12,7 @@ import { CreateCommunityPage } from "./communities/CreateCommunityPage";
 import { CommunityProfilePage } from "./communities/CommunityProfilePage";
 import { CommunityManagePage } from "./communities/CommunityManagePage";
 import { CommunityStructurePage } from "./communities/CommunityStructurePage";
+import { CommunityFeedPage } from "./communities/CommunityFeedPage";
 import { CommunityModulesManagePage } from "./communities/CommunityModulesManagePage";
 import { CommunityChannelsPage } from "./communities/CommunityChannelsPage";
 import { CommunityHubPage } from "./communities/CommunityHubPage";
@@ -36,6 +37,7 @@ export function AppRouter() {
         <Route path="/communities/:slug" element={<CommunityProfilePage />} />
         <Route path="/communities/:slug/manage" element={<CommunityManagePage />} />
         <Route path="/communities/:slug/structure" element={<CommunityStructurePage />} />
+        <Route path="/communities/:slug/feed" element={<CommunityFeedPage />} />
         <Route path="/communities/:slug/manage/modules" element={<CommunityModulesManagePage />} />
         <Route path="/communities/:slug/channels" element={<CommunityChannelsPage />} />
         <Route path="/communities/:slug/hub" element={<CommunityHubPage />} />
