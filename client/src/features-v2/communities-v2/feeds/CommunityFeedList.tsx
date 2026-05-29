@@ -1,6 +1,11 @@
 /**
  * features-v2/communities-v2 / feeds / CommunityFeedList — feed body with
  * empty / loading / error / unauthorized states (legacy "Brak postów").
+ *
+ * Slice 6: passes per-card interaction permissions to CommunityFeedItemCard
+ * so the action bar's composer/reaction reflect the viewer's rights for the
+ * current feed (e.g. stranger sees a read-only action bar with permission
+ * notice in the composer).
  */
 import type { CommunityFeedItemDTO } from "@shared/contracts/community-feeds";
 import { CommunityFeedItemCard } from "./CommunityFeedItemCard";
@@ -12,7 +17,14 @@ export type FeedListState =
   | { status: "forbidden"; message: string }
   | { status: "ready"; items: readonly CommunityFeedItemDTO[] };
 
-export function CommunityFeedList({ state }: { state: FeedListState }) {
+type Props = {
+  state: FeedListState;
+  canComment: boolean;
+  canReact: boolean;
+  noPermissionMessage?: string;
+};
+
+export function CommunityFeedList({ state, canComment, canReact, noPermissionMessage }: Props) {
   if (state.status === "loading") {
     return <div className={styles.state} aria-busy="true">Ładowanie feedu…</div>;
   }
@@ -38,7 +50,13 @@ export function CommunityFeedList({ state }: { state: FeedListState }) {
   return (
     <div className={styles.list}>
       {state.items.map((item) => (
-        <CommunityFeedItemCard key={item.id} item={item} />
+        <CommunityFeedItemCard
+          key={item.id}
+          item={item}
+          canComment={canComment}
+          canReact={canReact}
+          noPermissionMessage={noPermissionMessage}
+        />
       ))}
     </div>
   );

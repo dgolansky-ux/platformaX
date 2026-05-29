@@ -45,6 +45,10 @@ export interface CommunityFeedService {
   distributeCommunityPost(input: DistributeCommunityPostInput): Promise<CommunityFeedResult<CommunityFeedItemDTO>>;
   listCommunityFeed(query: ListCommunityFeedQuery): Promise<{ items: CommunityFeedItemDTO[]; nextCursor: string | null }>;
   countRelationalForAuthorMonth(query: RelationalCountQuery): Promise<number>;
+  /** Lookup a single feed item by id — required by application-v2 to gate
+   * interactions against the item's community + feedType. Returns null when
+   * the item does not exist or has been deactivated. */
+  getFeedItem(id: string): Promise<CommunityFeedItemDTO | null>;
 }
 
 type Deps = CommunityFeedServiceDeps;
@@ -124,6 +128,12 @@ async function listCommunityFeed(deps: Deps, query: ListCommunityFeedQuery) {
   return { items, nextCursor };
 }
 
+async function getFeedItem(deps: Deps, id: string): Promise<CommunityFeedItemDTO | null> {
+  const record = await deps.items.getById(id);
+  if (!record || record.status !== "active") return null;
+  return toItemDTO(record);
+}
+
 export function createCommunityFeedService(deps: Deps): CommunityFeedService {
   return {
     createCommunityPost: (input) => createCommunityPost(deps, input),
@@ -131,5 +141,6 @@ export function createCommunityFeedService(deps: Deps): CommunityFeedService {
     listCommunityFeed: (query) => listCommunityFeed(deps, query),
     countRelationalForAuthorMonth: (query) =>
       deps.items.countRelationalForAuthorMonth(query.communityId, query.authorUserId, query.monthKey),
+    getFeedItem: (id) => getFeedItem(deps, id),
   };
 }

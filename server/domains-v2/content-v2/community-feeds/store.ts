@@ -41,6 +41,9 @@ export function createInMemoryCommunityFeedItemRepository(): CommunityFeedItemRe
       rows.set(record.id, record);
       return record;
     },
+    async getById(id: string) {
+      return rows.get(id) ?? null;
+    },
     async list(communityId: string, feedType: CommunityFeedType, cursor: string | null, limit: number) {
       const all = [...rows.values()]
         .filter((r) => r.status === "active" && r.communityId === communityId && r.feedType === feedType)

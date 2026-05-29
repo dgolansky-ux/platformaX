@@ -42,6 +42,8 @@ export interface CommunityPostRepository {
 export interface CommunityFeedItemRepository {
   /** Returns null when the dedupeKey already exists (idempotent distribution). */
   add(record: CommunityFeedItemRecord): Promise<CommunityFeedItemRecord | null>;
+  /** Lookup a single feed item by id (active or deleted). */
+  getById(id: string): Promise<CommunityFeedItemRecord | null>;
   /**
    * Read model for one community feed: active items for (communityId, feedType),
    * newest-first with a stable id tie-breaker, bounded by `limit`, after `cursor`.
