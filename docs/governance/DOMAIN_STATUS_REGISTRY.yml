@@ -107,7 +107,7 @@ domains:
 
   - name: communities-v2
     type: OWNER_DOMAIN
-    status: SCAFFOLD_ONLY
+    status: PARTIAL
     conflict: false
     evidence:
       - server/domains-v2/communities-v2/README.md
@@ -115,12 +115,19 @@ domains:
       - server/domains-v2/communities-v2/contracts.ts
       - server/domains-v2/communities-v2/dto.ts
       - server/domains-v2/communities-v2/policy.ts
+      - server/domains-v2/communities-v2/ports.ts
+      - server/domains-v2/communities-v2/store.ts
+      - server/domains-v2/communities-v2/service.ts
+      - server/domains-v2/communities-v2/mapper.ts
       - server/domains-v2/communities-v2/events.ts
       - server/domains-v2/communities-v2/index.ts
+      - server/domains-v2/communities-v2/__tests__/communities-service.test.ts
       - server/domains-v2/communities-v2/__tests__/domain-contract.test.ts
     notes: >
-      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
-      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      Graduated SCAFFOLD_ONLY -> PARTIAL by the product-backend-foundations slice.
+      In-memory runtime: service, store (in-memory repos behind ports), policy,
+      mapper. Founder membership created with community; founder non-removable.
+      Public DTO no PII / no founder id. No posts stored. DB + transport pending.
       domain-status.md updated.
 
   - name: channels
