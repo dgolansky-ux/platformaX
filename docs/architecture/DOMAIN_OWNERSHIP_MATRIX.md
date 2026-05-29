@@ -20,7 +20,7 @@
 | channels | channel definitions, memberships, settings | messages, chat history, community roles | communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | chat | messages, conversations, read state, typing indicators | channels, community roles, profiles | channels, identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | events | event definitions, RSVPs, event lifecycle, visibility | community membership, profiles, posts | identity, communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
-| modules | ModuleDefinition, registry, enablement | actual module business data | communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| modules | ModuleDefinition, registry, enablement | actual module business data | communities-v2 (public-api) | public-api, contracts, events | PARTIAL |
 | media | media assets, upload contracts, validation, refs | base64/dataUrl payloads (FORBIDDEN) | identity (public-api) | public-api, contracts, events | PARTIAL |
 
 ## Composition domains

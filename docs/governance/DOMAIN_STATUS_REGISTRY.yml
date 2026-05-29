@@ -186,21 +186,26 @@ domains:
 
   - name: modules
     type: OWNER_DOMAIN
-    status: SCAFFOLD_ONLY
+    status: PARTIAL
     conflict: false
     evidence:
       - server/domains-v2/modules/README.md
       - server/domains-v2/modules/public-api.ts
       - server/domains-v2/modules/contracts.ts
       - server/domains-v2/modules/dto.ts
+      - server/domains-v2/modules/definitions.ts
       - server/domains-v2/modules/policy.ts
+      - server/domains-v2/modules/store.ts
+      - server/domains-v2/modules/service.ts
       - server/domains-v2/modules/events.ts
       - server/domains-v2/modules/index.ts
+      - server/domains-v2/modules/__tests__/modules-service.test.ts
       - server/domains-v2/modules/__tests__/domain-contract.test.ts
     notes: >
-      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
-      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
-      domain-status.md updated.
+      Graduated SCAFFOLD_ONLY -> PARTIAL by the product-backend-foundations slice.
+      In-memory runtime: definitions (5 whitelisted slots), policy (whitelist +
+      owner-type), store (in-memory enablement), service. Defines/enables slots
+      only — no business data. Public DTO no PII. DB + transport pending.
 
   - name: public-hub
     type: COMPOSITION_DOMAIN
