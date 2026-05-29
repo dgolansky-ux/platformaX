@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   createContactsApplicationService,
-  makeRelationshipSignalResolver,
   type ContactsApplicationService,
 } from "../service";
+import { makeRelationshipSignalResolver } from "../internals";
 import {
   createContactAccessService,
   createInMemoryContactFieldsRepository,
@@ -96,7 +96,7 @@ describe("contacts application service / view DTO + actions", () => {
       phone: "+48-secret",
       emailContact: "owner@example.com",
     });
-    const res = await app.getViewerSafeContactProfileState(OWNER, null);
+    const res = await app.getProfileContactRelationship(OWNER, null);
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.value.visibleContactFields).toEqual({});
@@ -110,7 +110,7 @@ describe("contacts application service / view DTO + actions", () => {
       userId: OWNER,
       phone: "+48-secret",
     });
-    const res = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    const res = await app.getProfileContactRelationship(OWNER, VIEWER);
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.value.visibleContactFields).toEqual({});
@@ -142,7 +142,7 @@ describe("contacts application service / view DTO + actions", () => {
       approvedFields: ["phone"],
     });
     expect(acc.ok).toBe(true);
-    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    const view = await app.getProfileContactRelationship(OWNER, VIEWER);
     if (!view.ok) throw new Error("view failed");
     expect(view.value.visibleContactFields.phone).toBe("+48-secret");
     expect(view.value.visibleContactFields.emailContact).toBeUndefined();
@@ -163,7 +163,7 @@ describe("contacts application service / view DTO + actions", () => {
       responderUserId: OWNER,
       action: "accepted",
     });
-    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    const view = await app.getProfileContactRelationship(OWNER, VIEWER);
     if (!view.ok) throw new Error("view failed");
     expect(view.value.isMutualFriend).toBe(true);
     expect(view.value.visibleContactFields).toEqual({});
@@ -219,7 +219,7 @@ describe("contacts application service / view DTO + actions", () => {
       requestId: created.value.id,
       responderUserId: OWNER,
     });
-    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    const view = await app.getProfileContactRelationship(OWNER, VIEWER);
     if (!view.ok) throw new Error("view failed");
     expect(view.value.visibleContactFields).toEqual({});
   });
@@ -244,7 +244,7 @@ describe("contacts owner-logic / four-concept separation", () => {
       contactId: OWNER,
     });
     expect(added.ok).toBe(true);
-    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    const view = await app.getProfileContactRelationship(OWNER, VIEWER);
     if (!view.ok) throw new Error("view failed");
     expect(view.value.isAddressBookContact).toBe(true);
     expect(view.value.isMutualFriend).toBe(false);
@@ -262,7 +262,7 @@ describe("contacts owner-logic / four-concept separation", () => {
       specialistId: OWNER,
     });
     expect(added.ok).toBe(true);
-    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    const view = await app.getProfileContactRelationship(OWNER, VIEWER);
     if (!view.ok) throw new Error("view failed");
     expect(view.value.isSpecialist).toBe(true);
     expect(view.value.isMutualFriend).toBe(false);
@@ -275,7 +275,7 @@ describe("contacts owner-logic / four-concept separation", () => {
       receiverUserId: OWNER,
     });
     if (!fr.ok) throw new Error("setup failed");
-    const beforeAccept = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    const beforeAccept = await app.getProfileContactRelationship(OWNER, VIEWER);
     if (!beforeAccept.ok) throw new Error("view failed");
     expect(beforeAccept.value.isMutualFriend).toBe(false);
     expect(beforeAccept.value.friendRequestStatus).toBe("pending");
@@ -285,7 +285,7 @@ describe("contacts owner-logic / four-concept separation", () => {
       responderUserId: OWNER,
       action: "accepted",
     });
-    const afterAccept = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    const afterAccept = await app.getProfileContactRelationship(OWNER, VIEWER);
     if (!afterAccept.ok) throw new Error("view failed");
     expect(afterAccept.value.isMutualFriend).toBe(true);
   });
@@ -303,7 +303,7 @@ describe("contacts owner-logic / four-concept separation", () => {
       responderUserId: OWNER,
       action: "accepted",
     });
-    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    const view = await app.getProfileContactRelationship(OWNER, VIEWER);
     if (!view.ok) throw new Error("view failed");
     expect(view.value.isAddressBookContact).toBe(true);
     expect(view.value.isSpecialist).toBe(true);
@@ -312,13 +312,13 @@ describe("contacts owner-logic / four-concept separation", () => {
 
   it("friendCircle is owner-local: it changes no global relation and reveals no PII", async () => {
     await identity.updateMyContactFields({ userId: OWNER, phone: "+48-secret" });
-    const res = await app.setFriendCircle({
+    const res = await app.updateOwnerLocalContactGroup({
       ownerId: VIEWER,
       personId: OWNER,
       circle: "close_family",
     });
     expect(res.ok).toBe(true);
-    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    const view = await app.getProfileContactRelationship(OWNER, VIEWER);
     if (!view.ok) throw new Error("view failed");
     expect(view.value.friendCircle).toBe("close_family");
     // global relation untouched, no PII leaked by the label
@@ -329,5 +329,46 @@ describe("contacts owner-logic / four-concept separation", () => {
     const tab = await app.getContactsTabData(OWNER);
     if (!tab.ok) throw new Error("tab failed");
     expect(tab.value.circles.length).toBe(0);
+  });
+});
+
+describe("contacts application service / dashboard + owner-local passthroughs", () => {
+  let app: ContactsApplicationService;
+  let identity: ContactAccessService;
+  beforeEach(() => {
+    const wired = wire();
+    app = wired.app;
+    identity = wired.identity;
+  });
+
+  it("getContactsDashboard counts owner-local lists (counts only, no PII)", async () => {
+    await app.addToContacts(OWNER, VIEWER);
+    await app.addAsSpecialist(OWNER, toUserId("u-spec"));
+    await app.updateOwnerLocalContactGroup({ ownerId: OWNER, personId: VIEWER, circle: "close_family" });
+    await identity.sendContactRequest({ fromUserId: VIEWER, toUserId: OWNER, message: "hej" });
+
+    const res = await app.getContactsDashboard(OWNER);
+    if (!res.ok) throw new Error("dashboard failed");
+    expect(res.value.contacts).toBe(1);
+    expect(res.value.specialists).toBe(1);
+    expect(res.value.closeFamily).toBe(1);
+    expect(res.value.friends).toBe(0);
+    expect(res.value.pendingContactRequests).toBe(1);
+    // counts only — the DTO has no field that could carry PII
+    expect(Object.values(res.value).every((v) => typeof v === "number")).toBe(true);
+  });
+
+  it("addToContacts / addAsSpecialist need no consent and expose no PII", async () => {
+    await identity.updateMyContactFields({ userId: OWNER, phone: "+48-secret" });
+    const c = await app.addToContacts(VIEWER, OWNER);
+    const s = await app.addAsSpecialist(VIEWER, OWNER);
+    expect(c.ok).toBe(true);
+    expect(s.ok).toBe(true);
+    const view = await app.getProfileContactRelationship(OWNER, VIEWER);
+    if (!view.ok) throw new Error("view failed");
+    expect(view.value.isAddressBookContact).toBe(true);
+    expect(view.value.isSpecialist).toBe(true);
+    expect(view.value.isMutualFriend).toBe(false);
+    expect(view.value.visibleContactFields).toEqual({});
   });
 });

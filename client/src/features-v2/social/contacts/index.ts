@@ -9,3 +9,6 @@
  */
 export { ContactsTab } from "./ContactsTab";
 export type { ContactsTabProps } from "./ContactsTab";
+// Embeddable on the public profile page (profile contact CTA / detail panel).
+export { ProfileContactCard } from "./ProfileContactCard";
+export { ContactPersonDetailsPanel } from "./ContactPersonDetailsPanel";

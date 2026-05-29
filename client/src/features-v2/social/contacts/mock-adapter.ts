@@ -39,6 +39,8 @@ type AdapterStore = {
   circles: Map<string, ContactGroupEntry>;
   contactRequests: Map<string, ContactRequest>;
   friendRequests: Map<string, IncomingFR>;
+  /** Outgoing friend requests the viewer has sent, keyed `viewer|target`. */
+  outgoingFriendRequests: Set<string>;
 };
 
 function emptyStore(): AdapterStore {
@@ -49,6 +51,7 @@ function emptyStore(): AdapterStore {
     circles: new Map(),
     contactRequests: new Map(),
     friendRequests: new Map(),
+    outgoingFriendRequests: new Set(),
   };
 }
 
@@ -137,6 +140,13 @@ export type ContactsMockAdapter = {
   addSpecialist(viewer: UserId, specialistId: UserId): Promise<void>;
   removeSpecialist(viewer: UserId, specialistId: UserId): Promise<void>;
   setFriendCircle(viewer: UserId, personId: UserId, circle: FriendCircle): Promise<void>;
+  sendFriendRequest(viewer: UserId, targetId: UserId): Promise<void>;
+  respondToFriendRequest(args: {
+    requestId: string;
+    responderId: UserId;
+    action: "accepted" | "rejected";
+  }): Promise<void>;
+  removeFriend(viewer: UserId, friendId: UserId): Promise<void>;
   /** Test helper: replace the underlying store with a fresh empty one. */
   __resetForTests(): void;
 };
@@ -160,6 +170,34 @@ function actionsForListItem(item: {
   if (item.isMutualFriend) out.push("REMOVE_FRIEND");
   if (item.isAddressBookContact) out.push("REMOVE_FROM_CONTACTS");
   if (item.isSpecialist) out.push("REMOVE_SPECIALIST");
+  return out;
+}
+
+type ProfileRel = {
+  isMutualFriend: boolean;
+  isAddressBookContact: boolean;
+  isSpecialist: boolean;
+  contactReqStatus: "none" | "pending" | "accepted" | "rejected" | "cancelled";
+  contactReqIncoming: boolean;
+  friendReqIncoming: boolean;
+  friendReqOutgoing: boolean;
+};
+
+/** Mirrors the application actionsFor — the component never recomputes this. */
+function computeProfileActions(rel: ProfileRel): ContactProfileAction[] {
+  const out: ContactProfileAction[] = [];
+  if (rel.isMutualFriend) out.push("REMOVE_FRIEND");
+  else if (rel.friendReqIncoming) out.push("RESPOND_TO_FRIEND_REQUEST");
+  else if (!rel.friendReqOutgoing) out.push("SEND_FRIEND_REQUEST");
+
+  if (rel.contactReqStatus === "pending" && rel.contactReqIncoming) {
+    out.push("RESPOND_TO_CONTACT_REQUEST");
+  } else if (["none", "rejected", "cancelled"].includes(rel.contactReqStatus)) {
+    out.push("REQUEST_CONTACT");
+  }
+
+  out.push(rel.isAddressBookContact ? "REMOVE_FROM_CONTACTS" : "ADD_TO_CONTACTS");
+  out.push(rel.isSpecialist ? "REMOVE_SPECIALIST" : "ADD_AS_SPECIALIST");
   return out;
 }
 
@@ -216,16 +254,35 @@ export const contactsMockAdapter: ContactsMockAdapter = {
   },
 
   async getViewerSafeProfileState(ownerId, viewerId) {
-    const isMutualFriend =
-      viewerId !== null && store.friends.has(`${viewerId}|${ownerId}`);
-    const friendCircle =
-      viewerId === null
-        ? "none"
-        : store.circles.get(`${viewerId}|${ownerId}`)?.circle ?? "none";
-    const isAddressBookContact =
-      viewerId !== null && store.contacts.has(`${viewerId}|${ownerId}`);
-    const isSpecialist =
-      viewerId !== null && store.specialists.has(`${viewerId}|${ownerId}`);
+    if (viewerId === null) {
+      return {
+        ownerId,
+        viewerId,
+        isMutualFriend: false,
+        isAddressBookContact: false,
+        isSpecialist: false,
+        friendCircle: "none",
+        contactRequestStatus: "none",
+        friendRequestStatus: "none",
+        visibleContactFields: {},
+        availableActions: [],
+      };
+    }
+    const isMutualFriend = store.friends.has(`${viewerId}|${ownerId}`);
+    const friendCircle = store.circles.get(`${viewerId}|${ownerId}`)?.circle ?? "none";
+    const isAddressBookContact = store.contacts.has(`${viewerId}|${ownerId}`);
+    const isSpecialist = store.specialists.has(`${viewerId}|${ownerId}`);
+    const contactReq = [...store.contactRequests.values()].find(
+      (r) =>
+        (r.fromUserId === viewerId && r.toUserId === ownerId) ||
+        (r.fromUserId === ownerId && r.toUserId === viewerId),
+    );
+    const contactReqStatus = contactReq?.status ?? "none";
+    const contactReqIncoming = !!contactReq && contactReq.toUserId === viewerId;
+    const friendReqIncoming = [...store.friendRequests.values()].some(
+      (fr) => fr.fromUserId === ownerId,
+    );
+    const friendReqOutgoing = store.outgoingFriendRequests.has(`${viewerId}|${ownerId}`);
     return {
       ownerId,
       viewerId,
@@ -233,10 +290,19 @@ export const contactsMockAdapter: ContactsMockAdapter = {
       isAddressBookContact,
       isSpecialist,
       friendCircle,
-      contactRequestStatus: "none",
-      friendRequestStatus: "none",
+      contactRequestStatus: contactReqStatus,
+      friendRequestStatus:
+        friendReqIncoming || friendReqOutgoing ? "pending" : "none",
       visibleContactFields: {},
-      availableActions: [],
+      availableActions: computeProfileActions({
+        isMutualFriend,
+        isAddressBookContact,
+        isSpecialist,
+        contactReqStatus,
+        contactReqIncoming,
+        friendReqIncoming,
+        friendReqOutgoing,
+      }),
     };
   },
 
@@ -311,6 +377,27 @@ export const contactsMockAdapter: ContactsMockAdapter = {
     });
   },
 
+  async sendFriendRequest(viewer, targetId) {
+    if (viewer === targetId) throw new Error("cannot friend yourself");
+    // Mutual consent: sending only records an outgoing pending request.
+    store.outgoingFriendRequests.add(`${viewer}|${targetId}`);
+  },
+  async respondToFriendRequest(args) {
+    const fr = store.friendRequests.get(args.requestId);
+    if (!fr) throw new Error(`friend request ${args.requestId} not found`);
+    store.friendRequests.delete(args.requestId);
+    if (args.action === "accepted") {
+      store.friends.set(`${args.responderId}|${fr.fromUserId}`, {
+        ownerId: args.responderId,
+        friendId: fr.fromUserId,
+        acceptedAt: new Date().toISOString(),
+      });
+    }
+  },
+  async removeFriend(viewer, friendId) {
+    store.friends.delete(`${viewer}|${friendId}`);
+  },
+
   __resetForTests() {
     store.friends.clear();
     store.contacts.clear();
@@ -318,6 +405,7 @@ export const contactsMockAdapter: ContactsMockAdapter = {
     store.circles.clear();
     store.contactRequests.clear();
     store.friendRequests.clear();
+    store.outgoingFriendRequests.clear();
     seededFor = null;
   },
 };

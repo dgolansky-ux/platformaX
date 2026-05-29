@@ -20,7 +20,6 @@ import {
 import type {
   ContactListItemDTO,
   ContactPersonSummary,
-  ContactRequest,
   ContactsTabData,
   FriendCircle,
 } from "@shared/contracts/contacts";
@@ -32,15 +31,15 @@ import {
   ContactsTabBar,
   type ContactsTabKey,
 } from "./ContactsTabBar";
-import { AcceptContactRequestModal } from "./AcceptContactRequestModal";
+import { ContactsContentPanel, ContactsHero } from "./ContactsTabLayout";
+import { ContactsInteractionLayer } from "./ContactsInteractionLayer";
+import { useContactInteractions } from "./useContactInteractions";
 import styles from "./ContactsTab.module.css";
 
 export type ContactsTabProps = {
   /** The signed-in viewer; in MOCK_LOCAL_ONLY this is a fixed demo id. */
   viewerId: UserId;
 };
-
-type AcceptModalState = { request: ContactRequest } | null;
 
 const EMPTY: Record<ContactsTabKey, { emoji: string; title: string; body: string }> = {
   all: { emoji: "👥", title: "Brak kontaktów", body: "Dodaj osoby do swojej listy kontaktów." },
@@ -86,7 +85,6 @@ export function ContactsTab({ viewerId }: ContactsTabProps): ReactElement {
   const [items, setItems] = useState<ContactListItemDTO[]>([]);
   const [tabData, setTabData] = useState<ContactsTabData | null>(null);
   const [activeTab, setActiveTab] = useState<ContactsTabKey>("all");
-  const [acceptModal, setAcceptModal] = useState<AcceptModalState>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -102,6 +100,8 @@ export function ContactsTab({ viewerId }: ContactsTabProps): ReactElement {
       setLoadError(err instanceof Error ? err.message : "Nieznany błąd");
     }
   }, [viewerId]);
+
+  const interactions = useContactInteractions(viewerId, tabData, refresh);
 
   useEffect(() => {
     refresh();
@@ -134,71 +134,59 @@ export function ContactsTab({ viewerId }: ContactsTabProps): ReactElement {
       </div>
     );
   }
+  const requestCount =
+    tabData.incomingContactRequests.length + tabData.incomingFriendRequests.length;
+  const dashboardStats = [
+    { key: "contacts", value: counts.contacts, label: "Kontakty" },
+    { key: "specialists", value: counts.specialists, label: "Specjaliści" },
+    { key: "friends", value: items.filter((i) => i.isMutualFriend).length, label: "Znajomi" },
+    { key: "family", value: counts.close_family + counts.distant_family, label: "Rodzina" },
+    { key: "requests", value: requestCount, label: "Prośby" },
+  ];
 
   return (
     <section className={styles.root} aria-labelledby="contacts-heading">
-      <header className={styles.header}>
-        <p className={styles.brand}>PlatformaX</p>
-        <h1 id="contacts-heading" className={styles.title}>
-          Kontakty
-        </h1>
-        <p className={styles.modeNote} title="MOCK_LOCAL_ONLY — patrz README.md">
-          Kręgi (znajomi / rodzina) to Twoje prywatne etykiety — nie ujawniają danych kontaktowych.
-        </p>
-      </header>
+      <ContactsHero stats={dashboardStats} />
 
       <ContactsTabBar activeTab={activeTab} counts={counts} onSelect={setActiveTab} />
 
-      {activeTab === "requests" ? (
-        <RequestsList
-          data={tabData}
-          nameOf={nameOf}
-          onAcceptOpen={(req) => setAcceptModal({ request: req })}
-          onReject={async (req) => {
-            await contactsMockAdapter.respondToContactRequest({
-              requestId: req.id,
-              responderId: viewerId,
-              action: "rejected",
-            });
-            await refresh();
-          }}
-        />
-      ) : (
-        <PeopleList
-          items={itemsForTab(items, activeTab)}
-          empty={EMPTY[activeTab]}
-          onRemoveContact={async (id) => {
-            await contactsMockAdapter.removeAddressBookContact(viewerId, id);
-            await refresh();
-          }}
-          onRemoveSpecialist={async (id) => {
-            await contactsMockAdapter.removeSpecialist(viewerId, id);
-            await refresh();
-          }}
-          onSetCircle={async (id, circle) => {
-            await contactsMockAdapter.setFriendCircle(viewerId, id, circle);
-            await refresh();
-          }}
-        />
-      )}
+      <ContactsContentPanel activeTab={activeTab} counts={counts}>
+        {activeTab === "requests" ? (
+          <RequestsList
+            data={tabData}
+            nameOf={nameOf}
+            onAcceptOpen={interactions.openAccept}
+            onReject={async (req) => {
+              await contactsMockAdapter.respondToContactRequest({
+                requestId: req.id,
+                responderId: viewerId,
+                action: "rejected",
+              });
+              await refresh();
+            }}
+          />
+        ) : (
+          <PeopleList
+            items={itemsForTab(items, activeTab)}
+            empty={EMPTY[activeTab]}
+            onOpen={interactions.openDetail}
+            onRemoveContact={async (id) => {
+              await contactsMockAdapter.removeAddressBookContact(viewerId, id);
+              await refresh();
+            }}
+            onRemoveSpecialist={async (id) => {
+              await contactsMockAdapter.removeSpecialist(viewerId, id);
+              await refresh();
+            }}
+            onSetCircle={async (id, circle) => {
+              await contactsMockAdapter.setFriendCircle(viewerId, id, circle);
+              await refresh();
+            }}
+          />
+        )}
+      </ContactsContentPanel>
 
-      {acceptModal ? (
-        <AcceptContactRequestModal
-          request={acceptModal.request}
-          viewerId={viewerId}
-          onClose={() => setAcceptModal(null)}
-          onSubmit={async (approvedFields) => {
-            await contactsMockAdapter.respondToContactRequest({
-              requestId: acceptModal.request.id,
-              responderId: viewerId,
-              action: "accepted",
-              approvedFields,
-            });
-            setAcceptModal(null);
-            await refresh();
-          }}
-        />
-      ) : null}
+      <ContactsInteractionLayer viewerId={viewerId} interactions={interactions} />
     </section>
   );
 }

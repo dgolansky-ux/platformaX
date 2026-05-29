@@ -13,24 +13,25 @@
  *    identity service so identity never imports social.
  */
 import type {
+  AddressBookEntry,
   ApprovedContactField,
   ContactGroupEntry,
-  ContactProfileAction,
   ContactProfileRelationshipDTO,
   ContactRequest,
   ContactRequestStatus,
   ContactsTabData,
   FriendCircle,
+  SpecialistEntry,
   VisibleContactFieldsDTO,
 } from "@shared/contracts/contacts";
 import type { UserId } from "@shared/contracts/branded-ids";
-import type {
-  ContactAccessService,
-  RelationshipSignalResolver,
-} from "@server/domains-v2/identity/public-api";
-import type {
-  SocialContactsService,
-} from "@server/domains-v2/social/public-api";
+import type { ContactAccessService } from "@server/domains-v2/identity/public-api";
+import type { SocialContactsService } from "@server/domains-v2/social/public-api";
+import {
+  actionsFor,
+  buildContactsDashboard,
+  type ContactsDashboardDTO,
+} from "./internals";
 
 export type ContactsApplicationServiceDeps = {
   identityContactAccess: ContactAccessService;
@@ -67,10 +68,15 @@ export interface ContactsApplicationService {
    * + available actions. Carries `visibleContactFields` already filtered by
    * the identity policy — so the frontend cannot accidentally leak PII.
    */
-  getViewerSafeContactProfileState(
+  getProfileContactRelationship(
     ownerId: UserId,
     viewerId: UserId | null,
   ): Promise<ContactsApplicationResult<ContactProfileRelationshipDTO>>;
+
+  /** Owner-side dashboard counts (counts only — never PII). */
+  getContactsDashboard(
+    viewerId: UserId,
+  ): Promise<ContactsApplicationResult<ContactsDashboardDTO>>;
 
   /** A→B asks B for PII access. */
   requestContactAccess(input: {
@@ -94,42 +100,31 @@ export interface ContactsApplicationService {
   }): Promise<ContactsApplicationResult<ContactRequest>>;
 
   /** Owner-local: label a person with a circle (or "none"); no consent, no PII. */
-  setFriendCircle(input: {
+  updateOwnerLocalContactGroup(input: {
     ownerId: UserId;
     personId: UserId;
     circle: FriendCircle;
   }): Promise<ContactsApplicationResult<ContactGroupEntry>>;
-}
 
-/** Internal action-set computation; UI-only enriched contactRequestStatus. */
-function actionsFor(rel: {
-  isOwner: boolean;
-  isFriend: boolean;
-  isAddressBookContact: boolean;
-  isSpecialist: boolean;
-  contactRequestStatus:
-    | "none"
-    | "pending_sent"
-    | "pending_received"
-    | "accepted"
-    | "rejected"
-    | "cancelled";
-  friendRequestStatus: "none" | "pending_sent" | "pending_received";
-}): readonly ContactProfileAction[] {
-  if (rel.isOwner) return [];
-  const out: ContactProfileAction[] = [];
+  /** Owner-local bookmark: save a person to my address book (no consent, no PII). */
+  addToContacts(
+    ownerId: UserId,
+    contactId: UserId,
+  ): Promise<ContactsApplicationResult<AddressBookEntry>>;
+  removeFromContacts(
+    ownerId: UserId,
+    contactId: UserId,
+  ): Promise<ContactsApplicationResult<void>>;
 
-  if (rel.isFriend) out.push("REMOVE_FRIEND");
-  else if (rel.friendRequestStatus === "pending_received") out.push("RESPOND_TO_FRIEND_REQUEST");
-  else if (rel.friendRequestStatus === "none") out.push("SEND_FRIEND_REQUEST");
-
-  if (rel.contactRequestStatus === "pending_received") out.push("RESPOND_TO_CONTACT_REQUEST");
-  else if (["none", "rejected", "cancelled"].includes(rel.contactRequestStatus)) out.push("REQUEST_CONTACT");
-
-  out.push(rel.isAddressBookContact ? "REMOVE_FROM_CONTACTS" : "ADD_TO_CONTACTS");
-  out.push(rel.isSpecialist ? "REMOVE_SPECIALIST" : "ADD_AS_SPECIALIST");
-
-  return out;
+  /** Owner-local bookmark: tag a person as a specialist (no consent, no PII). */
+  addAsSpecialist(
+    ownerId: UserId,
+    specialistId: UserId,
+  ): Promise<ContactsApplicationResult<SpecialistEntry>>;
+  removeSpecialist(
+    ownerId: UserId,
+    specialistId: UserId,
+  ): Promise<ContactsApplicationResult<void>>;
 }
 
 function mapErrorCode(
@@ -155,37 +150,6 @@ function mapResult<T>(
   return res.ok
     ? { ok: true, value: res.value }
     : { ok: false, error: { code: mapErrorCode(res.error.code), message: res.error.message } };
-}
-
-/**
- * Cross-domain seam: builds the `RelationshipSignalResolver` the identity
- * service needs without identity importing social.
- */
-export function makeRelationshipSignalResolver(
-  socialContacts: SocialContactsService,
-  identityContactAccess: ContactAccessService,
-): RelationshipSignalResolver {
-  return {
-    async resolve(ownerId, viewerId) {
-      const [isFriend, sentRequests, receivedRequests] = await Promise.all([
-        socialContacts.areFriends(ownerId, viewerId),
-        identityContactAccess.getSentContactRequests(viewerId),
-        identityContactAccess.getIncomingContactRequests(viewerId),
-      ]);
-      const between = [...sentRequests, ...receivedRequests].filter(
-        (r) =>
-          (r.fromUserId === viewerId && r.toUserId === ownerId) ||
-          (r.fromUserId === ownerId && r.toUserId === viewerId),
-      );
-      const accepted = between.find((r) => r.status === "accepted") ?? null;
-      return {
-        isFriend,
-        acceptedContactRequest: accepted
-          ? { approvedFields: accepted.approvedFields }
-          : null,
-      };
-    },
-  };
 }
 
 export function createContactsApplicationService(
@@ -228,7 +192,18 @@ export function createContactsApplicationService(
       };
     },
 
-    async getViewerSafeContactProfileState(ownerId, viewerId) {
+    async getContactsDashboard(viewerId) {
+      return {
+        ok: true,
+        value: await buildContactsDashboard(
+          deps.socialContacts,
+          deps.identityContactAccess,
+          viewerId,
+        ),
+      };
+    },
+
+    async getProfileContactRelationship(ownerId, viewerId) {
       const isOwner = viewerId !== null && viewerId === ownerId;
 
       const visible: VisibleContactFieldsDTO =
@@ -377,8 +352,27 @@ export function createContactsApplicationService(
       );
     },
 
-    async setFriendCircle(input) {
+    async updateOwnerLocalContactGroup(input) {
       return mapResult(await deps.socialContacts.setFriendCircle(input));
+    },
+
+    async addToContacts(ownerId, contactId) {
+      return mapResult(
+        await deps.socialContacts.addAddressBookContact({ ownerId, contactId }),
+      );
+    },
+    async removeFromContacts(ownerId, contactId) {
+      await deps.socialContacts.removeAddressBookContact(ownerId, contactId);
+      return { ok: true, value: undefined };
+    },
+    async addAsSpecialist(ownerId, specialistId) {
+      return mapResult(
+        await deps.socialContacts.addSpecialist({ ownerId, specialistId }),
+      );
+    },
+    async removeSpecialist(ownerId, specialistId) {
+      await deps.socialContacts.removeSpecialist(ownerId, specialistId);
+      return { ok: true, value: undefined };
     },
   };
 }

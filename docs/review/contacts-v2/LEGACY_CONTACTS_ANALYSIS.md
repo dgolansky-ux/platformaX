@@ -224,3 +224,33 @@ gains `circles`. Still `BACKEND_PARTIAL` + `UI_SHELL_ONLY` + `MOCK_LOCAL_ONLY`
   siebie? **YES**
 - Czy odtworzono legacy podział: kontakty / specjaliści / bliżsi znajomi /
   dalsi znajomi / bliska rodzina / dalsza rodzina? **YES**
+
+## 9. Profile-integration surfaces + dashboard (2026-05-29)
+
+Added on top of §8 to make the slice usable end-to-end (still
+`MOCK_LOCAL_ONLY` / `BACKEND_PARTIAL` — no HTTP transport, no DB):
+
+- **Person details panel** (`ContactPersonDetailsPanel`) — opened from a
+  card; shows public summary, relation badges, owner-local group, the
+  policy-filtered `ContactVisibleFieldsList`, the request status, and action
+  buttons rendered strictly from `availableActions`.
+- **Profile contact CTA** (`ProfileContactCard`) — a compact, header-less
+  variant exported from the feature index for later embedding on the public
+  profile. Shows the same relationship/visible-fields/actions, no PII unless
+  the policy already approved a field.
+- **Dashboard summary** — Kontakty / Specjaliści / Znajomi / Rodzina / Prośby
+  counts. Counts only; the dashboard DTO has no field that can carry PII.
+- **Request modal** (`ContactRequestModal`) — sender-side compose; sending
+  reveals nothing, the receiver chooses fields via the grant modal.
+- **Application surface** finalized in `use-cases/contacts`:
+  `getContactsTabData`, `getContactsDashboard`, `getProfileContactRelationship`,
+  `requestContactAccess`, `acceptContactRequest`, `rejectContactRequest`,
+  `addToContacts`, `removeFromContacts`, `addAsSpecialist`, `removeSpecialist`,
+  `updateOwnerLocalContactGroup`. All compose identity/social via their
+  public-apis only.
+
+Status truth unchanged: identity contact-access + social contacts =
+`BACKEND_PARTIAL` (DTO/service/policy/tests, in-memory repos, no DB);
+frontend = `UI_SHELL_ONLY` + `MOCK_LOCAL_ONLY`; transport = none; DB = none.
+Profile embedding of `ProfileContactCard` is prepared but NOT wired into the
+profile page yet.

@@ -6,7 +6,7 @@ import type {
 } from "@shared/contracts/contacts";
 import type { UserId } from "@shared/contracts/branded-ids";
 import { Avatar, EmptyState } from "./ContactsLists";
-import styles from "./ContactsTab.module.css";
+import styles from "./ContactsLists.module.css";
 
 /**
  * The "Prośby" tab. Incoming friend invitations (consent flow) and incoming

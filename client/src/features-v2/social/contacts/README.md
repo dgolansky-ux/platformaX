@@ -8,11 +8,18 @@ Backend reference: `server/application-v2/use-cases/contacts/README.md`
 
 The eight-section Kontakty UI shell — Wszyscy / Kontakty / Specjaliści /
 Bliżsi znajomi / Dalsi znajomi / Bliska rodzina / Dalsza rodzina / Prośby —
-plus the per-person circle dropdown, the accept-fields modal, and a
-deterministic in-process mock adapter that implements the same async surface
-the future HTTP adapter will expose. The circle sections are owner-local
-labels (`friendCircle`); switching one changes only how MY list groups a
-person — no consent, no PII (see analysis §8).
+plus the per-person circle dropdown, the dashboard summary, the person
+**details panel**, the request + accept-fields modals, and a deterministic
+in-process mock adapter that implements the same async surface the future
+HTTP adapter will expose. The circle sections are owner-local labels
+(`friendCircle`); switching one changes only how MY list groups a person —
+no consent, no PII (see analysis §8).
+
+Every action button is rendered from the DTO's `availableActions` — the
+components never recompute policy. `ProfileContactCard` and
+`ContactPersonDetailsPanel` are exported for later embedding on the public
+profile page (profile contact CTA); they show only `visibleContactFields`
+the policy already approved, otherwise an explicit no-access state.
 
 ## What it is NOT
 

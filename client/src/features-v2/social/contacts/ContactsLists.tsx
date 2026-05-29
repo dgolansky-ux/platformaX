@@ -2,10 +2,11 @@ import type { ReactElement } from "react";
 import {
   FRIEND_CIRCLE_VALUES,
   type ContactListItemDTO,
+  type ContactPersonSummary,
   type FriendCircle,
 } from "@shared/contracts/contacts";
 import type { UserId } from "@shared/contracts/branded-ids";
-import styles from "./ContactsTab.module.css";
+import styles from "./ContactsLists.module.css";
 
 const CIRCLE_LABEL: Record<FriendCircle, string> = {
   close_friend: "Bliższy znajomy",
@@ -76,11 +77,13 @@ function CircleSelect({
 
 function PersonCard({
   item,
+  onOpen,
   onRemoveContact,
   onRemoveSpecialist,
   onSetCircle,
 }: {
   item: ContactListItemDTO;
+  onOpen: (summary: ContactPersonSummary) => void;
   onRemoveContact: (id: UserId) => void;
   onRemoveSpecialist: (id: UserId) => void;
   onSetCircle: (id: UserId, circle: FriendCircle) => void;
@@ -91,7 +94,9 @@ function PersonCard({
     <li className={styles.card}>
       <Avatar label={person.avatarInitial || initials(person.userId)} />
       <div className={styles.cardBody}>
-        <p className={styles.cardName}>{person.displayName}</p>
+        <button type="button" className={styles.cardNameButton} onClick={() => onOpen(person)}>
+          {person.displayName}
+        </button>
         <p className={styles.cardCaption}>{caption}</p>
         <div className={styles.badges}>
           {item.isMutualFriend ? <span className={styles.badge}>Znajomy</span> : null}
@@ -103,6 +108,9 @@ function PersonCard({
         </div>
       </div>
       <div className={styles.cardActions}>
+        <button type="button" className={styles.cardAction} onClick={() => onOpen(person)}>
+          Szczegóły
+        </button>
         <CircleSelect
           value={item.friendCircle}
           onChange={(next) => onSetCircle(person.userId, next)}
@@ -133,12 +141,14 @@ function PersonCard({
 export function PeopleList({
   items,
   empty,
+  onOpen,
   onRemoveContact,
   onRemoveSpecialist,
   onSetCircle,
 }: {
   items: readonly ContactListItemDTO[];
   empty: { emoji: string; title: string; body: string };
+  onOpen: (summary: ContactPersonSummary) => void;
   onRemoveContact: (id: UserId) => void;
   onRemoveSpecialist: (id: UserId) => void;
   onSetCircle: (id: UserId, circle: FriendCircle) => void;
@@ -152,6 +162,7 @@ export function PeopleList({
         <PersonCard
           key={item.person.userId}
           item={item}
+          onOpen={onOpen}
           onRemoveContact={onRemoveContact}
           onRemoveSpecialist={onRemoveSpecialist}
           onSetCircle={onSetCircle}

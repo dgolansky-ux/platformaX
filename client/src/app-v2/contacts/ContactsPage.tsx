@@ -9,21 +9,22 @@
 import { ContactsTab } from "@client/features-v2/social/contacts";
 import type { UserId } from "@shared/contracts/branded-ids";
 import { DesktopSidebar } from "../navigation/DesktopSidebar";
+import styles from "./ContactsPage.module.css";
 
 const MOCK_VIEWER_ID = "u-mock-alice" as UserId;
 
 export function ContactsPage() {
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "#f8fafc" }}>
+    <div className={styles.page}>
       <DesktopSidebar
         active="kontakty"
         displayName="Demo użytkownik"
         handle="demo"
         avatarInitial="D"
       />
-      <div style={{ flex: 1 }}>
+      <main className={styles.content}>
         <ContactsTab viewerId={MOCK_VIEWER_ID} />
-      </div>
+      </main>
     </div>
   );
 }
