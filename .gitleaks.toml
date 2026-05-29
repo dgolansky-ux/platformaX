@@ -46,3 +46,12 @@ regexes = [
     '''service_role''',                                    # rule keyword reference
     '''AKIAIOSFODNN7EXAMPLE''',                            # AWS docs example key
 ]
+
+# Individual historical findings (secret-scan unit-test fixtures) are
+# suppressed in `.gitleaksignore` by their <commit>:<file>:<rule>:<line>
+# fingerprint. That is the narrowest mechanism gitleaks v8 offers — it
+# whitelists the EXACT match shown by `gitleaks detect -v`, never the
+# rule globally and never the path globally. Future commits with the
+# same fixture shapes carry an inline `// gitleaks:allow` comment in
+# scripts/__tests__/secret-scan.test.ts so they do not need new
+# fingerprints. Do NOT add a fingerprint for a real secret — rotate it.

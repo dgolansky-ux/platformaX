@@ -327,11 +327,17 @@ function caseGitleaks() {
     `aws_access_key_id = AKIA${suffix}\naws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCY${suffix}\n`,
   );
   try {
+    // `--no-git` is required: the planted file is on disk but UNTRACKED.
+    // Without --no-git, gitleaks only scans commit history and would miss
+    // the planted leak — making the red-case appear NOT_ENFORCED when in
+    // fact the binary works correctly. With --no-git, gitleaks walks the
+    // working tree and finds it.
     const r = run("gitleaks", [
       "detect",
       "--config",
       ".gitleaks.toml",
       "--no-banner",
+      "--no-git",
       "--redact",
       "--source",
       ".",
