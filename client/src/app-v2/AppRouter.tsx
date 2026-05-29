@@ -7,6 +7,7 @@ import { CheckEmailRoute } from "./auth/CheckEmailRoute";
 import { OnboardingFlow } from "./onboarding/OnboardingFlow";
 import { ProfilePage } from "./profile/ProfilePage";
 import { ContactsPage } from "./contacts/ContactsPage";
+import { ProfessionalSectionRoute } from "./manage/ProfessionalSectionRoute";
 
 export function AppRouter() {
   return (
@@ -20,6 +21,7 @@ export function AppRouter() {
         <Route path="/onboarding" element={<OnboardingFlow />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/contacts" element={<ContactsPage />} />
+        <Route path="/manage/sekcja-zawodowa" element={<ProfessionalSectionRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
