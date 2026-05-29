@@ -91,3 +91,41 @@ intentionally skipped this pass at the owner's request.
   `ProfileContactCard` is prepared but not yet embedded on the profile page;
   professions/specializations data + real transport/DB are pending the owner's
   import package — all are truthful PARTIAL/DATA_PENDING statuses, not gaps.
+
+## 8. PRE-ZIP hardening / red-team report
+
+A malicious-tester pass over the five areas + boundaries before the audit ZIP.
+**No P0/P1 found.** Every red-team edge case maps to an existing test:
+
+- **Architecture boundaries:** `audit-domain-boundaries`, `depcruise`
+  (0 errors), `check-architecture-import-graph` all green. public-api files
+  export no `internal/*`; frontend has zero `@server/*`; no circular deps.
+- **Identity/profile:** `public-mapper-no-pii.test.ts` asserts the public DTO
+  has no email/phone/dateOfBirth/private fields; mapper drops raw record;
+  policy is pure.
+- **Media:** owner-only upload intent; avatar+banner intents; foreign asset
+  FORBIDDEN; mismatched purpose INVALID_INPUT; svg/unknown mime rejected;
+  inline `data:` scheme rejected (no base64 runtime); public DTO carries no
+  storage internals/owner id; url only when ready (no fake success).
+- **Contacts (edge cases 1–11):** accept exposes only approved field; reject
+  exposes none; friendship no auto-PII; address-book/specialist owner-local
+  no-PII no-consent; owner-local group changes no global relation; duplicate
+  same-direction blocked (`PENDING_DUPLICATE`); **reverse A→B / B→A explicitly
+  allowed as independent per-direction requests** (decision documented +
+  tested); person can be contact+specialist+friend at once.
+- **Professions:** exactly 30 categories, order ASC, rzemioslo slug, DATA_PENDING
+  for professions/specializations, dry-run never persists, empty-name /
+  bad-slug / unknown-category / duplicate-profession / duplicate-specialization
+  -within-profession detected; same spec slug across professions allowed.
+- **Social base:** friend-request + friendship lifecycle, self-block, relation
+  separation; no PII, no profile, no posts.
+- **Status truth:** DOMAIN_STATUS_REGISTRY (identity/media/social = PARTIAL) and
+  all review docs verified — no IMPLEMENTED/PRODUCTION_READY overclaim.
+- **Test quality:** no `expect(true).toBe(true)`, no file-exists-only tests,
+  no `any`/`as any`/`@ts-ignore` (eslint + tsc strict pass).
+
+**Readiness:** READY_FOR_ZIP_AUDIT — no code changes required by this pass.
+
+## 9. Next recommended step
+
+Full audit ZIP of the whole repo (separate command).
