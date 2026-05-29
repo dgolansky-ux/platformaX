@@ -6,16 +6,20 @@ Backend reference: `server/application-v2/use-cases/contacts/README.md`
 
 ## What this is
 
-The four-tab Kontakty UI shell (Znajomi / Kontakty / Specjaliści / Prośby),
-the accept-fields modal, and a deterministic in-process mock adapter that
-implements the same async surface the future HTTP adapter will expose.
+The eight-section Kontakty UI shell — Wszyscy / Kontakty / Specjaliści /
+Bliżsi znajomi / Dalsi znajomi / Bliska rodzina / Dalsza rodzina / Prośby —
+plus the per-person circle dropdown, the accept-fields modal, and a
+deterministic in-process mock adapter that implements the same async surface
+the future HTTP adapter will expose. The circle sections are owner-local
+labels (`friendCircle`); switching one changes only how MY list groups a
+person — no consent, no PII (see analysis §8).
 
 ## What it is NOT
 
 - Not wired to `application-v2/use-cases/contacts` (no HTTP transport yet).
 - Not connected to a real user session — `viewerId` is a fixed demo id.
-- Not yet exposing search, family-tier picker, public-profile request modal
-  or the `/contact-privacy` page (see analysis §7 — deferred).
+- Not yet exposing search, public-profile request modal or the
+  `/contact-privacy` page (see analysis §7 — deferred).
 
 ## Status truth
 

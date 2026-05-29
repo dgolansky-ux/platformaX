@@ -8,6 +8,8 @@
  */
 import type {
   AddressBookEntry,
+  ContactGroupEntry,
+  FriendCircle,
   FriendEntry,
   SpecialistEntry,
 } from "@shared/contracts/contacts";
@@ -18,6 +20,7 @@ import type {
   FriendRequest,
   RespondToFriendRequestInput,
   SendFriendRequestInput,
+  SetFriendCircleInput,
 } from "./social-contacts-dto";
 import {
   canRespondToFriendRequest,
@@ -26,6 +29,7 @@ import {
 } from "./social-contacts-policy";
 import type {
   AddressBookRepository,
+  ContactGroupRepository,
   FriendRequestRepository,
   FriendshipRepository,
   SpecialistRepository,
@@ -39,6 +43,7 @@ export type SocialContactsServiceDeps = {
   friendRequests: FriendRequestRepository;
   addressBook: AddressBookRepository;
   specialists: SpecialistRepository;
+  groups: ContactGroupRepository;
   clock: SocialContactsClock;
   ids: SocialContactsIdGenerator;
 };
@@ -88,6 +93,13 @@ export interface SocialContactsService {
   ): Promise<SocialContactsResult<SpecialistEntry>>;
   removeSpecialist(ownerId: UserId, specialistId: UserId): Promise<void>;
   isSpecialist(ownerId: UserId, specialistId: UserId): Promise<boolean>;
+
+  // owner-local friend circles (bliżsi/dalsi znajomi, bliska/dalsza rodzina)
+  listFriendCircles(ownerId: UserId): Promise<ContactGroupEntry[]>;
+  getFriendCircle(ownerId: UserId, personId: UserId): Promise<FriendCircle>;
+  setFriendCircle(
+    input: SetFriendCircleInput,
+  ): Promise<SocialContactsResult<ContactGroupEntry>>;
 }
 
 export function createSocialContactsService(
@@ -247,6 +259,32 @@ export function createSocialContactsService(
     },
     async isSpecialist(ownerId, specialistId) {
       return deps.specialists.has(ownerId, specialistId);
+    },
+
+    async listFriendCircles(ownerId) {
+      return deps.groups.list(ownerId);
+    },
+    async getFriendCircle(ownerId, personId) {
+      return deps.groups.get(ownerId, personId);
+    },
+    async setFriendCircle(input) {
+      if (isSelfRelation(input.ownerId, input.personId)) {
+        return {
+          ok: false,
+          error: {
+            code: "SELF_RELATION_NOT_ALLOWED",
+            message: "Cannot put yourself into a contact circle.",
+          },
+        };
+      }
+      const entry: ContactGroupEntry = {
+        ownerId: input.ownerId,
+        personId: input.personId,
+        circle: input.circle,
+        updatedAt: deps.clock.now().toISOString(),
+      };
+      await deps.groups.set(entry);
+      return { ok: true, value: entry };
     },
   };
 }

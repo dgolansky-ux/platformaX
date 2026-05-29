@@ -8,6 +8,14 @@
  * shared/contracts/* MUST NOT import from @server/* — these are independent
  * definitions, not server-runtime mirrors.
  *
+ * QUALITY_STRUCTURE_EXCEPTION — this is the single canonical contract for the
+ * whole Kontakty slice (field/permission types, request lifecycle, the four
+ * owner-vs-mutual relation concepts, owner-local circle labels, and the view
+ * DTOs). Keeping them in one source-of-truth file is deliberate; splitting
+ * would fragment the contract and create circular type imports between the
+ * view DTOs and the relation enums. Exceeds the 15-export structural budget
+ * for that reason. Registered in EXCEPTIONS_REGISTER.md.
+ *
  * ALLOW_PRIVATE_DTO_PII — registered in EXCEPTIONS_REGISTER.md as EXC-004.
  * The only types in this file that name PII tokens (`phone`,
  * `emailContact`) are: (a) `OwnerContactFieldsDTO` — returned only to the
@@ -123,6 +131,54 @@ export type ContactRequest = {
   updatedAt: string;
 };
 
+/**
+ * Owner-local relationship circle. This is a label the owner applies to a
+ * person in THEIR own contact view. It is NOT a global relation, requires
+ * NO consent from the labelled person, and grants NO access to PII. The
+ * mutual friendship relation (`FriendEntry` / `FriendRequest`) and the PII
+ * gate (`VisibleContactFieldsDTO`) are entirely separate concerns.
+ */
+export type FriendCircle =
+  | "close_friend"
+  | "distant_friend"
+  | "close_family"
+  | "distant_family"
+  | "none";
+
+/** Assignable circles as a runtime array (excludes the implicit "none"). */
+export const FRIEND_CIRCLE_VALUES: readonly Exclude<FriendCircle, "none">[] = [
+  "close_friend",
+  "distant_friend",
+  "close_family",
+  "distant_family",
+] as const;
+
+/**
+ * One owner-local circle label for a person in MY contacts. Owner-side only;
+ * the labelled person never sees it and it never feeds the PII policy.
+ */
+export type ContactGroupEntry = {
+  ownerId: UserId;
+  personId: UserId;
+  circle: FriendCircle;
+  /** When the owner last set this label. */
+  updatedAt: string;
+};
+
+/**
+ * Public-safe summary of a person rendered in a contact list. Carries NO PII
+ * — phone/email only ever travel through `VisibleContactFieldsDTO` after the
+ * policy gate. `professionName` / `categoryName` are public profile facets.
+ */
+export type ContactPersonSummary = {
+  userId: UserId;
+  displayName: string;
+  handle: string;
+  avatarInitial: string;
+  professionName?: string;
+  categoryName?: string;
+};
+
 /** A row in MY address book (one-sided; no consent required). */
 export type AddressBookEntry = {
   ownerId: UserId;
@@ -172,25 +228,62 @@ export type ContactProfileAction =
  * Single DTO the frontend reads to render a contact's profile actions and
  * relationship state. Carries NO raw PII unless the corresponding policy
  * gate passed and produced `visibleContactFields` already filtered.
+ *
+ * The four concepts stay independent here:
+ *  - `isMutualFriend` / `friendRequestStatus` — the consent-based friendship.
+ *  - `contactRequestStatus` / `visibleContactFields` — the PII-reveal grant.
+ *  - `isAddressBookContact` / `isSpecialist` / `friendCircle` — owner-local
+ *    bookmarks/labels that imply NOTHING about consent or PII access.
  */
 export type ContactProfileRelationshipDTO = {
   ownerId: UserId;
   viewerId: UserId | null;
-  isFriend: boolean;
+  /** Mutual accepted friendship (always mutual in V2). */
+  isMutualFriend: boolean;
   isAddressBookContact: boolean;
   isSpecialist: boolean;
+  /** Owner-local circle label; "none" = the owner has not categorized them. */
+  friendCircle: FriendCircle;
   contactRequestStatus: ContactRequestStatus | "none";
   friendRequestStatus: FriendRequestStatus | "none";
   visibleContactFields: VisibleContactFieldsDTO["fields"];
   availableActions: readonly ContactProfileAction[];
 };
 
-/** Aggregate DTO for the four-tab Kontakty view. */
+/**
+ * One row in the owner's Kontakty list. Bundles the public-safe person
+ * summary with the owner-local labels and the (already policy-filtered)
+ * relationship/permission status, so the frontend renders without ever
+ * computing policy itself.
+ */
+export type ContactListItemDTO = {
+  person: ContactPersonSummary;
+  // owner-local labels / groups
+  isAddressBookContact: boolean;
+  isSpecialist: boolean;
+  friendCircle: FriendCircle;
+  // mutual relationship status
+  isMutualFriend: boolean;
+  friendRequestStatus: FriendRequestStatus | "none";
+  // contact-permission status
+  contactRequestStatus: ContactRequestStatus | "none";
+  visibleContactFields: VisibleContactFieldsDTO["fields"];
+  availableActions: readonly ContactProfileAction[];
+};
+
+/**
+ * Aggregate DTO for the Kontakty view. Beyond the mutual `friends` and the
+ * owner-local `contacts` / `specialists` bookmarks, `circles` carries the
+ * owner-local circle labels (bliżsi/dalsi znajomi, bliska/dalsza rodzina).
+ * All of `contacts` / `specialists` / `circles` are owner-local: they never
+ * imply consent and never grant PII.
+ */
 export type ContactsTabData = {
   viewerId: UserId;
   friends: readonly FriendEntry[];
   contacts: readonly AddressBookEntry[];
   specialists: readonly SpecialistEntry[];
+  circles: readonly ContactGroupEntry[];
   incomingContactRequests: readonly ContactRequest[];
   incomingFriendRequests: readonly {
     id: string;

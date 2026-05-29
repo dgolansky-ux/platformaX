@@ -3,23 +3,28 @@
  *
  * Status: MOCK_LOCAL_ONLY. There is no HTTP layer yet, but the frontend
  * MUST NOT import `@server/*` (PX-ARCH-001). This adapter implements the
- * same async surface the future HTTP adapter will expose, backed by the
- * already-tested in-memory store from the application use-case. Wiring
- * happens here at the bundle edge — the production bundle does NOT
- * include this module once a real transport ships.
+ * same async surface the future HTTP adapter will expose, backed by a
+ * small in-memory store that mirrors the already-tested application
+ * use-case. Wiring happens here at the bundle edge — the production bundle
+ * does NOT include this module once a real transport ships.
  *
- * `client/*` boundary: no `@server/*` imports — uses only the shared
- * contracts (`@shared/contracts/contacts`). Re-implementing the small
- * in-memory store locally (instead of pulling the server one in) keeps
- * the bundle clean and the boundary guard happy.
+ * The adapter (not the React component) is the policy seam: it resolves the
+ * owner-local labels (contact / specialist / friendCircle), the mutual
+ * relationship status and the already-filtered `visibleContactFields`, and
+ * hands the component a ready-to-render `ContactListItemDTO`. The component
+ * never computes policy.
  */
 import type {
   AddressBookEntry,
   ApprovedContactField,
+  ContactGroupEntry,
+  ContactListItemDTO,
+  ContactPersonSummary,
   ContactProfileAction,
   ContactProfileRelationshipDTO,
   ContactRequest,
   ContactsTabData,
+  FriendCircle,
   FriendEntry,
   SpecialistEntry,
 } from "@shared/contracts/contacts";
@@ -31,6 +36,7 @@ type AdapterStore = {
   friends: Map<string, FriendEntry>;
   contacts: Map<string, AddressBookEntry>;
   specialists: Map<string, SpecialistEntry>;
+  circles: Map<string, ContactGroupEntry>;
   contactRequests: Map<string, ContactRequest>;
   friendRequests: Map<string, IncomingFR>;
 };
@@ -40,6 +46,7 @@ function emptyStore(): AdapterStore {
     friends: new Map(),
     contacts: new Map(),
     specialists: new Map(),
+    circles: new Map(),
     contactRequests: new Map(),
     friendRequests: new Map(),
   };
@@ -49,45 +56,66 @@ const ALICE = "u-mock-alice" as UserId;
 const BOB = "u-mock-bob" as UserId;
 const CAROL = "u-mock-carol" as UserId;
 const DAN = "u-mock-dan" as UserId;
+const EWA = "u-mock-ewa" as UserId;
+const FILIP = "u-mock-filip" as UserId;
+
+/** Public-safe demo directory — NO PII, only profile facets + display name. */
+const PEOPLE: Record<string, ContactPersonSummary> = {
+  [ALICE]: { userId: ALICE, displayName: "Anna Kowalska", handle: "anna", avatarInitial: "A" },
+  [BOB]: { userId: BOB, displayName: "Bartek Nowak", handle: "bartek", avatarInitial: "B" },
+  [CAROL]: { userId: CAROL, displayName: "Celina Wójcik", handle: "celina", avatarInitial: "C" },
+  [DAN]: {
+    userId: DAN,
+    displayName: "Damian Lis",
+    handle: "damian",
+    avatarInitial: "D",
+    professionName: "Fizjoterapeuta",
+    categoryName: "Medycyna",
+  },
+  [EWA]: { userId: EWA, displayName: "Ewa Zielińska", handle: "ewa", avatarInitial: "E" },
+  [FILIP]: { userId: FILIP, displayName: "Filip Mazur", handle: "filip", avatarInitial: "F" },
+};
+
+function summaryFor(id: UserId): ContactPersonSummary {
+  return (
+    PEOPLE[id] ?? {
+      userId: id,
+      displayName: String(id),
+      handle: String(id).replace(/^u-?/, ""),
+      avatarInitial: String(id).replace(/^u-?/, "").slice(0, 1).toUpperCase() || "?",
+    }
+  );
+}
 
 /** Seeds a small, deterministic dataset so the UI shell renders something. */
 function seedDemoData(store: AdapterStore, viewer: UserId): void {
   const now = "2026-05-29T03:00:00Z";
-  store.friends.set(`${viewer}|${BOB}`, {
-    ownerId: viewer,
-    friendId: BOB,
-    acceptedAt: now,
-  });
-  store.contacts.set(`${viewer}|${CAROL}`, {
-    ownerId: viewer,
-    contactId: CAROL,
-    addedAt: now,
-  });
-  store.specialists.set(`${viewer}|${DAN}`, {
-    ownerId: viewer,
-    specialistId: DAN,
-    addedAt: now,
-  });
+  store.friends.set(`${viewer}|${BOB}`, { ownerId: viewer, friendId: BOB, acceptedAt: now });
+  store.contacts.set(`${viewer}|${CAROL}`, { ownerId: viewer, contactId: CAROL, addedAt: now });
+  store.specialists.set(`${viewer}|${DAN}`, { ownerId: viewer, specialistId: DAN, addedAt: now });
+  // owner-local circles — independent of friendship / address-book
+  store.circles.set(`${viewer}|${BOB}`, { ownerId: viewer, personId: BOB, circle: "close_friend", updatedAt: now });
+  store.circles.set(`${viewer}|${CAROL}`, { ownerId: viewer, personId: CAROL, circle: "distant_friend", updatedAt: now });
+  store.circles.set(`${viewer}|${EWA}`, { ownerId: viewer, personId: EWA, circle: "close_family", updatedAt: now });
+  store.circles.set(`${viewer}|${FILIP}`, { ownerId: viewer, personId: FILIP, circle: "distant_family", updatedAt: now });
   store.contactRequests.set("req-demo-1", {
     id: "req-demo-1",
-    fromUserId: ALICE,
+    fromUserId: EWA,
     toUserId: viewer,
-    message: "Cześć! Chciałbym z Tobą współpracować w temacie produktu.",
+    message: "Cześć! Chciałabym z Tobą współpracować w temacie produktu.",
     purpose: "Współpraca",
     status: "pending",
     approvedFields: [],
     createdAt: now,
     updatedAt: now,
   });
-  store.friendRequests.set("fr-demo-1", {
-    id: "fr-demo-1",
-    fromUserId: ALICE,
-    createdAt: now,
-  });
+  store.friendRequests.set("fr-demo-1", { id: "fr-demo-1", fromUserId: FILIP, createdAt: now });
 }
 
 export type ContactsMockAdapter = {
   getContactsTabData(viewer: UserId): Promise<ContactsTabData>;
+  /** Resolved, ready-to-render list rows for the owner's Kontakty view. */
+  getContactList(viewer: UserId): Promise<ContactListItemDTO[]>;
   getViewerSafeProfileState(
     ownerId: UserId,
     viewerId: UserId | null,
@@ -108,6 +136,7 @@ export type ContactsMockAdapter = {
   removeAddressBookContact(viewer: UserId, contactId: UserId): Promise<void>;
   addSpecialist(viewer: UserId, specialistId: UserId): Promise<void>;
   removeSpecialist(viewer: UserId, specialistId: UserId): Promise<void>;
+  setFriendCircle(viewer: UserId, personId: UserId, circle: FriendCircle): Promise<void>;
   /** Test helper: replace the underlying store with a fresh empty one. */
   __resetForTests(): void;
 };
@@ -122,61 +151,93 @@ function ensureSeeded(viewer: UserId): void {
   }
 }
 
-function computeAvailableActions(
-  rel: Omit<ContactProfileRelationshipDTO, "availableActions">,
-): readonly ContactProfileAction[] {
-  if (rel.viewerId === null) return [];
-  if (rel.viewerId === rel.ownerId) return [];
+function actionsForListItem(item: {
+  isAddressBookContact: boolean;
+  isSpecialist: boolean;
+  isMutualFriend: boolean;
+}): ContactProfileAction[] {
   const out: ContactProfileAction[] = [];
-  out.push(rel.isFriend ? "REMOVE_FRIEND" : "SEND_FRIEND_REQUEST");
-  if (rel.contactRequestStatus === "none" || rel.contactRequestStatus === "rejected") {
-    out.push("REQUEST_CONTACT");
-  } else if (rel.contactRequestStatus === "pending") {
-    out.push("RESPOND_TO_CONTACT_REQUEST");
-  }
-  out.push(rel.isAddressBookContact ? "REMOVE_FROM_CONTACTS" : "ADD_TO_CONTACTS");
-  out.push(rel.isSpecialist ? "REMOVE_SPECIALIST" : "ADD_AS_SPECIALIST");
+  if (item.isMutualFriend) out.push("REMOVE_FRIEND");
+  if (item.isAddressBookContact) out.push("REMOVE_FROM_CONTACTS");
+  if (item.isSpecialist) out.push("REMOVE_SPECIALIST");
   return out;
+}
+
+function buildListItem(viewer: UserId, personId: UserId): ContactListItemDTO {
+  const isAddressBookContact = store.contacts.has(`${viewer}|${personId}`);
+  const isSpecialist = store.specialists.has(`${viewer}|${personId}`);
+  const isMutualFriend = store.friends.has(`${viewer}|${personId}`);
+  const friendCircle = store.circles.get(`${viewer}|${personId}`)?.circle ?? "none";
+  return {
+    person: summaryFor(personId),
+    isAddressBookContact,
+    isSpecialist,
+    friendCircle,
+    isMutualFriend,
+    friendRequestStatus: "none",
+    contactRequestStatus: "none",
+    visibleContactFields: {},
+    availableActions: actionsForListItem({
+      isAddressBookContact,
+      isSpecialist,
+      isMutualFriend,
+    }),
+  };
+}
+
+function collectPersonIds(viewer: UserId): UserId[] {
+  const ids = new Set<UserId>();
+  for (const f of store.friends.values()) if (f.ownerId === viewer) ids.add(f.friendId);
+  for (const c of store.contacts.values()) if (c.ownerId === viewer) ids.add(c.contactId);
+  for (const s of store.specialists.values()) if (s.ownerId === viewer) ids.add(s.specialistId);
+  for (const g of store.circles.values()) if (g.ownerId === viewer) ids.add(g.personId);
+  return [...ids];
 }
 
 export const contactsMockAdapter: ContactsMockAdapter = {
   async getContactsTabData(viewer) {
     ensureSeeded(viewer);
-    const friends = [...store.friends.values()].filter(
-      (f) => f.ownerId === viewer,
-    );
-    const contacts = [...store.contacts.values()].filter(
-      (c) => c.ownerId === viewer,
-    );
-    const specialists = [...store.specialists.values()].filter(
-      (s) => s.ownerId === viewer,
-    );
-    const incomingContactRequests = [...store.contactRequests.values()].filter(
-      (r) => r.toUserId === viewer && r.status === "pending",
-    );
-    const incomingFriendRequests = [...store.friendRequests.values()];
     return {
       viewerId: viewer,
-      friends,
-      contacts,
-      specialists,
-      incomingContactRequests,
-      incomingFriendRequests,
+      friends: [...store.friends.values()].filter((f) => f.ownerId === viewer),
+      contacts: [...store.contacts.values()].filter((c) => c.ownerId === viewer),
+      specialists: [...store.specialists.values()].filter((s) => s.ownerId === viewer),
+      circles: [...store.circles.values()].filter((g) => g.ownerId === viewer),
+      incomingContactRequests: [...store.contactRequests.values()].filter(
+        (r) => r.toUserId === viewer && r.status === "pending",
+      ),
+      incomingFriendRequests: [...store.friendRequests.values()],
     };
   },
 
+  async getContactList(viewer) {
+    ensureSeeded(viewer);
+    return collectPersonIds(viewer).map((id) => buildListItem(viewer, id));
+  },
+
   async getViewerSafeProfileState(ownerId, viewerId) {
-    const rel: Omit<ContactProfileRelationshipDTO, "availableActions"> = {
+    const isMutualFriend =
+      viewerId !== null && store.friends.has(`${viewerId}|${ownerId}`);
+    const friendCircle =
+      viewerId === null
+        ? "none"
+        : store.circles.get(`${viewerId}|${ownerId}`)?.circle ?? "none";
+    const isAddressBookContact =
+      viewerId !== null && store.contacts.has(`${viewerId}|${ownerId}`);
+    const isSpecialist =
+      viewerId !== null && store.specialists.has(`${viewerId}|${ownerId}`);
+    return {
       ownerId,
       viewerId,
-      isFriend: false,
-      isAddressBookContact: false,
-      isSpecialist: false,
+      isMutualFriend,
+      isAddressBookContact,
+      isSpecialist,
+      friendCircle,
       contactRequestStatus: "none",
       friendRequestStatus: "none",
       visibleContactFields: {},
+      availableActions: [],
     };
-    return { ...rel, availableActions: computeAvailableActions(rel) };
   },
 
   async respondToContactRequest(args) {
@@ -188,8 +249,7 @@ export const contactsMockAdapter: ContactsMockAdapter = {
     const next: ContactRequest = {
       ...existing,
       status: args.action,
-      approvedFields:
-        args.action === "accepted" ? (args.approvedFields ?? []) : [],
+      approvedFields: args.action === "accepted" ? (args.approvedFields ?? []) : [],
       updatedAt: new Date().toISOString(),
     };
     store.contactRequests.set(args.requestId, next);
@@ -237,11 +297,25 @@ export const contactsMockAdapter: ContactsMockAdapter = {
   async removeSpecialist(viewer, specialistId) {
     store.specialists.delete(`${viewer}|${specialistId}`);
   },
+  async setFriendCircle(viewer, personId, circle) {
+    const key = `${viewer}|${personId}`;
+    if (circle === "none") {
+      store.circles.delete(key);
+      return;
+    }
+    store.circles.set(key, {
+      ownerId: viewer,
+      personId,
+      circle,
+      updatedAt: new Date().toISOString(),
+    });
+  },
 
   __resetForTests() {
     store.friends.clear();
     store.contacts.clear();
     store.specialists.clear();
+    store.circles.clear();
     store.contactRequests.clear();
     store.friendRequests.clear();
     seededFor = null;

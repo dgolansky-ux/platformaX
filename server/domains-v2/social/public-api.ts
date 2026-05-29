@@ -27,7 +27,10 @@ export type {
   RespondToFriendRequestInput,
   AddAddressBookContactInput,
   AddSpecialistInput,
+  SetFriendCircleInput,
   AddressBookEntry,
+  ContactGroupEntry,
+  FriendCircle,
   FriendEntry,
   SpecialistEntry,
   FriendRequestStatus,
@@ -37,12 +40,14 @@ export type {
   FriendRequestRepository,
   AddressBookRepository,
   SpecialistRepository,
+  ContactGroupRepository,
 } from "./social-contacts-ports";
 export {
   createInMemoryFriendshipRepository,
   createInMemoryFriendRequestRepository,
   createInMemoryAddressBookRepository,
   createInMemorySpecialistRepository,
+  createInMemoryContactGroupRepository,
 } from "./social-contacts-store";
 export {
   canRespondToFriendRequest,

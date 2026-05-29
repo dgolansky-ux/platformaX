@@ -14,11 +14,13 @@
  */
 import type {
   ApprovedContactField,
+  ContactGroupEntry,
   ContactProfileAction,
   ContactProfileRelationshipDTO,
   ContactRequest,
   ContactRequestStatus,
   ContactsTabData,
+  FriendCircle,
   VisibleContactFieldsDTO,
 } from "@shared/contracts/contacts";
 import type { UserId } from "@shared/contracts/branded-ids";
@@ -90,6 +92,17 @@ export interface ContactsApplicationService {
     requestId: string;
     responderUserId: UserId;
   }): Promise<ContactsApplicationResult<ContactRequest>>;
+
+  /**
+   * Owner-local: put a person into one of MY circles (or clear with "none").
+   * Requires NO consent from the person and grants NO PII — it only changes
+   * how the owner's own Kontakty view groups them.
+   */
+  setFriendCircle(input: {
+    ownerId: UserId;
+    personId: UserId;
+    circle: FriendCircle;
+  }): Promise<ContactsApplicationResult<ContactGroupEntry>>;
 }
 
 /** Internal action-set computation; UI-only enriched contactRequestStatus. */
@@ -203,12 +216,14 @@ export function createContactsApplicationService(
         friends,
         contacts,
         specialists,
+        circles,
         incomingContactRequests,
         incomingFriendRequests,
       ] = await Promise.all([
         deps.socialContacts.listFriends(viewerId),
         deps.socialContacts.listAddressBook(viewerId),
         deps.socialContacts.listSpecialists(viewerId),
+        deps.socialContacts.listFriendCircles(viewerId),
         deps.identityContactAccess.getIncomingContactRequests(viewerId),
         deps.socialContacts.listIncomingFriendRequests(viewerId),
       ]);
@@ -219,6 +234,7 @@ export function createContactsApplicationService(
           friends,
           contacts,
           specialists,
+          circles,
           incomingContactRequests: incomingContactRequests.filter(
             (r) => r.status === "pending",
           ),
@@ -241,13 +257,14 @@ export function createContactsApplicationService(
         );
 
       if (viewerId === null) {
-        // Anonymous viewer: zero PII, no actions.
+        // Anonymous viewer: zero PII, no actions, no owner-local labels.
         const dto: ContactProfileRelationshipDTO = {
           ownerId,
           viewerId: null,
-          isFriend: false,
+          isMutualFriend: false,
           isAddressBookContact: false,
           isSpecialist: false,
+          friendCircle: "none",
           contactRequestStatus: "none",
           friendRequestStatus: "none",
           visibleContactFields: visible.fields,
@@ -260,6 +277,7 @@ export function createContactsApplicationService(
         isFriend,
         isAddressBookContact,
         isSpecialist,
+        friendCircle,
         sentRequests,
         receivedRequests,
         sentFriendRequests,
@@ -268,6 +286,7 @@ export function createContactsApplicationService(
         deps.socialContacts.areFriends(ownerId, viewerId),
         deps.socialContacts.isAddressBookContact(viewerId, ownerId),
         deps.socialContacts.isSpecialist(viewerId, ownerId),
+        deps.socialContacts.getFriendCircle(viewerId, ownerId),
         deps.identityContactAccess.getSentContactRequests(viewerId),
         deps.identityContactAccess.getIncomingContactRequests(viewerId),
         deps.socialContacts.listOutgoingFriendRequests(viewerId),
@@ -335,9 +354,10 @@ export function createContactsApplicationService(
       const dto: ContactProfileRelationshipDTO = {
         ownerId,
         viewerId,
-        isFriend,
+        isMutualFriend: isFriend,
         isAddressBookContact,
         isSpecialist,
+        friendCircle,
         contactRequestStatus,
         friendRequestStatus:
           friendReqBetween && friendReqBetween.status === "pending"
@@ -384,6 +404,17 @@ export function createContactsApplicationService(
         responderUserId: input.responderUserId,
         action: "rejected",
       });
+      if (!res.ok) {
+        return {
+          ok: false,
+          error: { code: mapErrorCode(res.error.code), message: res.error.message },
+        };
+      }
+      return { ok: true, value: res.value };
+    },
+
+    async setFriendCircle(input) {
+      const res = await deps.socialContacts.setFriendCircle(input);
       if (!res.ok) {
         return {
           ok: false,

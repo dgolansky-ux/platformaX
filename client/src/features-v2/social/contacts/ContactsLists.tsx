@@ -1,17 +1,26 @@
 import type { ReactElement } from "react";
-import type {
-  ContactRequest,
-  ContactsTabData,
+import {
+  FRIEND_CIRCLE_VALUES,
+  type ContactListItemDTO,
+  type FriendCircle,
 } from "@shared/contracts/contacts";
 import type { UserId } from "@shared/contracts/branded-ids";
 import styles from "./ContactsTab.module.css";
+
+const CIRCLE_LABEL: Record<FriendCircle, string> = {
+  close_friend: "Bliższy znajomy",
+  distant_friend: "Dalszy znajomy",
+  close_family: "Rodzina bliska",
+  distant_family: "Rodzina dalsza",
+  none: "Bez kręgu",
+};
 
 function initials(id: UserId | string): string {
   const s = String(id);
   return s.replace(/^u-?/, "").slice(0, 2).toUpperCase() || "??";
 }
 
-function Avatar({ label }: { label: string }): ReactElement {
+export function Avatar({ label }: { label: string }): ReactElement {
   return (
     <span className={styles.avatar} aria-hidden="true">
       {label}
@@ -19,7 +28,7 @@ function Avatar({ label }: { label: string }): ReactElement {
   );
 }
 
-function EmptyState({
+export function EmptyState({
   emoji,
   title,
   body,
@@ -39,168 +48,114 @@ function EmptyState({
   );
 }
 
-export function FriendList({ data }: { data: ContactsTabData }): ReactElement {
-  if (data.friends.length === 0) {
-    return (
-      <EmptyState
-        emoji="👋"
-        title="Nie masz jeszcze znajomych"
-        body="Znajdź osoby które znasz i zaproś je do znajomych."
-      />
-    );
-  }
+function CircleSelect({
+  value,
+  onChange,
+}: {
+  value: FriendCircle;
+  onChange: (next: FriendCircle) => void;
+}): ReactElement {
   return (
-    <ul className={styles.list}>
-      {data.friends.map((f) => (
-        <li key={f.friendId} className={styles.card}>
-          <Avatar label={initials(f.friendId)} />
-          <div className={styles.cardBody}>
-            <p className={styles.cardName}>{f.friendId}</p>
-            <p className={styles.cardCaption}>Znajomy od {f.acceptedAt}</p>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <label className={styles.circleSelect}>
+      <span className={styles.srOnly}>Krąg</span>
+      <select
+        className={styles.circleSelectInput}
+        value={value}
+        onChange={(e) => onChange(e.target.value as FriendCircle)}
+      >
+        <option value="none">{CIRCLE_LABEL.none}</option>
+        {FRIEND_CIRCLE_VALUES.map((c) => (
+          <option key={c} value={c}>
+            {CIRCLE_LABEL[c]}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
-export function ContactList({
-  data,
-  onRemove,
+function PersonCard({
+  item,
+  onRemoveContact,
+  onRemoveSpecialist,
+  onSetCircle,
 }: {
-  data: ContactsTabData;
-  onRemove: (contactId: UserId) => Promise<void> | void;
+  item: ContactListItemDTO;
+  onRemoveContact: (id: UserId) => void;
+  onRemoveSpecialist: (id: UserId) => void;
+  onSetCircle: (id: UserId, circle: FriendCircle) => void;
 }): ReactElement {
-  if (data.contacts.length === 0) {
-    return (
-      <EmptyState
-        emoji="📇"
-        title="Brak zapisanych kontaktów"
-        body="Dodaj osoby do kontaktów aby mieć szybki dostęp do ich profilu."
-      />
-    );
-  }
+  const { person } = item;
+  const caption = person.professionName ?? `@${person.handle}`;
   return (
-    <ul className={styles.list}>
-      {data.contacts.map((c) => (
-        <li key={c.contactId} className={styles.card}>
-          <Avatar label={initials(c.contactId)} />
-          <div className={styles.cardBody}>
-            <p className={styles.cardName}>{c.contactId}</p>
-            <p className={styles.cardCaption}>Dodano {c.addedAt}</p>
-          </div>
+    <li className={styles.card}>
+      <Avatar label={person.avatarInitial || initials(person.userId)} />
+      <div className={styles.cardBody}>
+        <p className={styles.cardName}>{person.displayName}</p>
+        <p className={styles.cardCaption}>{caption}</p>
+        <div className={styles.badges}>
+          {item.isMutualFriend ? <span className={styles.badge}>Znajomy</span> : null}
+          {item.isAddressBookContact ? <span className={styles.badge}>Kontakt</span> : null}
+          {item.isSpecialist ? <span className={styles.badgeSpecialist}>Specjalista</span> : null}
+          {item.friendCircle !== "none" ? (
+            <span className={styles.badgeCircle}>{CIRCLE_LABEL[item.friendCircle]}</span>
+          ) : null}
+        </div>
+      </div>
+      <div className={styles.cardActions}>
+        <CircleSelect
+          value={item.friendCircle}
+          onChange={(next) => onSetCircle(person.userId, next)}
+        />
+        {item.isAddressBookContact ? (
           <button
             type="button"
             className={styles.cardAction}
-            onClick={() => onRemove(c.contactId)}
-            aria-label={`Usuń ${c.contactId} z kontaktów`}
+            onClick={() => onRemoveContact(person.userId)}
           >
-            Usuń
+            Usuń z kontaktów
           </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-export function SpecialistList({
-  data,
-  onRemove,
-}: {
-  data: ContactsTabData;
-  onRemove: (specialistId: UserId) => Promise<void> | void;
-}): ReactElement {
-  if (data.specialists.length === 0) {
-    return (
-      <EmptyState
-        emoji="🩺"
-        title="Brak specjalistów"
-        body="Dodaj specjalistów z wyszukiwarki."
-      />
-    );
-  }
-  return (
-    <ul className={styles.list}>
-      {data.specialists.map((s) => (
-        <li key={s.specialistId} className={styles.card}>
-          <Avatar label={initials(s.specialistId)} />
-          <div className={styles.cardBody}>
-            <p className={styles.cardName}>{s.specialistId}</p>
-            <p className={styles.cardCaption}>Specjalista od {s.addedAt}</p>
-          </div>
+        ) : null}
+        {item.isSpecialist ? (
           <button
             type="button"
             className={styles.cardAction}
-            onClick={() => onRemove(s.specialistId)}
-            aria-label={`Usuń ${s.specialistId} ze specjalistów`}
+            onClick={() => onRemoveSpecialist(person.userId)}
           >
-            Usuń
+            Usuń ze specjalistów
           </button>
-        </li>
-      ))}
-    </ul>
+        ) : null}
+      </div>
+    </li>
   );
 }
 
-export function RequestsList({
-  data,
-  onAcceptOpen,
-  onReject,
+export function PeopleList({
+  items,
+  empty,
+  onRemoveContact,
+  onRemoveSpecialist,
+  onSetCircle,
 }: {
-  data: ContactsTabData;
-  onAcceptOpen: (req: ContactRequest) => void;
-  onReject: (req: ContactRequest) => Promise<void> | void;
+  items: readonly ContactListItemDTO[];
+  empty: { emoji: string; title: string; body: string };
+  onRemoveContact: (id: UserId) => void;
+  onRemoveSpecialist: (id: UserId) => void;
+  onSetCircle: (id: UserId, circle: FriendCircle) => void;
 }): ReactElement {
-  if (
-    data.incomingContactRequests.length === 0 &&
-    data.incomingFriendRequests.length === 0
-  ) {
-    return (
-      <EmptyState
-        emoji="📥"
-        title="Brak nowych próśb"
-        body="Tu pojawią się prośby o kontakt i zaproszenia do znajomych."
-      />
-    );
+  if (items.length === 0) {
+    return <EmptyState emoji={empty.emoji} title={empty.title} body={empty.body} />;
   }
   return (
     <ul className={styles.list}>
-      {data.incomingFriendRequests.map((fr) => (
-        <li key={fr.id} className={styles.card}>
-          <Avatar label={initials(fr.fromUserId)} />
-          <div className={styles.cardBody}>
-            <p className={styles.cardName}>{fr.fromUserId}</p>
-            <p className={styles.cardCaption}>Chce dołączyć do znajomych</p>
-          </div>
-        </li>
-      ))}
-      {data.incomingContactRequests.map((cr) => (
-        <li key={cr.id} className={styles.card}>
-          <Avatar label={initials(cr.fromUserId)} />
-          <div className={styles.cardBody}>
-            <p className={styles.cardName}>{cr.fromUserId}</p>
-            {cr.purpose ? (
-              <p className={styles.cardCaption}>{cr.purpose}</p>
-            ) : null}
-            <p className={styles.cardMessage}>{cr.message}</p>
-          </div>
-          <div className={styles.cardActions}>
-            <button
-              type="button"
-              className={styles.cardActionPrimary}
-              onClick={() => onAcceptOpen(cr)}
-            >
-              Akceptuj
-            </button>
-            <button
-              type="button"
-              className={styles.cardAction}
-              onClick={() => onReject(cr)}
-            >
-              Odrzuć
-            </button>
-          </div>
-        </li>
+      {items.map((item) => (
+        <PersonCard
+          key={item.person.userId}
+          item={item}
+          onRemoveContact={onRemoveContact}
+          onRemoveSpecialist={onRemoveSpecialist}
+          onSetCircle={onSetCircle}
+        />
       ))}
     </ul>
   );

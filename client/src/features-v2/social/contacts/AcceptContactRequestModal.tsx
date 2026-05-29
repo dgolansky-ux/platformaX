@@ -5,7 +5,7 @@ import type {
 } from "@shared/contracts/contacts";
 import type { UserId } from "@shared/contracts/branded-ids";
 import { APPROVED_CONTACT_FIELDS } from "@shared/contracts/contacts";
-import styles from "./ContactsTab.module.css";
+import styles from "./AcceptContactRequestModal.module.css";
 
 const FIELD_LABELS: Record<ApprovedContactField, string> = {
   phone: "Telefon",
@@ -43,7 +43,7 @@ export function AcceptContactRequestModal({
     });
   };
   return (
-    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
+    <div className={styles.backdrop} role="presentation" onClick={onClose}>
       <div
         className={styles.modal}
         role="dialog"
@@ -51,15 +51,15 @@ export function AcceptContactRequestModal({
         aria-label="Wybierz pola do udostępnienia"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className={styles.modalTitle}>Wybierz pola do udostępnienia</h2>
-        <p className={styles.modalCaption}>
+        <h2 className={styles.title}>Wybierz pola do udostępnienia</h2>
+        <p className={styles.caption}>
           Akceptujesz prośbę od {request.fromUserId}. Możesz nie wybrać
           żadnego pola — wtedy zatwierdzenie nie udostępnia nic.
         </p>
-        <fieldset className={styles.modalFields}>
-          <legend className={styles.modalLegend}>Pola kontaktowe</legend>
+        <fieldset className={styles.fields}>
+          <legend className={styles.legend}>Pola kontaktowe</legend>
           {APPROVED_CONTACT_FIELDS.map((field) => (
-            <label key={field} className={styles.modalCheckbox}>
+            <label key={field} className={styles.checkbox}>
               <input
                 type="checkbox"
                 checked={selected.has(field)}
@@ -69,23 +69,23 @@ export function AcceptContactRequestModal({
             </label>
           ))}
         </fieldset>
-        <div className={styles.modalActions}>
+        <div className={styles.actions}>
           <button
             type="button"
-            className={styles.cardAction}
+            className={styles.btn}
             onClick={onClose}
           >
             Anuluj
           </button>
           <button
             type="button"
-            className={styles.cardActionPrimary}
+            className={styles.btnPrimary}
             onClick={() => onSubmit([...selected])}
           >
             Zatwierdź
           </button>
         </div>
-        <p className={styles.modalNote}>
+        <p className={styles.note}>
           Przypomnienie: nawet zatwierdzone pole będzie widoczne tylko jeśli
           masz dla niego włączone „Zatwierdzeni widzą” w ustawieniach
           prywatności. Viewer: {viewerId}.

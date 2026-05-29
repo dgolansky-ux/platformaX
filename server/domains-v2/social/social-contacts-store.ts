@@ -3,6 +3,7 @@
  */
 import type {
   AddressBookEntry,
+  ContactGroupEntry,
   FriendEntry,
   SpecialistEntry,
 } from "@shared/contracts/contacts";
@@ -10,6 +11,7 @@ import type { UserId } from "@shared/contracts/branded-ids";
 import type { FriendRequest } from "./social-contacts-dto";
 import type {
   AddressBookRepository,
+  ContactGroupRepository,
   FriendRequestRepository,
   FriendshipRepository,
   SpecialistRepository,
@@ -124,6 +126,28 @@ export function createInMemorySpecialistRepository(): SpecialistRepository {
     },
     async remove(ownerId, specialistId) {
       rows.delete(k(ownerId, specialistId));
+    },
+  };
+}
+
+export function createInMemoryContactGroupRepository(): ContactGroupRepository {
+  const rows = new Map<string, ContactGroupEntry>();
+  const k = (ownerId: UserId, personId: UserId) => `${ownerId}->${personId}`;
+  return {
+    async list(ownerId) {
+      return [...rows.values()].filter(
+        (r) => r.ownerId === ownerId && r.circle !== "none",
+      );
+    },
+    async get(ownerId, personId) {
+      return rows.get(k(ownerId, personId))?.circle ?? "none";
+    },
+    async set(entry) {
+      if (entry.circle === "none") {
+        rows.delete(k(entry.ownerId, entry.personId));
+        return;
+      }
+      rows.set(k(entry.ownerId, entry.personId), entry);
     },
   };
 }

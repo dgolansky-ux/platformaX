@@ -180,3 +180,47 @@ Numbered against `docs/05_IMPLEMENTATION_NOTES_AND_BUGS.md`:
 These are explicit deferrals — every one of them is named here so the
 status registry stays truthful (`BACKEND_PARTIAL`, `UI_SHELL_ONLY`,
 `MOCK_LOCAL_ONLY`).
+
+## 8. Owner clarification (2026-05-29) — circles un-deferred
+
+The owner re-scoped the family/friend tiers (deferred in §3, §4 row 99 and
+§7) back IN, but reframed them so they do NOT repeat the legacy bug where the
+tier lived on the `friendships` row and conflated "label" with "relation".
+
+Decision, as implemented:
+
+- The four concepts stay independent (contact request / friendship /
+  address-book / specialist), exactly as §6 already established.
+- **Friend circles** (`close_friend`, `distant_friend`, `close_family`,
+  `distant_family`, `none`) are now an **owner-local label** in the `social`
+  domain — `ContactGroupEntry` keyed `(ownerId → personId)`. Setting a circle
+  requires NO consent, does NOT create/alter a friendship, and grants NO PII.
+  This is a deliberate departure from legacy `friendships.tier`: the label is
+  decoupled from the mutual relation, which sidesteps legacy bug #1.
+- The PII gate (`identity/contact-access-policy.ts`) is unchanged: it reads
+  only `isFriend` + `acceptedContactRequest`. Circles are NOT an input, so by
+  construction a circle label can never leak a field.
+- The `/contacts` tab now renders the legacy eight sections: **Wszyscy /
+  Kontakty / Specjaliści / Bliżsi znajomi / Dalsi znajomi / Bliska rodzina /
+  Dalsza rodzina / Prośby**. A person may appear in several at once
+  (e.g. friend + contact + close_family). The circle dropdown re-creates the
+  legacy `ContactsTierDropdown` UX (labels: Bliższy/Dalszy znajomy, Rodzina
+  bliska/dalsza).
+
+New contract surface (`shared/contracts/contacts.ts`): `FriendCircle`,
+`FRIEND_CIRCLE_VALUES`, `ContactGroupEntry`, `ContactPersonSummary`,
+`ContactListItemDTO`; `ContactProfileRelationshipDTO` now exposes
+`isMutualFriend` (renamed from `isFriend`) + `friendCircle`; `ContactsTabData`
+gains `circles`. Still `BACKEND_PARTIAL` + `UI_SHELL_ONLY` + `MOCK_LOCAL_ONLY`
+— persistence/HTTP transport remain deferred.
+
+### CONTACTS OWNER LOGIC
+
+- Czy dodanie do kontaktów jest prywatnym skrótem bez zgody? **YES**
+- Czy dodanie specjalisty jest prywatnym skrótem bez zgody? **YES**
+- Czy znajomość wymaga obopólnej zgody? **YES**
+- Czy prośba o kontakt dotyczy tylko ujawnienia danych kontaktowych? **YES**
+- Czy kontakt/specjalista/friend/family labels NIE ujawniają PII same z
+  siebie? **YES**
+- Czy odtworzono legacy podział: kontakty / specjaliści / bliżsi znajomi /
+  dalsi znajomi / bliska rodzina / dalsza rodzina? **YES**

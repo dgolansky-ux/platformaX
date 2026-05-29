@@ -4,6 +4,8 @@
  */
 import type {
   AddressBookEntry,
+  ContactGroupEntry,
+  FriendCircle,
   FriendEntry,
   SpecialistEntry,
 } from "@shared/contracts/contacts";
@@ -56,4 +58,15 @@ export interface SpecialistRepository {
   has(ownerId: UserId, specialistId: UserId): Promise<boolean>;
   add(entry: SpecialistEntry): Promise<SpecialistEntry>;
   remove(ownerId: UserId, specialistId: UserId): Promise<void>;
+}
+
+/**
+ * Owner-local circle labels. A `circle === "none"` label is equivalent to no
+ * row, so `set(..., "none")` clears the label. Direction matters: the key is
+ * always (ownerId → personId); the labelled person has no row of their own.
+ */
+export interface ContactGroupRepository {
+  list(ownerId: UserId): Promise<ContactGroupEntry[]>;
+  get(ownerId: UserId, personId: UserId): Promise<FriendCircle>;
+  set(entry: ContactGroupEntry): Promise<void>;
 }

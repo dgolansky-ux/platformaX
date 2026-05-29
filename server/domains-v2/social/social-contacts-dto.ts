@@ -9,13 +9,15 @@
  */
 import type {
   AddressBookEntry,
+  ContactGroupEntry,
+  FriendCircle,
   FriendEntry,
   FriendRequestStatus,
   SpecialistEntry,
 } from "@shared/contracts/contacts";
 import type { UserId } from "@shared/contracts/branded-ids";
 
-export type { AddressBookEntry, FriendEntry, SpecialistEntry };
+export type { AddressBookEntry, ContactGroupEntry, FriendCircle, FriendEntry, SpecialistEntry };
 export type { FriendRequestStatus };
 
 export type FriendRequest = {
@@ -46,4 +48,10 @@ export type AddAddressBookContactInput = {
 export type AddSpecialistInput = {
   ownerId: UserId;
   specialistId: UserId;
+};
+
+export type SetFriendCircleInput = {
+  ownerId: UserId;
+  personId: UserId;
+  circle: FriendCircle;
 };

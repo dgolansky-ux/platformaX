@@ -13,6 +13,7 @@ import {
 } from "@server/domains-v2/identity/public-api";
 import {
   createInMemoryAddressBookRepository,
+  createInMemoryContactGroupRepository,
   createInMemoryFriendRequestRepository,
   createInMemoryFriendshipRepository,
   createInMemorySpecialistRepository,
@@ -34,6 +35,7 @@ function wire(): {
     friendRequests: createInMemoryFriendRequestRepository(),
     addressBook: createInMemoryAddressBookRepository(),
     specialists: createInMemorySpecialistRepository(),
+    groups: createInMemoryContactGroupRepository(),
     clock: { now: () => new Date("2026-05-29T02:00:00Z") },
     ids: (() => {
       let n = 0;
@@ -99,7 +101,8 @@ describe("contacts application service / view DTO + actions", () => {
     if (!res.ok) return;
     expect(res.value.visibleContactFields).toEqual({});
     expect(res.value.availableActions).toEqual([]);
-    expect(res.value.isFriend).toBe(false);
+    expect(res.value.isMutualFriend).toBe(false);
+    expect(res.value.friendCircle).toBe("none");
   });
 
   it("stranger viewer sees zero PII and the right action set", async () => {
@@ -162,7 +165,7 @@ describe("contacts application service / view DTO + actions", () => {
     });
     const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
     if (!view.ok) throw new Error("view failed");
-    expect(view.value.isFriend).toBe(true);
+    expect(view.value.isMutualFriend).toBe(true);
     expect(view.value.visibleContactFields).toEqual({});
     expect(view.value.availableActions).toContain("REMOVE_FRIEND");
   });
@@ -219,5 +222,112 @@ describe("contacts application service / view DTO + actions", () => {
     const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
     if (!view.ok) throw new Error("view failed");
     expect(view.value.visibleContactFields).toEqual({});
+  });
+});
+
+describe("contacts owner-logic / four-concept separation", () => {
+  let app: ContactsApplicationService;
+  let identity: ContactAccessService;
+  let social: SocialContactsService;
+  beforeEach(() => {
+    const wired = wire();
+    app = wired.app;
+    identity = wired.identity;
+    social = wired.social;
+  });
+
+  it("adding to contacts needs no consent and reveals no PII", async () => {
+    await identity.updateMyContactFields({ userId: OWNER, phone: "+48-secret" });
+    // VIEWER adds OWNER with no request/accept step at all.
+    const added = await social.addAddressBookContact({
+      ownerId: VIEWER,
+      contactId: OWNER,
+    });
+    expect(added.ok).toBe(true);
+    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    if (!view.ok) throw new Error("view failed");
+    expect(view.value.isAddressBookContact).toBe(true);
+    expect(view.value.isMutualFriend).toBe(false);
+    expect(view.value.contactRequestStatus).toBe("none");
+    expect(view.value.visibleContactFields).toEqual({});
+  });
+
+  it("adding as specialist needs no consent and reveals no PII", async () => {
+    await identity.updateMyContactFields({
+      userId: OWNER,
+      emailContact: "owner@example.com",
+    });
+    const added = await social.addSpecialist({
+      ownerId: VIEWER,
+      specialistId: OWNER,
+    });
+    expect(added.ok).toBe(true);
+    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    if (!view.ok) throw new Error("view failed");
+    expect(view.value.isSpecialist).toBe(true);
+    expect(view.value.isMutualFriend).toBe(false);
+    expect(view.value.visibleContactFields).toEqual({});
+  });
+
+  it("friendship requires mutual consent — a sent request is not yet a friend", async () => {
+    const fr = await social.sendFriendRequest({
+      requesterUserId: VIEWER,
+      receiverUserId: OWNER,
+    });
+    if (!fr.ok) throw new Error("setup failed");
+    const beforeAccept = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    if (!beforeAccept.ok) throw new Error("view failed");
+    expect(beforeAccept.value.isMutualFriend).toBe(false);
+    expect(beforeAccept.value.friendRequestStatus).toBe("pending");
+
+    await social.respondToFriendRequest({
+      requestId: fr.value.id,
+      responderUserId: OWNER,
+      action: "accepted",
+    });
+    const afterAccept = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    if (!afterAccept.ok) throw new Error("view failed");
+    expect(afterAccept.value.isMutualFriend).toBe(true);
+  });
+
+  it("a person can be specialist AND contact AND friend at once", async () => {
+    await social.addAddressBookContact({ ownerId: VIEWER, contactId: OWNER });
+    await social.addSpecialist({ ownerId: VIEWER, specialistId: OWNER });
+    const fr = await social.sendFriendRequest({
+      requesterUserId: VIEWER,
+      receiverUserId: OWNER,
+    });
+    if (!fr.ok) throw new Error("setup failed");
+    await social.respondToFriendRequest({
+      requestId: fr.value.id,
+      responderUserId: OWNER,
+      action: "accepted",
+    });
+    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    if (!view.ok) throw new Error("view failed");
+    expect(view.value.isAddressBookContact).toBe(true);
+    expect(view.value.isSpecialist).toBe(true);
+    expect(view.value.isMutualFriend).toBe(true);
+  });
+
+  it("friendCircle is owner-local: it changes no global relation and reveals no PII", async () => {
+    await identity.updateMyContactFields({ userId: OWNER, phone: "+48-secret" });
+    const res = await app.setFriendCircle({
+      ownerId: VIEWER,
+      personId: OWNER,
+      circle: "close_family",
+    });
+    expect(res.ok).toBe(true);
+    const view = await app.getViewerSafeContactProfileState(OWNER, VIEWER);
+    if (!view.ok) throw new Error("view failed");
+    expect(view.value.friendCircle).toBe("close_family");
+    // global relation untouched, no PII leaked by the label
+    expect(view.value.isMutualFriend).toBe(false);
+    expect(view.value.friendRequestStatus).toBe("none");
+    expect(view.value.visibleContactFields).toEqual({});
+    // and the labelled owner does not see VIEWER in any circle
+    const tab = await app.getContactsTabData(OWNER);
+    if (!tab.ok) throw new Error("tab failed");
+    expect(tab.value.circles.length).toBe(0);
   });
 });

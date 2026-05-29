@@ -5,6 +5,7 @@ import {
 } from "../social-contacts-service";
 import {
   createInMemoryAddressBookRepository,
+  createInMemoryContactGroupRepository,
   createInMemoryFriendRequestRepository,
   createInMemoryFriendshipRepository,
   createInMemorySpecialistRepository,
@@ -22,6 +23,7 @@ function makeService(): SocialContactsService {
     friendRequests: createInMemoryFriendRequestRepository(),
     addressBook: createInMemoryAddressBookRepository(),
     specialists: createInMemorySpecialistRepository(),
+    groups: createInMemoryContactGroupRepository(),
     clock: { now: () => new Date("2026-05-29T01:00:00Z") },
     ids: { next: () => `fr-${++seq}` },
   });
@@ -177,5 +179,56 @@ describe("social-contacts-service / address book + specialists", () => {
     await svc.addSpecialist({ ownerId: ALICE, specialistId: BOB });
     expect(await svc.areFriends(ALICE, BOB)).toBe(false);
     expect(await svc.isAddressBookContact(ALICE, BOB)).toBe(false);
+  });
+});
+
+describe("social-contacts-service / owner-local friend circles", () => {
+  let svc: SocialContactsService;
+  beforeEach(() => {
+    svc = makeService();
+  });
+
+  it("setting a circle is owner-local and requires no consent / no friendship", async () => {
+    const res = await svc.setFriendCircle({
+      ownerId: ALICE,
+      personId: BOB,
+      circle: "close_family",
+    });
+    expect(res.ok).toBe(true);
+    expect(await svc.getFriendCircle(ALICE, BOB)).toBe("close_family");
+    // labelling does NOT create a friendship and is one-directional
+    expect(await svc.areFriends(ALICE, BOB)).toBe(false);
+    expect(await svc.getFriendCircle(BOB, ALICE)).toBe("none");
+  });
+
+  it("does not auto-add to address book or specialists", async () => {
+    await svc.setFriendCircle({
+      ownerId: ALICE,
+      personId: BOB,
+      circle: "distant_friend",
+    });
+    expect(await svc.isAddressBookContact(ALICE, BOB)).toBe(false);
+    expect(await svc.isSpecialist(ALICE, BOB)).toBe(false);
+  });
+
+  it("setting 'none' clears the label", async () => {
+    await svc.setFriendCircle({
+      ownerId: ALICE,
+      personId: BOB,
+      circle: "close_friend",
+    });
+    await svc.setFriendCircle({ ownerId: ALICE, personId: BOB, circle: "none" });
+    expect(await svc.getFriendCircle(ALICE, BOB)).toBe("none");
+    expect((await svc.listFriendCircles(ALICE)).length).toBe(0);
+  });
+
+  it("blocks putting yourself into a circle", async () => {
+    const res = await svc.setFriendCircle({
+      ownerId: ALICE,
+      personId: ALICE,
+      circle: "close_friend",
+    });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("SELF_RELATION_NOT_ALLOWED");
   });
 });
