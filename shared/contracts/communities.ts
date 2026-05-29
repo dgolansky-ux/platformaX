@@ -14,7 +14,8 @@ export type CommunityId = string & { readonly [__communityBrand]?: "CommunityId"
 
 export type CommunityVisibility = "public" | "private" | "unlisted";
 
-export type CommunityRole = "founder" | "admin" | "moderator" | "member";
+import type { CommunityRole } from "./community-roles";
+export type { CommunityRole };
 
 /**
  * Relation between the current viewer and a community.

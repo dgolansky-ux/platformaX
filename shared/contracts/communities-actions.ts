@@ -4,7 +4,7 @@
  *
  * privacy classification: Public DTO inputs. No PII.
  */
-import type { CommunityRole } from "./communities";
+import type { CommunityRole } from "./community-roles";
 
 export type CreateCommunityInput = {
   name: string;
