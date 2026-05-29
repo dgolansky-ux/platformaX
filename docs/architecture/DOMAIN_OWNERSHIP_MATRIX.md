@@ -27,7 +27,7 @@
 
 | Domain | Owns | Does NOT own | Reads from | Public surface | Status |
 |---|---|---|---|---|---|
-| public-hub | composition/read view of public profiles and communities | source-of-truth data | identity, communities-v2, content-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| public-hub | composition/read view of public profiles and communities | source-of-truth data | identity, communities-v2, content-v2 (public-api) | public-api, contracts, events | PARTIAL |
 
 ## Operational domains
 

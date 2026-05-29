@@ -223,7 +223,7 @@ domains:
 
   - name: public-hub
     type: COMPOSITION_DOMAIN
-    status: SCAFFOLD_ONLY
+    status: PARTIAL
     conflict: false
     evidence:
       - server/domains-v2/public-hub/README.md
@@ -231,13 +231,18 @@ domains:
       - server/domains-v2/public-hub/contracts.ts
       - server/domains-v2/public-hub/dto.ts
       - server/domains-v2/public-hub/policy.ts
+      - server/domains-v2/public-hub/service.ts
+      - server/domains-v2/public-hub/mapper.ts
       - server/domains-v2/public-hub/events.ts
       - server/domains-v2/public-hub/index.ts
+      - server/domains-v2/public-hub/__tests__/public-hub-service.test.ts
       - server/domains-v2/public-hub/__tests__/domain-contract.test.ts
     notes: >
-      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
-      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
-      domain-status.md updated.
+      BACKEND_PARTIAL. Pure composition runtime: createPublicHubService composes
+      getProfileHubView / getCommunityHubView from already-public owner summaries
+      (HubOwnerResolver) and enabled module keys (HubModulesResolver). Owns no
+      data, no writes; the application layer wires the resolvers from identity /
+      communities-v2 / modules public-api. No view persistence/caching yet.
 
   - name: notifications
     type: OPERATIONAL_DOMAIN

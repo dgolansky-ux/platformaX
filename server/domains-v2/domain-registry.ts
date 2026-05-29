@@ -38,7 +38,7 @@ export const DOMAIN_REGISTRY: DomainEntry[] = [
   { name: "events", type: "OWNER_DOMAIN", status: "SCAFFOLD_ONLY", owns: "event definitions, RSVPs, event lifecycle, visibility", doesNotOwn: "community membership, profiles, posts" },
   { name: "modules", type: "OWNER_DOMAIN", status: "PARTIAL", owns: "ModuleDefinition, registry, enablement", doesNotOwn: "actual module business data" },
   { name: "media", type: "OWNER_DOMAIN", status: "PARTIAL", owns: "media assets, upload contracts, validation, refs", doesNotOwn: "inline-encoded payloads (see ADR-006)" },
-  { name: "public-hub", type: "COMPOSITION_DOMAIN", status: "SCAFFOLD_ONLY", owns: "composition/read view", doesNotOwn: "source-of-truth data" },
+  { name: "public-hub", type: "COMPOSITION_DOMAIN", status: "PARTIAL", owns: "composition/read view", doesNotOwn: "source-of-truth data" },
   { name: "notifications", type: "OPERATIONAL_DOMAIN", status: "SCAFFOLD_ONLY", owns: "notification delivery, templates, preferences", doesNotOwn: "content creation, profiles" },
   { name: "search", type: "OPERATIONAL_DOMAIN", status: "SCAFFOLD_ONLY", owns: "search indexing, query engine, relevance", doesNotOwn: "source data" },
   { name: "moderation", type: "OPERATIONAL_DOMAIN", status: "SCAFFOLD_ONLY", owns: "moderation rules, reports, actions, queues", doesNotOwn: "content creation" },
