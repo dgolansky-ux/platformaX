@@ -2,9 +2,27 @@
 
 > **Trigger:** user wpisze `hand007`. Działaj autonomicznie, po polsku.
 > **Branch:** `feat/contacts-v2-clean-room-slice` (PR #33). Pracuj na nim dalej.
-> **Status:** IN_PROGRESS — 3 z ~6 części zrobione i wypchnięte. Reszta poniżej.
+> **Status:** BACKEND DONE — zostaje TYLKO frontend communities shell (pkt 4).
+> Backend (content-v2, public-hub, wszystkie 4 use-cases) jest zrobiony,
+> zielony na bramkach i wypchnięty. Frontend odłożony świadomie (decyzja ownera).
 
-## Co JUŻ zrobione (committed + pushed, do `c5ebe3d`)
+## Backend ukończony (committed, do `649cc8a`)
+
+- **content-v2** → `PARTIAL` (BACKEND_PARTIAL / READ_MODEL_SKELETON). Posts
+  (createPost + EMPTY_BODY) + friend-feed (listFriendFeed: cursor, DEFAULT 20/
+  MAX 50, `canSeePost`, scoped do author set, BEZ global feed). Commit `6091065`.
+- **public-hub** → `PARTIAL` (COMPOSITION). `createPublicHubService`:
+  getProfileHubView/getCommunityHubView z resolver-portów (contracts), zero
+  danych własnych. Commit `c4c6bf6`.
+- **application-v2/use-cases** (commit `649cc8a`): `communities/
+  createCommunityWithDefaults`, `channels/createChannelForCommunity`
+  (authority-gated), `public-hub/getProfile+CommunityHubView` (wiring
+  resolverów z identity/communities/modules), `feed/getFriendFeedFoundation`
+  (social friends → content scoped feed). Każdy tylko przez public-api/contracts.
+- **Raport**: `docs/review/product-backend-foundations/REPORT.md`.
+- Status truth dla content-v2 + public-hub zaktualizowany w 4 źródłach.
+
+## Co JUŻ zrobione wcześniej (committed + pushed, do `c5ebe3d`)
 
 - **communities-v2** → `BACKEND_PARTIAL`. Pełny in-memory runtime:
   `dto/contracts/ports/policy/store/service/mapper/public-api` + tests.
@@ -20,31 +38,9 @@
 - Status truth zaktualizowany w: `domain-registry.ts`,
   `DOMAIN_STATUS_REGISTRY.yml`, `DOMAIN_OWNERSHIP_MATRIX.md`, `DOMAIN_REGISTRY.md`.
 
-## Co ZOSTAŁO do zrobienia (kolejność)
+## Co ZOSTAŁO do zrobienia (TYLKO frontend)
 
-1. **content-v2 / friend feed foundation** (`server/domains-v2/content-v2/`,
-   już ma submoduły `posts/feeds/read-models`). Post entity (id, authorUserId,
-   contextType, contextId, visibility private|friends|public, body, mediaRefs?,
-   status, timestamps). `FriendFeedItemDTO` (postId, author public summary ref,
-   body preview, mediaRefs, createdAt, visibility, context — no PII). Feed query
-   z viewerId + cursor + limit + maxLimit + stable order. Read-model SKELETON z
-   jednym ownerem (udokumentuj w README). **NIE**: comments/reactions runtime,
-   global feed, ranking, sync fanout. Status: BACKEND_PARTIAL / READ_MODEL_SKELETON.
-
-2. **public-hub foundation** (`server/domains-v2/public-hub/`). HubViewModel
-   (ownerType profile|community, ownerId, public owner summary, enabled modules,
-   visible sections — no raw records, no PII). Domena KOMPOZYCYJNA — czyta tylko
-   public-api/contracts owner-domen; brak source-of-truth. Status BACKEND_PARTIAL.
-
-3. **application-v2/use-cases** (flow 2+ domen, małe i testowalne):
-   - `communities/createCommunityWithDefaults` (community + founder membership +
-     opcjonalnie domyślne module enablement przez modules public-api).
-   - `channels/createChannelForCommunity` (sprawdza `CommunityAuthorityResolver`
-     z communities public-api → woła channels.createChannelForCommunity).
-   - `public-hub/getProfileHubView` + `getCommunityHubView` (identity/community
-     public summary + modules enabled list).
-   - `feed/getFriendFeedFoundation` (social relationship + content feed query).
-   Wszystko TYLKO przez public-api/contracts — zero internals.
+> Punkty 1–3 i 5 są ZROBIONE (patrz „Backend ukończony" wyżej). Zostaje pkt 4.
 
 4. **Frontend communities shell** (`client/src/features-v2/communities/` +
    `client/src/app-v2/communities/`, route `/communities`). „Społeczności":
@@ -53,10 +49,8 @@
    (disabled/truthful jeśli brak transportu). MOCK_LOCAL_ONLY adapter (czyta
    shared/fixtures, NIE @server/*). Sidebar/nav entry jeśli pasuje. Tests RTL.
 
-5. **Dokumentacja**: `docs/review/product-backend-foundations/REPORT.md`
-   (zakres, co wdrożono/nie, statusy domen, use-cases, testy, guardy, P0/P1/P2,
-   next 3 kroki). Zaktualizuj README + DOMAIN_STATUS_REGISTRY dla content-v2/
-   public-hub gdy zmienią status.
+5. ~~Dokumentacja `docs/review/product-backend-foundations/REPORT.md`~~ —
+   ZROBIONE (raport + status truth content-v2/public-hub w 4 źródłach).
 
 ## WAŻNE wzorce / pułapki (z tej sesji)
 
