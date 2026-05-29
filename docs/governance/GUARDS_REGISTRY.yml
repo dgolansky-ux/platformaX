@@ -1,5 +1,15 @@
 # PlatformaX V2 — Guards Registry
 # Machine-readable registry of all guard scripts.
+#
+# Spike status (tooling/architecture-boundaries-quality-spike):
+#   - `parallel_status: PARALLEL_WITH_TOOLING` means a built-in tool now
+#     covers an equivalent class of violation; the custom guard remains for
+#     project-specific rules until the tool is proven equivalent on red-case
+#     fixtures (`tests/architecture/fixtures/`).
+#   - `parallel_status: CANDIDATE_REPLACED_BY_TOOL` is reserved for the
+#     follow-up cleanup spike and is NOT used in the current commit — no
+#     custom guard is removed yet.
+#   - Guards without `parallel_status` stay as the only enforcement.
 
 guards:
 
@@ -29,6 +39,8 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+    parallel_status: PARALLEL_WITH_TOOLING
+    parallel_tools: [dependency-cruiser, tests/architecture/architecture.test.ts]
 
   - id: GUARD-004
     command: node scripts/check-removed-product-areas.mjs
@@ -47,6 +59,8 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+    parallel_status: PARALLEL_WITH_TOOLING
+    parallel_tools: [eslint-plugin-boundaries, dependency-cruiser, tests/architecture/architecture.test.ts]
 
   - id: GUARD-006
     command: node scripts/check-test-env-safety.mjs
@@ -155,6 +169,8 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+    parallel_status: PARALLEL_WITH_TOOLING
+    parallel_tools: [gitleaks]
 
   - id: GUARD-018
     command: node scripts/check-local-secret-scan.mjs
@@ -268,7 +284,7 @@ guards:
     command: node scripts/check-dependency-discipline.mjs
     file: scripts/check-dependency-discipline.mjs
     blocks: commit, merge
-    rules_enforced: []
+    rules_enforced: [PX-DEPS-001]
     runs_in: [pre-push, ci]
     required: true
     status: active
@@ -348,6 +364,8 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+    parallel_status: PARALLEL_WITH_TOOLING
+    parallel_tools: [dependency-cruiser]
 
   - id: GUARD-039
     command: node scripts/check-runtime-readiness-status.mjs
@@ -428,6 +446,39 @@ guards:
     file: scripts/check-governance-drift.mjs
     blocks: commit, merge
     rules_enforced: [PX-GOV-005]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  # === TEST QUALITY GUARDS ===
+
+  - id: GUARD-048
+    command: node scripts/check-placeholder-tests.mjs
+    file: scripts/check-placeholder-tests.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-TEST-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  # === EXCEPTION DISCIPLINE GUARDS ===
+
+  - id: GUARD-049
+    command: node scripts/check-inline-exceptions-registered.mjs
+    file: scripts/check-inline-exceptions-registered.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-EXC-001, PX-EXC-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  # === TYPE-SAFETY GUARDS ===
+
+  - id: GUARD-050
+    command: node scripts/check-no-any-types.mjs
+    file: scripts/check-no-any-types.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CODE-003]
     runs_in: [pre-push, ci]
     required: true
     status: active

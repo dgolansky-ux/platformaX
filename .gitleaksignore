@@ -1,0 +1,24 @@
+# PlatformaX-V2 — gitleaksignore
+#
+# Suppresses individual gitleaks findings by their <commit>:<file>:<rule>:<line>
+# fingerprint. This is the narrowest possible allowlist mechanism: it only
+# whitelists the exact match shown by `gitleaks detect -v`, never the rule
+# globally and never a path globally.
+#
+# Every line below MUST be:
+#   - a non-secret test-fixture string used to exercise our own custom
+#     secret scanners (scripts/check-secret-scan.mjs, check-env-safety.mjs,
+#     check-local-secret-scan.mjs), AND
+#   - already covered by an inline `// gitleaks:allow` comment in HEAD so
+#     no future commit re-introduces the same shape.
+#
+# DO NOT add a fingerprint for a real secret. Rotate the secret instead.
+
+# scripts/__tests__/secret-scan.test.ts — historical fixtures (4 lines).
+983255f602e841b21a59ab1ecf09dd780a1d97ba:scripts/__tests__/secret-scan.test.ts:generic-api-key:62
+983255f602e841b21a59ab1ecf09dd780a1d97ba:scripts/__tests__/secret-scan.test.ts:generic-api-key:70
+983255f602e841b21a59ab1ecf09dd780a1d97ba:scripts/__tests__/secret-scan.test.ts:stripe-access-token:78
+983255f602e841b21a59ab1ecf09dd780a1d97ba:scripts/__tests__/secret-scan.test.ts:generic-api-key:113
+
+# scripts/__tests__/env-safety.test.ts — historical fixture removed in HEAD.
+47369622b097bc35023964ce29d2eafd927b4151:scripts/__tests__/env-safety.test.ts:generic-api-key:50

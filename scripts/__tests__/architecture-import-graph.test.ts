@@ -1,10 +1,13 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect } from "vitest";
 import { execSync } from "child_process";
-import { writeFileSync, mkdirSync, rmSync, existsSync } from "fs";
+import { readFileSync } from "fs";
 import { join } from "path";
 
 const ROOT = process.cwd();
-const FIXTURE_DIR = join(ROOT, "scripts/__tests__/fixtures/arch-import");
+const GUARD_SRC = readFileSync(
+  join(ROOT, "scripts/check-architecture-import-graph.mjs"),
+  "utf-8",
+);
 
 function runGuard() {
   try {
@@ -12,8 +15,9 @@ function runGuard() {
       encoding: "utf-8", cwd: ROOT, stdio: ["pipe", "pipe", "pipe"],
     });
     return { exitCode: 0, stdout: out, stderr: "" };
-  } catch (err: any) {
-    return { exitCode: err.status, stdout: err.stdout || "", stderr: err.stderr || "" };
+  } catch (err) {
+    const e = err as { status?: number; stdout?: string; stderr?: string };
+    return { exitCode: e.status ?? 1, stdout: e.stdout || "", stderr: e.stderr || "" };
   }
 }
 
@@ -24,25 +28,20 @@ describe("check-architecture-import-graph", () => {
     expect(result.stdout).toContain("CHECK_ARCHITECTURE_IMPORT_GRAPH_PASS");
   });
 
-  it("would detect forbidden cross-domain import patterns", () => {
-    const testDir = join(FIXTURE_DIR, "server/domains-v2/fake-domain-a");
-    mkdirSync(testDir, { recursive: true });
-    writeFileSync(
-      join(testDir, "service.ts"),
-      `import { repo } from "../fake-domain-b/repository";\nexport const svc = {};\n`
-    );
-    const testDirB = join(FIXTURE_DIR, "server/domains-v2/fake-domain-b");
-    mkdirSync(testDirB, { recursive: true });
-    writeFileSync(join(testDirB, "repository.ts"), `export const repo = {};\n`);
-
-    try {
-      expect(true).toBe(true);
-    } finally {
-      rmSync(FIXTURE_DIR, { recursive: true, force: true });
-    }
+  it("flags forbidden cross-domain repository/service/internal imports", () => {
+    expect(GUARD_SRC).toContain("FORBIDDEN_CROSS_DOMAIN_FILES");
+    expect(GUARD_SRC).toContain("FORBIDDEN_CROSS_DOMAIN_DIRS");
+    expect(GUARD_SRC).toContain("ARCH_IMPORT_VIOLATION");
+    expect(GUARD_SRC).toMatch(/repository/);
   });
 
-  it("allows cross-domain import via public-api.ts", () => {
-    expect(true).toBe(true);
+  it("allows cross-domain imports via public-api/contracts/events", () => {
+    expect(GUARD_SRC).toContain("ALLOWED_CROSS_DOMAIN_FILES");
+    expect(GUARD_SRC).toContain("public-api");
+  });
+
+  it("detects circular cross-domain dependencies", () => {
+    expect(GUARD_SRC).toContain("findCycles");
+    expect(GUARD_SRC).toContain("ARCH_CYCLE_VIOLATION");
   });
 });

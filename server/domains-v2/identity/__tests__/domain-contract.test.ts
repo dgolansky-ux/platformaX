@@ -6,10 +6,16 @@ import { describe, expect, it } from "vitest";
  * Internal modules must NOT be reachable from this test.
  */
 describe("identity domain contract", () => {
-  it("exposes service + repository factories from public-api", async () => {
+  it("exposes the service factory from public-api", async () => {
     const mod = await import("../public-api");
     expect(typeof mod.createIdentityService).toBe("function");
-    expect(typeof mod.createInMemoryIdentityProfileRepository).toBe("function");
+  });
+
+  it("does NOT expose the in-memory repository implementation factory", async () => {
+    // The in-memory repository is an implementation detail. Composition must
+    // import it from ./repository directly, never through the public API.
+    const mod: Record<string, unknown> = await import("../public-api");
+    expect(mod.createInMemoryIdentityProfileRepository).toBeUndefined();
   });
 
   it("exposes policy predicates from public-api", async () => {

@@ -9,12 +9,36 @@ on:
 permissions:
   contents: read
 
+# Three lanes:
+#   - STANDARD: every PR / push to main — fast and deterministic. Type, lint
+#     (incl. eslint-plugin-boundaries), test, build, custom guards umbrella,
+#     architecture tests.
+#   - DEEP: STANDARD + dependency-cruiser + Gitleaks. Runs on every PR (matrix
+#     entry below) so a forbidden import or new secret blocks merge, but is
+#     gated separately so a tool flake does not invalidate the STANDARD lane.
+#   - WEEKLY: Knip + dependency graph + audit ZIP via `.github/workflows/v2-weekly-audit.yml`.
+
 jobs:
-  gates:
+  # Branch-protection alias: the protection rule on `main` requires a
+  # status check named exactly `Check / Lint / Test / Build / Guards`
+  # (the historical name of the original gate). We renamed the actual
+  # gate to the STANDARD/DEEP/WEEKLY split below, so this no-op alias
+  # exists only to satisfy the required-check-name match. It depends on
+  # STANDARD + DEEP, so a regression there fails this too — no
+  # weakening of the gate.
+  required-check-alias:
     name: Check / Lint / Test / Build / Guards
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+    needs: [standard, deep]
+    steps:
+      - name: Alias confirms STANDARD + DEEP both passed
+        run: echo "STANDARD and DEEP both green — required-check-alias OK."
 
+  standard:
+    name: STANDARD — check / lint+boundaries / test / build / guards / arch-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,29 +59,87 @@ jobs:
       - name: Type check
         run: pnpm check
 
-      - name: Lint
+      - name: Lint (incl. eslint-plugin-boundaries)
         run: pnpm lint
 
-      - name: Test
+      - name: Test (incl. tests/architecture)
         run: pnpm test
 
       - name: Build
         run: pnpm build
 
-      - name: Rules check (umbrella gate)
-        run: pnpm rules:check
+      - name: All local guards (umbrella matrix)
+        # Covers every guard marked runs_in: ci in
+        # docs/governance/GUARDS_REGISTRY.yml. check-guards-registry.mjs
+        # verifies this stays true.
+        run: pnpm guards:all-local
 
-      - name: Architecture check
+      - name: Architecture check (custom regex umbrella)
         run: pnpm arch:check:v2
-
-      - name: Secret scan
-        run: pnpm guards:secrets
-
-      - name: Review reports & self-audit
-        run: pnpm guards:review
-
-      - name: BRAMKA acceptance matrix
-        run: pnpm guards:bramka
 
       - name: Bundle validation (smoke)
         run: pnpm guards:bundle
+
+  deep:
+    name: DEEP — dependency-cruiser + Gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [standard]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Dependency-cruiser
+        run: pnpm depcruise:check
+
+      - name: Architecture tests
+        run: pnpm arch-tests
+
+      # Authoritative gitleaks step — uses the official action so the
+      # binary is guaranteed present and we get the standard SARIF upload.
+      - name: Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          config-path: .gitleaks.toml
+
+      # Belt-and-braces: also exercise the project's required-mode wrapper
+      # so a future change that breaks `secrets:gitleaks:required` is
+      # caught here, not in production.
+      - name: Gitleaks wrapper (required mode)
+        run: pnpm secrets:gitleaks:required
+
+      - name: Tooling red-case verifier (DEV mode — NOT_ENFORCED fails CI)
+        # DEV mode here is deliberate: the runner installs gitleaks via
+        # the gitleaks-action step earlier in this job, but boundaries
+        # enforcement is currently PARTIAL_NOT_ENFORCED (tracked in
+        # docs/governance/followups/FIX_ESLINT_PLUGIN_BOUNDARIES_V6_ENFORCEMENT.md).
+        # Until that lands, strict mode is a known fail; DEV mode keeps
+        # the gate honest on the NOT_ENFORCED axis while TOOL_MISSING
+        # rows stay visible in the log and in TOOLING_VERIFICATION_REPORT.md.
+        run: pnpm tooling:redcase
+
+      - name: Tooling red-case verifier (STRICT — informational, allowed to fail)
+        # Strict mode treats every TOOL_MISSING as a failure. Wired here
+        # as an informational step so reviewers can see when the
+        # boundaries follow-up has shipped: this step will flip from
+        # red (expected) to green at that point, and the next step is
+        # to make this required.
+        run: pnpm tooling:redcase:strict
+        continue-on-error: true

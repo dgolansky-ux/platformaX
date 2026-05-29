@@ -1,5 +1,5 @@
 /**
- * application-v2/profile — service tests
+ * application-v2/use-cases/profile — service tests
  *
  * Verifies the composition behavior (identity + media), the safe error mapping
  * and PII discipline of the composed view DTOs. The service is exercised
@@ -9,16 +9,16 @@
 import { describe, expect, it } from "vitest";
 import {
   createIdentityService,
-  createInMemoryIdentityProfileRepository,
   type IdentityService,
 } from "@server/domains-v2/identity/public-api";
+import { createInMemoryIdentityProfileRepository } from "@server/domains-v2/identity/repository";
 import {
-  createInMemoryMediaRepository,
   createMediaService,
   type MediaService,
   type MediaStoragePort,
   type UploadFileMeta,
 } from "@server/domains-v2/media/public-api";
+import { createInMemoryMediaRepository } from "@server/domains-v2/media/repository";
 import {
   createProfileApplicationService,
   type ProfileApplicationService,

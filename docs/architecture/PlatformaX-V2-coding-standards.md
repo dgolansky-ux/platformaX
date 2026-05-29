@@ -37,26 +37,58 @@ Required:
 - narrow return types for public APIs
 - stable exported contracts
 
-Forbidden by default:
+Forbidden by default (rule **PX-CODE-003** — "No unsafe any or ts-ignore without registered exception"):
 
 - `as any`
+- `: any` type annotation (incl. `: any[]`, `Promise<any>`, `: any | …`)
+- `Record<string, any>` and any other `<…, any>` / `<any, …>` generic
+- `catch (err: any)` — use `catch (err)` and narrow with `unknown`
 - `// @ts-ignore`
-- `// @ts-expect-error` without issue reference and removal plan
-- `Record<string, any>`
+- `// @ts-expect-error` without a same-line justification (≥ 8 chars after the directive)
 - untyped event payloads
 - raw DB records returned from public routers or public APIs
 - mixing private/internal DTOs with public DTOs
 
-Allowed exception format:
+These are enforced fail-closed by `scripts/check-no-any-types.mjs` and
+`scripts/check-code-quality-structure.mjs`.
 
-```ts
-// PLATFORMAX_EXCEPTION: <why this is necessary>
-// Scope: <file/function>
-// Risk: <risk>
-// Removal plan: <condition/date/issue>
-```
+### Exceptions
 
-Exceptions without this block fail review.
+Inline marker blocks alone are NOT enough. The only valid escape hatch is a
+row in `docs/governance/EXCEPTIONS_REGISTER.md`. See §3a and the
+"Coding rules integration model" at the end of this document.
+
+For PX-CODE-003 specifically: a file is only skipped by `check-no-any-types`
+if it appears in the `Files` column of an active EXCEPTIONS_REGISTER row
+mapped to `PX-CODE-003`. An inline `// PLATFORMAX_EXCEPTION:` comment without
+a register entry does NOT bypass the guard — `check-inline-exceptions-registered.mjs`
+fails when a marker exists without a matching active register row.
+
+### 3a. Exception policy (single source of truth)
+
+`docs/governance/EXCEPTIONS_REGISTER.md` is the **only** source of active
+exceptions. Every active exception must be a row in the "Active Exceptions"
+table with all of these columns filled:
+
+- `Exception ID` — `EXC-NNN`
+- `Rule ID` — the `PX-*` rule being excepted
+- `Reason` — why the exception is needed
+- `Expiry` — absolute date or condition for review/removal
+- `Owner` — who approved (named human)
+- `Evidence` — link to ADR, step report, or approval
+- `Risk` — what risk the exception introduces
+- `Status` — `active` / `expired` / `revoked`
+- `Files` — affected file paths
+
+Inline markers (`PLATFORMAX_EXCEPTION`, `QUALITY_STRUCTURE_EXCEPTION`,
+`ALLOW_FILE_SIZE_EXCEPTION`, `ALLOW_PRIVATE_DTO_PII`) MUST reference a file
+listed in an active register row — `scripts/check-inline-exceptions-registered.mjs`
+fails the build when a marker exists without a matching register entry, and
+also when a register entry points at a file that no longer carries the marker
+(stale exception).
+
+Expired rows are revoked by `scripts/check-exception-expiry.mjs`
+(rule **PX-EXC-002**).
 
 ## 4. React standard
 
@@ -192,28 +224,58 @@ Rules: `PX-OWN-001`, `PX-OWN-002`, `PX-VIS-001`, `PX-DTO-002`, `PX-CTX-001`, `PX
 
 ## 6. File size and complexity limits
 
-| File type | Soft limit | Hard limit | Required reaction |
-|---|---:|---:|---|
-| React component | 250 lines | 350 lines | split into subcomponents/hooks/types |
-| service.ts | 300 lines | 400 lines | split by use-case |
-| repository.ts | 350 lines | 500 lines | split query builders/mappers/pagination |
-| mapper.ts | 180 lines | 260 lines | split DTO mappers |
-| policy.ts | 220 lines | 320 lines | split policy groups |
-| test file | 700 lines | 1000 lines | split suites/builders |
-| check script | 350 lines | 500 lines | extract helpers |
+These are the **canonical, single source-of-truth limits**. Each value
+matches the actual fail-closed enforcement in the listed guard script —
+if you want to change a number, you must change both this table and the
+guard in the same commit.
 
-Hard limit violations require either refactor or explicit `COMPLEXITY_EXCEPTION` report. `eslint-disable max-lines` is not enough.
+The two TypeScript file guards are layered:
 
-### Stylesheet limits (enforced by `scripts/check-file-size-limits.mjs`)
+- `check-code-quality-structure.mjs` enforces the **stricter contextual**
+  limit (route vs regular component, service vs repository, …).
+- `check-file-complexity.mjs` enforces the **broader upper bound** that
+  catches anything the contextual rule didn't.
 
-| File type | Hard limit | Reaction |
-|---|---:|---|
-| CSS module (`*.module.css`) | 360 lines | split by surface (layout / header / sections / per-block) |
-| Global CSS (`*.css`, not module) | 500 lines | split by feature or extract tokens |
+### 6.1 Enforced limits (TypeScript / React)
 
-CSS limits are wired into `pnpm rules:check` and fail closed. Exceptional
-fixtures may include the `ALLOW_FILE_SIZE_EXCEPTION` marker — only with a
-documented justification in the step report.
+| Target | Hard limit | Guard | Reaction |
+|---|---:|---|---|
+| Route/page `.tsx` (`*Page.tsx`, `*Route.tsx`, `*Flow.tsx`, `page.tsx`, `layout.tsx`) | 280 | `check-code-quality-structure.mjs` | split sections / subcomponents |
+| Regular `.tsx` component | 220 | `check-code-quality-structure.mjs` | split subcomponents / hooks / types |
+| Any `.tsx` (upper bound) | 350 | `check-file-complexity.mjs` | refactor or registered exception |
+| `service.ts` (contextual) | 240 | `check-code-quality-structure.mjs` | split by use-case |
+| `service.ts` (upper bound) | 400 | `check-file-complexity.mjs` | hard refactor |
+| `repository.ts` (contextual) | 240 | `check-code-quality-structure.mjs` | split query builders / mappers |
+| `repository.ts` (upper bound) | 500 | `check-file-complexity.mjs` | hard refactor |
+| `policy.ts` / `router.ts` / `mapper.ts` | 240 | `check-code-quality-structure.mjs` | split modules |
+| `__tests__/*.test.*` | 1000 | `check-file-complexity.mjs` | split suites / builders |
+| `scripts/check-*.mjs` (and similar) | 500 | `check-file-complexity.mjs` | extract helpers |
+| Function body (any) | 80 lines | `check-code-quality-structure.mjs` | extract helper functions |
+| React component body | 140 lines | `check-code-quality-structure.mjs` | split subcomponents |
+| Exports per file | 15 | `check-code-quality-structure.mjs` | split module |
+| Props per `*Props` type | 12 | `check-code-quality-structure.mjs` | split component / extract group |
+| Generic `utils.ts`/`misc.ts`/`helpers.ts` | 100 lines | `check-code-quality-structure.mjs` | rename per domain responsibility |
+
+### 6.2 Enforced limits (stylesheets)
+
+| Target | Hard limit | Guard | Reaction |
+|---|---:|---|---|
+| `*.module.css` (contextual, app-v2/features-v2) | 320 | `check-code-quality-structure.mjs` | split by surface |
+| `*.module.css` (upper bound, all dirs) | 360 | `check-file-size-limits.mjs` | split by surface |
+| Global `*.css` | 500 | `check-file-size-limits.mjs` | split or extract design tokens |
+
+### 6.3 Exceptions
+
+Hard limit violations require a row in `docs/governance/EXCEPTIONS_REGISTER.md`
+mapped to the relevant `PX-*` rule (see §3a). Inline-only escape hatches
+(`QUALITY_STRUCTURE_EXCEPTION`, `ALLOW_FILE_SIZE_EXCEPTION`, etc.) without a
+matching register entry are rejected by
+`scripts/check-inline-exceptions-registered.mjs`. `eslint-disable max-lines`
+is never sufficient on its own.
+
+> Earlier drafts of this document carried advisory "soft / hard" pairs (e.g.
+> React component soft 250 / hard 350). Those advisory numbers are removed:
+> the only numbers that matter are the hard, enforced ones above.
 
 ## 7. Testing standard
 
@@ -410,15 +472,89 @@ Before every commit, verify:
 
 These rules are enforced by `scripts/check-code-quality-structure.mjs`, `scripts/check-scalability-patterns.mjs`, `scripts/check-frontend-performance-patterns.mjs`, `scripts/check-dependency-discipline.mjs`, and `scripts/check-logging-pii-security.mjs`.
 
-1. **No large files.** File limits are enforced per type (route/page 280, regular .tsx 220, CSS module 320, backend service/repository/policy/router/mapper 240).
-2. **No large functions.** Max 80 lines per function. React components max 140 lines.
-3. **No unbounded lists.** Every list/feed/search must have `limit` + `maxLimit` + cursor or explicit fixed cap.
-4. **Every list/feed/search needs limit + maxLimit + cursor/fixed cap + stable order.** Tie-breaker must be `id` or `createdAt`.
-5. **No N+1 in feed/profile/comments/reactions.** Use batch/bulk queries, not per-item loops.
-6. **No sync fanout in request path.** Notifications, search indexing, and expensive projections go through events/outbox.
-7. **Public DTO never exposes PII.** No email, phone, dateOfBirth, privateContact, authMetadata in public outputs.
-8. **UI buttons cannot be no-op.** Every button must perform a real action, open a modal, navigate, call an adapter, or be visibly disabled.
-9. **Animation must respect prefers-reduced-motion.** CSS animations/transitions require a `prefers-reduced-motion` media query. `transition: all` is forbidden.
-10. **New dependencies require review report justification.** No heavy packages for simple tasks. No duplicate libraries for the same purpose.
-11. **Any exception must include reason + review/ticket path.** Exception markers without justification fail the guard.
-12. **Profile/feed/social runtime must be batch/cursor/read-model ready.** No unbounded queries, no full-table scans, no raw DB records in public output.
+1. **No large files / functions / components.** See §6 for the canonical
+   enforced limits table; do not restate the numbers here.
+2. **No unbounded lists.** Every list/feed/search must have `limit` + `maxLimit` + cursor or explicit fixed cap.
+3. **Every list/feed/search needs limit + maxLimit + cursor/fixed cap + stable order.** Tie-breaker must be `id` or `createdAt`.
+4. **No N+1 in feed/profile/comments/reactions.** Use batch/bulk queries, not per-item loops.
+5. **No sync fanout in request path.** Notifications, search indexing, and expensive projections go through events/outbox.
+6. **Public DTO never exposes PII.** No email, phone, dateOfBirth, privateContact, authMetadata in public outputs.
+7. **UI buttons cannot be no-op.** Every button must perform a real action, open a modal, navigate, call an adapter, or be visibly disabled.
+8. **Frontend perf and render hygiene (PX-CODE-004).** No `transition: all`; animations/transitions require a `prefers-reduced-motion` media query; every list `.map` render needs a stable unique `key` (never `index`); `addEventListener`/`setInterval`/`setTimeout` inside `useEffect` need paired cleanup; large fixture arrays do not live in component files; `<img>` in list/card/feed/grid context needs `loading="lazy"`.
+9. **New dependencies require review report justification.** No heavy packages for simple tasks. No duplicate libraries for the same purpose.
+10. **Any exception must be registered.** Inline markers alone are not enough — see §3a; `scripts/check-inline-exceptions-registered.mjs` fails the build when an inline marker is missing from `EXCEPTIONS_REGISTER.md` (and when a register row points at a file that no longer carries the marker).
+11. **Profile/feed/social runtime must be batch/cursor/read-model ready.** No unbounded queries, no full-table scans, no raw DB records in public output.
+
+## 22a. Architecture tooling spike (parallel with custom guards)
+
+Spike branch: `tooling/architecture-boundaries-quality-spike`. None of the
+existing custom guards is removed by the spike; each new tool runs
+**PARALLEL_WITH_TOOLING** with its custom counterpart and is verified
+against documented red-case fixtures in `tests/architecture/fixtures/`.
+
+| Tool | Local script | What it covers | Custom guard it parallels |
+|---|---|---|---|
+| `eslint-plugin-boundaries` | `pnpm boundaries:check` (folded into `pnpm lint`) | Status: `PARTIAL_NOT_ENFORCED` — plugin loads but v6 enforcement is blocked on missing TS path resolver wiring; tracked in `docs/governance/followups/FIX_ESLINT_PLUGIN_BOUNDARIES_V6_ENFORCEMENT.md`. Coverage today is via depcruise + arch-tests + `audit-domain-boundaries.mjs`. | `audit-domain-boundaries.mjs` |
+| `dependency-cruiser` | `pnpm depcruise:check` / `pnpm depcruise:graph` | Cycles, `no-client-to-server`, cross-domain internals, legacy runtime, shared-no-runtime | `audit-domain-boundaries.mjs`, `check-architecture-import-graph.mjs`, `check-no-legacy-imports.mjs` |
+| Architecture tests (Vitest) | `pnpm arch-tests` | Executable specs for the same invariants as above (PX-ARCH-001/003/004/008/009, PX-APP-001). Plain Vitest assertions — ArchUnitTS/tsarch evaluated and dropped, no DSL dependency. | Custom regex umbrella + ad-hoc walks |
+| `knip` | `pnpm knip:check` | Unused files / exports / dependencies (weekly lane) | — (new coverage) |
+| `gitleaks` | `pnpm secrets:gitleaks` (dev-friendly, noop-passes if binary missing) / `pnpm secrets:gitleaks:required` (CI/deep gate — BLOCKS if binary missing) | Generic secret patterns (AWS/GCP/GH/JWT/PEM) | `check-secret-scan.mjs`, `check-local-secret-scan.mjs` (PlatformaX-specific rules stay) |
+| Tooling red-case verifier | `pnpm tooling:redcase` | Plants temporary safe violations, asserts each tool exits non-zero, then cleans up. Authoritative proof the tools ENFORCE, not just report. | — |
+| GitHub CodeQL | `.github/workflows/codeql.yml` | OWASP-extended JS/TS scanning | — (status: `CODEQL_NEEDS_GITHUB_SETUP` until enabled in repo Settings) |
+
+Aggregate convenience commands:
+
+- `pnpm tooling:check` — runs boundaries + depcruise + arch-tests + gitleaks (dev mode).
+- `pnpm tooling:redcase` — proves every tool fails closed on planted red cases.
+- `pnpm tooling:weekly` — runs knip + dependency graph + audit ZIP.
+
+CI lanes (`.github/workflows/v2-gates.yml` + `v2-weekly-audit.yml`):
+
+- **STANDARD**: type / lint+boundaries / test (incl. arch-tests) / build / guards / arch (every PR).
+- **DEEP**: dependency-cruiser + Gitleaks (`secrets:gitleaks:required` — BLOCKS if binary missing).
+- **WEEKLY**: Knip + dependency graph artifact + audit ZIP (Sunday cron + manual dispatch).
+
+Truth disclosures (do not claim PASS unless these hold):
+
+- **eslint-plugin-boundaries**: `PARTIAL_NOT_ENFORCED`. The plugin loads but the previous v5-style rules were dropped (v6 emits only warnings on them) and a quick `boundaries/dependencies` rewrite was blocked on the missing `eslint-import-resolver-typescript` wiring (targets came back as `isUnknown: true`). Coverage stays via `dependency-cruiser`, `pnpm arch-tests`, and the hardened `audit-domain-boundaries.mjs`. Follow-up: `docs/governance/followups/FIX_ESLINT_PLUGIN_BOUNDARIES_V6_ENFORCEMENT.md`.
+- **gitleaks**: `secrets:gitleaks` exits 0 with a loud `GITLEAKS_BINARY_NOT_INSTALLED` log when the binary is missing — this is developer-friendly only. `secrets:gitleaks:required` (used in CI/deep gate) BLOCKS in that case.
+- **CodeQL**: workflow committed, but status is `CODEQL_NEEDS_GITHUB_SETUP` until the repo owner enables Code scanning in repo Settings.
+- **Knip**: weekly lane; `continue-on-error: true` for the Knip step so unused-code candidates do not block PRs by design.
+
+`GUARDS_REGISTRY.yml` marks custom guards that now have parallel tooling
+with `parallel_status: PARALLEL_WITH_TOOLING` and lists the corresponding
+tools under `parallel_tools`. No custom guard is removed yet — removal
+needs a separate spike that proves each tool catches every red case the
+custom guard does.
+
+## 23. Coding rules integration model
+
+Coding rules are governed by six artifacts that must agree. If they
+disagree, the work status is `BLOCKED` or `PARTIAL`, never `READY`.
+
+| Layer | Source of truth | Notes |
+|---|---|---|
+| Human rule | `docs/architecture/PlatformaX-V2-coding-standards.md` (this file) | Prose for reviewers and contributors. |
+| Machine rule | `docs/governance/RULES_REGISTRY.yml` | Each rule has a stable `PX-*` ID, severity, `enforced_by`, and `status: active`. |
+| Enforcement | `scripts/check-*.mjs` | Fail-closed guard scripts named in `enforced_by`. |
+| Guard metadata | `docs/governance/GUARDS_REGISTRY.yml` | Records every guard with `runs_in`, `rules_enforced`, `required`, `status`. |
+| Coverage truth | `docs/governance/RULES_TO_GUARDS_MATRIX.md` | Human-readable rules-to-guards map and gap summary. |
+| CI execution | `.github/workflows/v2-gates.yml` | Must invoke (directly or via `pnpm guards:all-local`) every guard marked `runs_in: ci`. |
+| Exceptions | `docs/governance/EXCEPTIONS_REGISTER.md` | The only valid escape hatch — see §3a. |
+
+Cross-checks (all fail-closed):
+
+- `scripts/check-guards-registry.mjs` verifies every active required guard
+  with `runs_in: ci` is reachable from `.github/workflows/v2-gates.yml`,
+  and every `runs_in: pre-push` guard from `.husky/pre-push` or
+  `pnpm guards:all-local`.
+- `scripts/check-rules-to-guards-coverage.mjs` verifies every registered
+  rule has a row in `RULES_TO_GUARDS_MATRIX.md`, every `enforced_by` path
+  points at a real file, and the matrix summary counts match the actual
+  rows (no false "only N gaps" framing).
+- `scripts/check-inline-exceptions-registered.mjs` verifies every inline
+  exception marker maps to an active row in `EXCEPTIONS_REGISTER.md` and
+  vice versa.
+
+These three guards together make the integration model self-checking: a
+silent drift between any pair of artifacts above breaks the build.

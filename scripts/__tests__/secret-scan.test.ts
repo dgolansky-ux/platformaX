@@ -59,7 +59,7 @@ describe("secret-scan: real DATABASE_URL in source = FAIL", () => {
 
 describe("secret-scan: SUPABASE_SERVICE_ROLE_KEY in source = FAIL", () => {
   it("detects service role key assignment", () => {
-    const findings = scanLine('SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9', "server/config.ts", 1, false);
+    const findings = scanLine('SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9', "server/config.ts", 1, false); // gitleaks:allow — fake JWT header used to exercise our scanner
     expect(findings.length).toBeGreaterThan(0);
     expect(findings.some(f => f.type === "SUPABASE_SERVICE_ROLE_KEY")).toBe(true);
   });
@@ -67,7 +67,7 @@ describe("secret-scan: SUPABASE_SERVICE_ROLE_KEY in source = FAIL", () => {
 
 describe("secret-scan: OPENAI_API_KEY in source = FAIL", () => {
   it("detects OpenAI key", () => {
-    const findings = scanLine('OPENAI_API_KEY=sk-abcdefgh1234567890', "server/ai.ts", 3, false);
+    const findings = scanLine('OPENAI_API_KEY=sk-abcdefgh1234567890', "server/ai.ts", 3, false); // gitleaks:allow — fake fixture string used to exercise our scanner
     expect(findings.length).toBeGreaterThan(0);
     expect(findings.some(f => f.type === "OPENAI_API_KEY")).toBe(true);
   });
@@ -75,7 +75,7 @@ describe("secret-scan: OPENAI_API_KEY in source = FAIL", () => {
 
 describe("secret-scan: sk_test pattern in source = FAIL", () => {
   it("detects Stripe test key", () => {
-    const findings = scanLine('const stripe = "sk_test_abcdefghij1234567890"', "server/payments.ts", 10, false);
+    const findings = scanLine('const stripe = "sk_test_abcdefghij1234567890"', "server/payments.ts", 10, false); // gitleaks:allow — fake fixture string used to exercise our scanner
     expect(findings.length).toBeGreaterThan(0);
     expect(findings.some(f => f.type === "Stripe test key (sk_test)")).toBe(true);
   });
@@ -110,7 +110,7 @@ describe("secret-scan: safe patterns", () => {
   });
 
   it("skips markdown comments", () => {
-    const findings = scanLine('<!-- access_token=abc1234567890abcdef1234 -->', "README.md", 1, false);
+    const findings = scanLine('<!-- access_token=abc1234567890abcdef1234 -->', "README.md", 1, false); // gitleaks:allow — fake fixture string used to exercise our scanner
     expect(findings.length).toBe(0);
   });
 

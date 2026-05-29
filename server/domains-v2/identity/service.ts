@@ -7,7 +7,7 @@
  * Depends on `IdentityProfileRepository` (interface), policy, mapper, patch
  * builders and validation. No DB client — concrete repository adapter is
  * injected. Identity never imports the media domain; media-asset ownership
- * validation lives in application-v2/profile, which calls
+ * validation lives in application-v2/use-cases/profile, which calls
  * `media.verifyProfileAssetForAttach` before invoking attach* methods here.
  */
 import type {
@@ -18,7 +18,7 @@ import type {
   UpdatePrivateProfileInput,
 } from "./contracts";
 import type { PublicProfileDTO } from "./dto";
-import type { IdentityEvent } from "./events";
+import { wrapIdentityEvent, type IdentityEventEnvelope } from "./internal/envelope";
 import { completeOnboardingFlow } from "./internal/onboarding";
 import type { PrivateProfileDTO } from "./internal/private-profile-dto";
 import {
@@ -42,7 +42,7 @@ import type {
   UpdateProfileRecordPatch,
 } from "./repository";
 
-export type IdentityEventPublisher = (event: IdentityEvent) => void;
+export type IdentityEventPublisher = (envelope: IdentityEventEnvelope) => void;
 export type IdentityClock = () => string;
 export type IdentityRelationshipResolver = (
   viewerId: string,
@@ -130,7 +130,13 @@ export function createIdentityService(
     const now = clock();
     const record = await repo.update(userId, patch, now);
     if (!record) return { ok: false, error: errNotFound() };
-    publish({ type: "identity.profile.public_summary_changed", userId, at: now });
+    publish(
+      wrapIdentityEvent({
+        type: "identity.profile.public_summary_changed",
+        userId,
+        at: now,
+      }),
+    );
     return { ok: true, value: toPrivateProfileDTO(record) };
   }
 

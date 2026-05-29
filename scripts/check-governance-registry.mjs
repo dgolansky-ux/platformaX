@@ -101,6 +101,15 @@ for (const rule of rules) {
     console.error(`GOVERNANCE_REGISTRY_VIOLATION: rule "${rule.id}" has invalid status "${rule.status}" (allowed: ${ALLOWED_STATUSES.join(", ")})`);
     violations++;
   }
+
+  // P0 rules must declare what evidence proves compliance. A null/missing
+  // evidence_required leaves the strongest rules unauditable.
+  if (rule.severity === "P0" && rule.status === "active") {
+    if (rule.evidence_required === null || rule.evidence_required === undefined) {
+      console.error(`GOVERNANCE_REGISTRY_VIOLATION: P0 active rule "${rule.id}" missing evidence_required`);
+      violations++;
+    }
+  }
 }
 
 if (violations > 0) {

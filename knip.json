@@ -1,0 +1,50 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "client/src/main.tsx",
+    "vite.config.ts",
+    "eslint.config.js",
+    "server/index.ts",
+    "scripts/{rules-check,arch-check-v2,validate-bundle,create-audit-zip}.mjs",
+    "scripts/check-*.mjs",
+    "scripts/no-commit-if-dirty-gates.mjs",
+    "scripts/audit-domain-boundaries.mjs",
+    "scripts/scaffold-*.mjs",
+    "**/__tests__/**/*.{ts,tsx}",
+    "**/*.test.{ts,tsx}",
+    "tests/architecture/**/*.test.ts"
+  ],
+  "project": [
+    "client/src/**/*.{ts,tsx}",
+    "server/**/*.{ts,tsx}",
+    "shared/**/*.{ts,tsx}",
+    "scripts/**/*.{mjs,js,ts}"
+  ],
+  "ignore": [
+    "dist/**",
+    "audit-out/**",
+    "coverage/**",
+    "supabase/**",
+    "tests/architecture/fixtures/**",
+    "docs/**"
+  ],
+  "ignoreDependencies": [
+    "@testing-library/jest-dom",
+    "globals",
+    "husky",
+    "lint-staged",
+    "@commitlint/config-conventional"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "ignoreBinaries": [
+    "gitleaks"
+  ],
+  "rules": {
+    "files": "warn",
+    "exports": "warn",
+    "types": "warn",
+    "duplicates": "warn",
+    "unlisted": "error",
+    "binaries": "warn"
+  }
+}

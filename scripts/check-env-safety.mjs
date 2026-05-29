@@ -61,6 +61,16 @@ for (const fp of allFiles) {
   const rel = relative(ROOT, fp).replace(/\\/g, "/");
   if (rel.startsWith("scripts/")) continue;
   if (rel.startsWith("docs/")) continue;
+  // .gitleaks.toml lists secret-shaped patterns inside [[allowlists]] so
+  // gitleaks does not flag documented false-positives. The two
+  // PlatformaX-specific secret guards (check-secret-scan,
+  // check-local-secret-scan) keep scanning the file for real values.
+  if (rel === ".gitleaks.toml") continue;
+  // Red-case fixtures intentionally contain forbidden patterns —
+  // documented in tests/architecture/fixtures/README.md. The fixtures
+  // path is excluded from every active gate (eslint, depcruise, knip,
+  // gitleaks, tsc) and from this guard for the same reason.
+  if (rel.startsWith("tests/architecture/fixtures/")) continue;
 
   let content;
   try {

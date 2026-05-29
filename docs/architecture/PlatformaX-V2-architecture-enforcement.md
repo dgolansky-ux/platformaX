@@ -247,19 +247,27 @@ Guard must scan:
 
 At minimum:
 
-- `pnpm arch:check:v2`
-- `node scripts/audit-domain-boundaries.mjs`
+- `pnpm arch:check:v2` — umbrella for the architecture-only subset.
+- `pnpm guards:all-local` — umbrella for all CI-required guards, including everything below.
+- `node scripts/audit-domain-boundaries.mjs` — enforces the public-api boundary: domains MUST be imported via `public-api.ts`/`contracts.ts`/`events.ts`; deep imports into another domain's `repository`/`service`/`policy`/`router`/`mapper`/`internal/*` fail closed (replaces the historical `check-public-api-surface.mjs` placeholder, which was never implemented).
+- `node scripts/check-architecture-import-graph.mjs` — enforces acyclic import graph between domains and matches `DOMAIN_OWNERSHIP_MATRIX.md`.
 - `node scripts/check-no-legacy-imports.mjs`
 - `node scripts/check-removed-product-areas.mjs`
-- `node scripts/check-public-api-surface.mjs`
 - `node scripts/check-public-dto-pii.mjs`
+- `node scripts/check-dto-privacy-classification.mjs`
 - `node scripts/check-code-quality-structure.mjs`
 - `node scripts/check-scalability-patterns.mjs`
+- `node scripts/check-scalability-hot-paths.mjs`
 - `node scripts/check-frontend-performance-patterns.mjs`
 - `node scripts/check-status-truth-consistency.mjs`
 - `node scripts/check-dependency-discipline.mjs`
 - `node scripts/check-logging-pii-security.mjs`
-- dependency boundary checker (`dependency-cruiser` or ESLint boundaries)
+- `pnpm boundaries:check` — `eslint-plugin-boundaries` element-type + entry-point enforcement (folded into `pnpm lint`). PARALLEL_WITH_TOOLING with `audit-domain-boundaries.mjs`.
+- `pnpm depcruise:check` — `dependency-cruiser` (`no-circular`, `no-client-to-server`, `no-cross-domain-internal`, `shared-no-runtime`, `no-legacy-runtime-import`). PARALLEL_WITH_TOOLING with `audit-domain-boundaries.mjs` + `check-architecture-import-graph.mjs`.
+- `pnpm arch-tests` — Vitest architecture specs in `tests/architecture/architecture.test.ts` covering PX-ARCH-001/003/004/008/009 + PX-APP-001. Plain Vitest assertions; ArchUnitTS/tsarch were evaluated and dropped — no DSL dependency. Red-case fixtures: `tests/architecture/fixtures/`.
+- `pnpm knip:check` — weekly unused files/exports/deps scan (`v2-weekly-audit.yml`).
+- `pnpm secrets:gitleaks` — generic secret scanning; PARALLEL_WITH_TOOLING with `check-secret-scan.mjs` / `check-local-secret-scan.mjs`. CI uses `gitleaks/gitleaks-action`; local wrapper noop-passes if binary missing.
+- `.github/workflows/codeql.yml` — `CODEQL_NEEDS_GITHUB_SETUP` until enabled in repo Settings → Code security.
 
 ## 14. Backend and runtime invariant enforcement map
 

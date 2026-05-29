@@ -115,9 +115,84 @@ for (const domain of domains) {
   }
 }
 
+// === active architecture-doc drift ==========================================
+// Reviewers read the human architecture docs (DOMAIN_OWNERSHIP_MATRIX,
+// DOMAIN_REGISTRY) more often than the YAML registry. If their `Status`
+// columns drift away from the canonical sources, the doc-readable story stops
+// matching reality — which is exactly how identity/media kept being shown as
+// SCAFFOLD_ONLY long after they reached PARTIAL.
+
+const ACTIVE_STATUS_DOCS = [
+  "docs/architecture/DOMAIN_OWNERSHIP_MATRIX.md",
+  "docs/architecture/DOMAIN_REGISTRY.md",
+];
+
+// Compose the canonical status map from BOTH sources. They are kept in sync
+// by the earlier conflict check, so picking either is correct; we prefer the
+// YAML registry because it is the documented source of truth.
+const canonicalStatusByDomain = new Map();
+for (const d of domains) {
+  if (d.status) canonicalStatusByDomain.set(d.name, d.status);
+}
+for (const [name, status] of Object.entries(tsStatusMap)) {
+  if (!canonicalStatusByDomain.has(name)) canonicalStatusByDomain.set(name, status);
+}
+
+function parseMarkdownTableRows(content) {
+  const rows = [];
+  for (const line of content.split("\n")) {
+    if (!line.startsWith("|")) continue;
+    if (/^\|\s*-+/.test(line)) continue;
+    const cells = line.split("|").map((c) => c.trim());
+    while (cells.length && cells[0] === "") cells.shift();
+    while (cells.length && cells[cells.length - 1] === "") cells.pop();
+    if (cells.length < 2) continue;
+    rows.push(cells);
+  }
+  return rows;
+}
+
+for (const docPath of ACTIVE_STATUS_DOCS) {
+  const abs = join(ROOT, docPath);
+  if (!existsSync(abs)) continue;
+  const content = readFileSync(abs, "utf-8");
+  // Identify the "Status" column index from each header row in the file. A
+  // file can carry multiple tables (Owner / Composition / Operational), so we
+  // re-detect the header per section.
+  let statusIdx = -1;
+  let domainIdx = -1;
+  for (const line of content.split("\n")) {
+    if (!line.startsWith("|")) continue;
+    const cells = line.split("|").map((c) => c.trim());
+    while (cells.length && cells[0] === "") cells.shift();
+    while (cells.length && cells[cells.length - 1] === "") cells.pop();
+    if (cells.length === 0) continue;
+    // Treat a header line as one that contains a "Status" cell and a
+    // domain-like cell ("Domain" or "Layer").
+    if (cells.some((c) => /^Status$/i.test(c))) {
+      statusIdx = cells.findIndex((c) => /^Status$/i.test(c));
+      domainIdx = cells.findIndex((c) => /^Domain$/i.test(c) || /^Layer$/i.test(c));
+      continue;
+    }
+    if (/^-+$/.test(cells[0] ?? "")) continue;
+    if (statusIdx === -1 || domainIdx === -1) continue;
+    const name = cells[domainIdx];
+    const claimed = cells[statusIdx];
+    if (!name || !claimed) continue;
+    if (!canonicalStatusByDomain.has(name)) continue; // application-layer rows etc.
+    const canonical = canonicalStatusByDomain.get(name);
+    if (claimed !== canonical) {
+      console.error(
+        `DOMAIN_STATUS_DRIFT: ${docPath} claims "${name}" has status "${claimed}" but canonical sources (DOMAIN_STATUS_REGISTRY.yml + domain-registry.ts) say "${canonical}".`,
+      );
+      violations++;
+    }
+  }
+}
+
 if (violations > 0) {
   console.error(`\ncheck-domain-status-registry: ${violations} violation(s)`);
   process.exit(1);
 }
 
-console.log(`CHECK_DOMAIN_STATUS_REGISTRY_PASS (${domains.length} domains validated, ${tsDomains.length} code domains covered)`);
+console.log(`CHECK_DOMAIN_STATUS_REGISTRY_PASS (${domains.length} domains validated, ${tsDomains.length} code domains covered, ${ACTIVE_STATUS_DOCS.length} active docs scanned)`);

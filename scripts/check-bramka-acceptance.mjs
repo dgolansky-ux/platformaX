@@ -10,7 +10,16 @@ const results = [];
 function check(id, name, fn) {
   try {
     const ok = fn();
-    if (ok) {
+    // A check may return either a boolean (PASS/FAIL) or the explicit string
+    // "NEEDS_EXTERNAL_VERIFICATION" — the latter is for invariants that cannot
+    // be proven from inside the working tree (e.g. GitHub branch protection
+    // lives in repository settings, not in the repo). It does NOT count as a
+    // failure but it MUST NOT count as a PASS either, because reporting PASS
+    // from ZIP-only evidence is exactly the trust hole this gate is meant to
+    // close.
+    if (ok === "NEEDS_EXTERNAL_VERIFICATION") {
+      results.push({ id, name, status: "NEEDS_EXTERNAL_VERIFICATION" });
+    } else if (ok) {
       results.push({ id, name, status: "PASS" });
       passed++;
     } else {
@@ -122,14 +131,30 @@ check(17, "PR template contains Architecture Impact Statement", () =>
   fileContains(".github/pull_request_template.md", "Architecture Impact"),
 );
 
-check(18, "GitHub CI runs required gates", () =>
-  fileExists(".github/workflows/v2-gates.yml") &&
-  fileContains(".github/workflows/v2-gates.yml", "rules:check") &&
-  fileContains(".github/workflows/v2-gates.yml", "guards:secrets"),
-);
+check(18, "GitHub CI runs required gates", () => {
+  if (!fileExists(".github/workflows/v2-gates.yml")) return false;
+  // Either the workflow runs the `guards:all-local` umbrella (preferred —
+  // covers every guard marked runs_in: ci in one place, verified by
+  // check-guards-registry.mjs) or it still calls the older granular steps.
+  const hasUmbrella = fileContains(".github/workflows/v2-gates.yml", "guards:all-local");
+  const hasGranular =
+    fileContains(".github/workflows/v2-gates.yml", "rules:check") &&
+    fileContains(".github/workflows/v2-gates.yml", "guards:secrets");
+  return hasUmbrella || hasGranular;
+});
 
 check(19, "main has branch protection/ruleset", () => {
-  return fileContains(".github/workflows/v2-gates.yml", "pull_request");
+  // Branch protection cannot be proven from ZIP/working-tree evidence — it
+  // lives in GitHub repository settings. A `pull_request` trigger in
+  // v2-gates.yml only proves that CI runs on PRs; it does NOT prove that
+  // the `main` branch actually requires PRs, status checks or reviews.
+  // Until an exported GitHub ruleset (e.g. docs/governance/github-rulesets/main.json)
+  // is committed to the repo, return NEEDS_EXTERNAL_VERIFICATION.
+  const rulesetCommitted =
+    fileExists("docs/governance/github-rulesets/main.json") ||
+    fileExists(".github/rulesets/main.json");
+  if (rulesetCommitted) return true;
+  return "NEEDS_EXTERNAL_VERIFICATION";
 });
 
 check(20, "ADR folder and template exist", () =>
@@ -161,13 +186,29 @@ check(25, "Commit and merge blocked if gates fail", () =>
 );
 
 console.log("\nBRAMKA ACCEPTANCE MATRIX:\n");
+let needsExternal = 0;
 for (const r of results) {
-  const icon = r.status === "PASS" ? "PASS" : "FAIL";
+  let icon;
+  if (r.status === "PASS") icon = "PASS";
+  else if (r.status === "NEEDS_EXTERNAL_VERIFICATION") {
+    icon = "EXT ";
+    needsExternal++;
+  } else icon = "FAIL";
   console.log(`  [${icon}]  ${r.id}. ${r.name}`);
   if (r.error) console.log(`         Error: ${r.error}`);
 }
 
-console.log(`\nResult: ${passed}/${results.length} passed`);
+console.log(
+  `\nResult: ${passed}/${results.length} passed` +
+    (needsExternal > 0 ? ` (${needsExternal} require external verification — see ZIP-only evidence note)` : ""),
+);
+if (needsExternal > 0) {
+  console.log(
+    "\nNOTE: Items marked [EXT ] cannot be proven from ZIP/working-tree evidence. " +
+      "Branch protection / GitHub rulesets must be verified against the GitHub repo settings " +
+      "(or an exported ruleset JSON committed under docs/governance/github-rulesets/).",
+  );
+}
 
 if (failed > 0) {
   console.error(`\ncheck-bramka-acceptance: ${failed} point(s) FAILED`);

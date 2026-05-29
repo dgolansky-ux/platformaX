@@ -19,7 +19,7 @@ import type {
   UploadFileMeta,
 } from "./contracts";
 import type { MediaAssetDTO, MediaPurpose, MediaRefDTO, UploadIntentDTO } from "./dto";
-import type { MediaEvent } from "./events";
+import { wrapMediaEvent, type MediaEventEnvelope } from "./internal/envelope";
 import { maxBytesFor, validateUploadFileMeta } from "./internal/validation";
 import { toMediaAssetDTO, toUploadIntentDTO } from "./mapper";
 import { canCreateUploadIntent } from "./policy";
@@ -27,7 +27,7 @@ import type { MediaRepository, MediaStoragePort } from "./repository";
 
 export type MediaClock = () => string;
 export type MediaIdGenerator = () => string;
-export type MediaEventPublisher = (event: MediaEvent) => void;
+export type MediaEventPublisher = (envelope: MediaEventEnvelope) => void;
 
 export type MediaServiceDeps = {
   repository: MediaRepository;
@@ -88,7 +88,14 @@ function codeForFieldErrors(fields: Record<string, string>): MediaErrorCode {
 function defaultIdGen(): string {
   const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
   if (c && typeof c.randomUUID === "function") return c.randomUUID();
-  return `media_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  // No Math.random()/Date.now() fallback: those produce collision-prone,
+  // non-cryptographic ids that would silently weaken asset identity. Tests must
+  // inject a deterministic `idGen` via MediaServiceDeps; runtime requires a
+  // crypto-capable environment.
+  throw new Error(
+    "MEDIA_ID_GEN_UNAVAILABLE: crypto.randomUUID() is required. " +
+      "Inject a deterministic idGen via MediaServiceDeps.idGen in tests.",
+  );
 }
 
 async function buildUploadIntent(
@@ -135,7 +142,9 @@ async function buildUploadIntent(
     now,
   );
 
-  ctx.publish({ type: "media.upload.intent_created", assetId, ownerId: userId, at: now });
+  ctx.publish(
+    wrapMediaEvent({ type: "media.upload.intent_created", assetId, ownerId: userId, at: now }),
+  );
   return { ok: true, value: toUploadIntentDTO(record, target, maxBytes) };
 }
 
@@ -176,7 +185,9 @@ export function createMediaService(deps: MediaServiceDeps): MediaService {
       const now = ctx.clock();
       const updated = await ctx.repo.update(assetId, { status: "ready" }, now);
       if (!updated) return { ok: false, error: fail("NOT_FOUND", "Zasób nie istnieje") };
-      ctx.publish({ type: "media.upload.confirmed", assetId, ownerId: userId, at: now });
+      ctx.publish(
+        wrapMediaEvent({ type: "media.upload.confirmed", assetId, ownerId: userId, at: now }),
+      );
       return { ok: true, value: toMediaAssetDTO(updated) };
     },
 

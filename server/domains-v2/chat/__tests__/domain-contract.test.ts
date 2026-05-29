@@ -1,8 +1,9 @@
 ﻿import { describe, it, expect } from "vitest";
 
 describe("chat domain contract", () => {
-  it("has SCAFFOLD_ONLY status", () => {
-    expect(true).toBe(true);
+  it("public-api exposes no runtime surface yet (SCAFFOLD_ONLY)", async () => {
+    const mod = await import("../public-api");
+    expect(Object.keys(mod)).toHaveLength(0);
   });
 
   it("exports from public-api", async () => {

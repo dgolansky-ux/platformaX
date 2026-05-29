@@ -73,6 +73,11 @@ function walk(dir) {
 function isPlaceholderSafe(rel) {
   if (PLACEHOLDER_SAFE_FILES.has(rel)) return true;
   if (PLACEHOLDER_SAFE_PREFIXES.some((p) => rel.startsWith(p))) return true;
+  // Sample/example config files (.env.example, .claude/settings.example.json,
+  // .env.test.example, …) document variable NAMES with placeholder values.
+  // This only suppresses placeholder-LOOKING lines (see the caller) — a real
+  // secret value that does not look like a placeholder is still flagged.
+  if (/\.example(\.[a-z0-9]+)?$/i.test(rel)) return true;
   return false;
 }
 
