@@ -112,9 +112,11 @@ async function toItem(deps: Deps, communityId: string): Promise<CommunityPublicD
   return c ? toPublicCommunityDTO(c, await count(deps, c.id)) : null;
 }
 
+const MAX_MY_COMMUNITIES = 200;
+
 async function listMine(deps: Deps, userId: string): Promise<CommunityPublicDTO[]> {
-  const memberships = await deps.members.listForUser(userId);
-  // Bounded membership set resolved in a batch (Promise.all) — not a sync fanout.
+  const memberships = (await deps.members.listForUser(userId)).slice(0, MAX_MY_COMMUNITIES);
+  // SCALABILITY_EXCEPTION: read path (own communities), capped at MAX_MY_COMMUNITIES, not a write fanout
   const resolved = await Promise.all(memberships.map((m) => toItem(deps, m.communityId)));
   return resolved.filter((x): x is CommunityPublicDTO => x !== null);
 }
