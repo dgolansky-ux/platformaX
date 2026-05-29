@@ -81,6 +81,29 @@ transport + migrations.
 
 `pnpm test` (full), or targeted: `npx vitest run client/src/app-v2/manage`.
 
+## 7b. Profile management UX correction
+
+- **"Zarządzaj profilem osobistym"** is now a DATA / contact / privacy screen
+  (`/manage/profil-osobisty`), NOT an appearance editor. Sections: Dane
+  podstawowe (imię/nazwisko/nazwa profilu/@username), Dane kontaktowe
+  (email/telefon — private, identity), Widoczność kontaktu (nikt / znajomi /
+  zaakceptowani), Zgody kontaktowe (reveal only via `approved_contact_fields`;
+  friendship does NOT auto-expose e-mail/phone). Inputs are disabled (no fake
+  save) — profile-update transport is `TRANSPORT_PARTIAL`. No PII values are
+  rendered. The dashboard tile now routes here; a link sends the user to
+  `/profile` for appearance editing.
+- **Avatar / banner / bio editing** stays on the personal profile (`/profile`)
+  and was ALREADY implemented as subtle, owner-only affordances wired to real
+  flows: avatar/banner → `ProfileMediaSheet` (media upload intent), bio →
+  `ProfileBioSheet` (profile update). These render only when the runtime
+  confirms an authenticated owner (`editEnabled = ready owner state &&
+  isOwner`), pinned by a security regression test. In the MOCK_LOCAL_ONLY demo
+  there is no authenticated session, so the demo profile is intentionally a
+  non-owner public view and the edit buttons do not show — by design; the demo
+  account is left untouched. With a real signed-in owner the buttons appear.
+- Tests: `PersonalProfileManageRoute.test.tsx` (sections present; NOT an
+  appearance editor; disabled save + consent rule shown).
+
 ## 8. Next 3 steps
 
 1. **DEEP — S1 Transport + persistence**: DB repository adapters behind the

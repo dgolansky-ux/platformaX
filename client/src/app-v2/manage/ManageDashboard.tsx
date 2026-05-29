@@ -26,9 +26,9 @@ const TILES: readonly Tile[] = [
     key: "profile",
     icon: "👤",
     title: "Zarządzaj profilem osobistym",
-    desc: "Edytuj podstawowe informacje, opis, zdjęcie i widoczność profilu.",
-    status: "Dostępne",
-    to: "/profile",
+    desc: "Dane podstawowe, kontaktowe i prywatność. Wygląd edytujesz na profilu.",
+    status: "Dane i prywatność",
+    to: "/manage/profil-osobisty",
   },
   {
     key: "professional",

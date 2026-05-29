@@ -8,6 +8,7 @@ import { OnboardingFlow } from "./onboarding/OnboardingFlow";
 import { ProfilePage } from "./profile/ProfilePage";
 import { ContactsPage } from "./contacts/ContactsPage";
 import { ManageDashboard } from "./manage/ManageDashboard";
+import { PersonalProfileManageRoute } from "./manage/PersonalProfileManageRoute";
 import { ProfessionalSectionRoute } from "./manage/ProfessionalSectionRoute";
 
 export function AppRouter() {
@@ -23,6 +24,7 @@ export function AppRouter() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/contacts" element={<ContactsPage />} />
         <Route path="/manage" element={<ManageDashboard />} />
+        <Route path="/manage/profil-osobisty" element={<PersonalProfileManageRoute />} />
         <Route path="/manage/sekcja-zawodowa" element={<ProfessionalSectionRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
