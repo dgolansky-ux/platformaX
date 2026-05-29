@@ -18,13 +18,49 @@ export {
   createInMemoryMembershipRepository,
   createInMemoryJoinRequestRepository,
   createInMemoryInviteRepository,
+  createInMemoryHierarchyRepository,
 } from "./store";
 export type {
   CommunityRepository,
   MembershipRepository,
   JoinRequestRepository,
   InviteRepository,
+  HierarchyRepository,
+  CommunityHierarchyRecord,
 } from "./ports";
+export { createCommunityStructureService } from "./service-structure";
+export type {
+  CommunityStructureService,
+  StructureServiceDeps,
+} from "./service-structure";
+export type {
+  SubcommunityDTO,
+  CommunityStructureDTO,
+  CommunityBreadcrumbDTO,
+  StructureNodeStatus,
+  StructureErrorCode,
+  StructureResult,
+  SubcommunityStaffRole,
+  SubcommunityStaffAssignment,
+  CreateSubcommunityInput,
+  AssignSubcommunityStaffInput,
+  UpdateSubcommunityBasicsInput,
+  MoveSubcommunityInput,
+  DeactivateSubcommunityInput,
+  ReactivateSubcommunityInput,
+} from "./dto-structure";
+export {
+  MAX_STRUCTURE_DEPTH,
+  canViewStructure,
+  canCreateSubcommunity,
+  canMoveSubcommunity,
+  canDeactivateSubcommunity,
+  canReactivateSubcommunity,
+  canAssignSubcommunityStaff,
+  isAssignableStaffRole,
+  isDepthCreatable,
+  wouldCreateCycle,
+} from "./policy-structure";
 export type {
   CommunityPublicDTO,
   CommunityAdminDTO,

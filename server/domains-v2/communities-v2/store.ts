@@ -3,8 +3,10 @@
  * the same ports later (status BACKEND_PARTIAL).
  */
 import type {
+  CommunityHierarchyRecord,
   CommunityRecord,
   CommunityRepository,
+  HierarchyRepository,
   InviteRecord,
   InviteRepository,
   JoinRequestRecord,
@@ -108,6 +110,41 @@ export function createInMemoryJoinRequestRepository(): JoinRequestRepository {
       return [...rows.values()]
         .filter((r) => r.communityId === communityId && r.status === "pending")
         .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    },
+  };
+}
+
+function compareHierarchy(a: CommunityHierarchyRecord, b: CommunityHierarchyRecord): number {
+  if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+  return a.communityId < b.communityId ? -1 : a.communityId > b.communityId ? 1 : 0;
+}
+
+export function createInMemoryHierarchyRepository(): HierarchyRepository {
+  const rows = new Map<string, CommunityHierarchyRecord>();
+  return {
+    async add(record) {
+      rows.set(record.communityId, record);
+      return record;
+    },
+    async get(communityId) {
+      return rows.get(communityId) ?? null;
+    },
+    async listChildren(parentCommunityId) {
+      return [...rows.values()]
+        .filter((r) => r.parentCommunityId === parentCommunityId)
+        .sort(compareHierarchy);
+    },
+    async listTree(rootCommunityId) {
+      return [...rows.values()]
+        .filter((r) => r.rootCommunityId === rootCommunityId && r.communityId !== rootCommunityId)
+        .sort(compareHierarchy);
+    },
+    async update(communityId, patch) {
+      const existing = rows.get(communityId);
+      if (!existing) throw new Error(`hierarchy ${communityId} not found`);
+      const next: CommunityHierarchyRecord = { ...existing, ...patch };
+      rows.set(communityId, next);
+      return next;
     },
   };
 }

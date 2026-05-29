@@ -155,7 +155,10 @@ function ManageHero({ profile, slug }: { profile: CommunityProfileDTO; slug: str
           /{profile.slug} · {profile.visibility === "public" ? "Publiczna" : "Prywatna"}
         </p>
       </div>
-      <Link to={`/communities/${slug}`} className={styles.backButton}>← Wróć do profilu</Link>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <Link to={`/communities/${slug}/structure`} className={styles.backButton}>Struktura →</Link>
+        <Link to={`/communities/${slug}`} className={styles.backButton}>← Wróć do profilu</Link>
+      </div>
     </header>
   );
 }

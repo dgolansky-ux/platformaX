@@ -16,3 +16,9 @@ export type {
   CommunityManageView,
   GetCommunityManageViewResult,
 } from "./service";
+export { createCommunityStructureUseCase } from "./structure";
+export type {
+  CommunityStructureUseCase,
+  CommunityStructureUseCaseDeps,
+  CreateSubcommunityWithStaffInput,
+} from "./structure";

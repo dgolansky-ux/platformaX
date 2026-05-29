@@ -11,3 +11,4 @@ export { CommunityManageShell } from "./CommunityManageShell";
 export { CommunityModulesManage } from "./CommunityModulesManage";
 export { CommunityChannelsView } from "./CommunityChannelsView";
 export { CommunityPublicHubView } from "./CommunityPublicHubView";
+export { CommunityStructureShell } from "./structure/CommunityStructureShell";

@@ -10,6 +10,7 @@ import type {
   JoinRequestStatus,
   MembershipStatus,
 } from "./dto";
+import type { StructureNodeStatus } from "./dto-structure";
 
 export type CommunityRecord = {
   id: string;
@@ -86,5 +87,32 @@ export interface InviteRepository {
   listForCommunity(communityId: string): Promise<InviteRecord[]>;
   findPendingForTarget(communityId: string, invitedUserId: string | null, invitedEmail: string | null): Promise<InviteRecord | null>;
   update(id: string, patch: Partial<InviteRecord>): Promise<InviteRecord>;
+}
+
+/**
+ * One row of community hierarchy (Slice 4). The root community of a tree may or
+ * may not have a persisted row; readers treat a community with no row as an
+ * active root (depth 0, parent null, root = self). Subcommunities always have a
+ * row created at `createSubcommunity` time. `path` is the dot-joined chain of
+ * ancestor ids (root-first, excluding self) — "" for a root.
+ */
+export type CommunityHierarchyRecord = {
+  communityId: string;
+  parentCommunityId: string | null;
+  rootCommunityId: string;
+  depth: number;
+  path: string;
+  sortOrder: number;
+  status: StructureNodeStatus;
+};
+
+export interface HierarchyRepository {
+  add(record: CommunityHierarchyRecord): Promise<CommunityHierarchyRecord>;
+  get(communityId: string): Promise<CommunityHierarchyRecord | null>;
+  /** Direct children of a parent (any status), stable order by sortOrder then id. */
+  listChildren(parentCommunityId: string): Promise<CommunityHierarchyRecord[]>;
+  /** Every node in a tree (excludes the root's own synthetic row), stable order. */
+  listTree(rootCommunityId: string): Promise<CommunityHierarchyRecord[]>;
+  update(communityId: string, patch: Partial<CommunityHierarchyRecord>): Promise<CommunityHierarchyRecord>;
 }
 
