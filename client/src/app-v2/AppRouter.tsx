@@ -7,6 +7,7 @@ import { CheckEmailRoute } from "./auth/CheckEmailRoute";
 import { OnboardingFlow } from "./onboarding/OnboardingFlow";
 import { ProfilePage } from "./profile/ProfilePage";
 import { ContactsPage } from "./contacts/ContactsPage";
+import { CommunitiesPage } from "./communities/CommunitiesPage";
 import { ManageDashboard } from "./manage/ManageDashboard";
 import { PersonalProfileManageRoute } from "./manage/PersonalProfileManageRoute";
 import { ProfessionalSectionRoute } from "./manage/ProfessionalSectionRoute";
@@ -23,6 +24,7 @@ export function AppRouter() {
         <Route path="/onboarding" element={<OnboardingFlow />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/contacts" element={<ContactsPage />} />
+        <Route path="/communities" element={<CommunitiesPage />} />
         <Route path="/manage" element={<ManageDashboard />} />
         <Route path="/manage/profil-osobisty" element={<PersonalProfileManageRoute />} />
         <Route path="/manage/sekcja-zawodowa" element={<ProfessionalSectionRoute />} />

@@ -1,5 +1,5 @@
 /**
  * features-v2/communities-v2 — UI feature barrel
- * Status: SCAFFOLD_ONLY
+ * Status: UI_SHELL_ONLY + MOCK_LOCAL_ONLY
  */
-export {};
+export { CommunitiesShell } from "./CommunitiesShell";

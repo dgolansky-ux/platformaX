@@ -17,7 +17,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
   // client/src/features-v2/identity/README.md for the runtime status breakdown.
   { name: "identity", status: "PARTIAL", hasDomainLogic: true },
   { name: "social", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
-  { name: "communities-v2", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
+  { name: "communities-v2", status: "UI_SHELL_ONLY", hasDomainLogic: false },
   { name: "content-v2", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "channels", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "chat", status: "SCAFFOLD_ONLY", hasDomainLogic: false },

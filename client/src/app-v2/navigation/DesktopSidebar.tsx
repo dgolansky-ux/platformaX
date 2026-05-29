@@ -190,7 +190,7 @@ export function DesktopSidebar({
         <div className={styles.sectionDivider}>
           <span className={styles.sectionLabel}>SPOŁECZNOŚĆ</span>
         </div>
-        <NavItem icon={<IconCommunity />} label="Społeczności" active={active === "spolecznosci"} disabled />
+        <NavItem icon={<IconCommunity />} label="Społeczności" active={active === "spolecznosci"} onClick={() => navigate("/communities")} />
         <NavItem icon={<IconBell />} label="Powiadomienia" active={active === "powiadomienia"} disabled />
 
         <div className={styles.sectionDivider}>
