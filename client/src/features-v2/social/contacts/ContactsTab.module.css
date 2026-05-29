@@ -1,0 +1,256 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  max-width: 720px;
+  margin-inline: auto;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modeNote {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  overflow-x: auto;
+}
+
+.tab {
+  background: transparent;
+  border: 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.tabActive {
+  color: #111827;
+  border-bottom-color: #111827;
+}
+
+.tabBadge {
+  display: inline-flex;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.375rem;
+  background: #ef4444;
+  color: #ffffff;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: #ffffff;
+}
+
+.cardBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardName {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.cardCaption {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.cardMessage {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.cardActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cardAction {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.cardAction:hover {
+  background: #e5e7eb;
+}
+
+.cardActionPrimary {
+  background: #2563eb;
+  color: #ffffff;
+  border: 1px solid #2563eb;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.cardActionPrimary:hover {
+  background: #1d4ed8;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: #e0e7ff;
+  color: #1e3a8a;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #6b7280;
+}
+
+.emptyEmoji {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.emptyTitle {
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  color: #111827;
+}
+
+.emptyBody {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.loadingState,
+.errorState {
+  padding: 1.5rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.errorState {
+  color: #b91c1c;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modalTitle {
+  margin: 0 0 0.25rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.modalCaption {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.modalFields {
+  border: 0;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.modalLegend {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.modalCheckbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.modalNote {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+}

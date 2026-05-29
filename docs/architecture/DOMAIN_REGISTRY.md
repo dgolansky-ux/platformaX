@@ -23,7 +23,7 @@ Source of truth for all V2 domains, their types, ownership, and status.
 | Domain | Type | Owns | Does NOT own | Public surface | Status | Required files |
 |---|---|---|---|---|---|---|
 | identity | OWNER_DOMAIN | profile, auth subject, public/private profile DTO, professions | feed, friendships, communities, posts | public-api, contracts, events | PARTIAL | README, public-api, contracts, events, dto, policy, index, test |
-| social | OWNER_DOMAIN | friends/contact graph, relationship state, contact access | profile PII, posts, feed engine | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
+| social | OWNER_DOMAIN | friends/contact graph, relationship state, contact access | profile PII, posts, feed engine | public-api, contracts, events, social-contacts-* | PARTIAL | README, public-api, contracts, events, dto, policy, service, social-contacts-{dto,policy,ports,service,store}, test |
 | communities-v2 | OWNER_DOMAIN | community profile, members, roles, settings, invites, join requests, feed settings | posts, comments, chat, events, modules | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 | content-v2 | OWNER_DOMAIN | posts, feeds, comments, reactions, topics, read-models | memberships, roles, profiles, friendships | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 | channels | OWNER_DOMAIN | channel definitions, memberships, settings | messages, chat history, community roles | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |

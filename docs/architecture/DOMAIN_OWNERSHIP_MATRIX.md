@@ -14,7 +14,7 @@
 | Domain | Owns | Does NOT own | Reads from | Public surface | Status |
 |---|---|---|---|---|---|
 | identity | profile, auth subject, public/private profile DTO, professions | feed, friendships, communities, posts | — | public-api, contracts, events | PARTIAL |
-| social | friends/contact graph, relationship state, contact access | profile PII, posts, feed engine | identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| social | friends/contact graph, relationship state, contact access | profile PII, posts, feed engine | identity (public-api) | public-api, contracts, events | PARTIAL |
 | communities-v2 | community profile, members, roles, settings, invites, join requests, feed settings | posts, comments, chat, events, modules | identity, social (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | content-v2 | posts, feeds, comments, reactions, topics, read-models | memberships, roles, profiles, friendships | identity, communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | channels | channel definitions, memberships, settings | messages, chat history, community roles | communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |

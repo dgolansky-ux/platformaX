@@ -20,6 +20,13 @@ a persisted profile.
 - Public profile summary (PII-stripped projection)
 - Onboarding status / completion event
 - Profile visibility policy
+- **Contact-access submodule** (Kontakty slice): owner's private contact
+  fields (phone / emailContact / instagram / facebook / whatsapp / telegram
+  / linkedin / website), per-field visibility permissions, contact-request
+  lifecycle and the pure policy that decides "can viewer V see field F of
+  owner O?" — see `contact-access-{dto,policy,ports,service,store}.ts`
+  and the application use-case
+  `server/application-v2/use-cases/contacts/`.
 
 ## Does NOT own
 - Friend feed / posts / comments / reactions (`content-v2`)

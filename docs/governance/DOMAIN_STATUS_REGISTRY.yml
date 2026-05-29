@@ -58,7 +58,7 @@ domains:
 
   - name: social
     type: OWNER_DOMAIN
-    status: SCAFFOLD_ONLY
+    status: PARTIAL
     conflict: false
     evidence:
       - server/domains-v2/social/README.md
@@ -68,11 +68,23 @@ domains:
       - server/domains-v2/social/policy.ts
       - server/domains-v2/social/events.ts
       - server/domains-v2/social/index.ts
+      - server/domains-v2/social/social-contacts-dto.ts
+      - server/domains-v2/social/social-contacts-policy.ts
+      - server/domains-v2/social/social-contacts-ports.ts
+      - server/domains-v2/social/social-contacts-service.ts
+      - server/domains-v2/social/social-contacts-store.ts
+      - server/domains-v2/social/__tests__/social-contacts-service.test.ts
+      - server/domains-v2/social/__tests__/domain-contract.test.ts
     notes: >
-      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
-      Actual folder has 7 scaffold files (README, public-api, contracts, dto, policy,
-      events, index) but NO service.ts/repository.ts. SCAFFOLD_ONLY is correct.
-      domain-status.md updated from PLANNED to SCAFFOLD_ONLY.
+      Graduated from SCAFFOLD_ONLY -> PARTIAL by the Kontakty slice
+      (feat/contacts-v2-clean-room-slice). Ships
+      social-contacts-{service,policy,ports,store,dto}.ts covering
+      friendships, address-book and specialists with an in-memory store.
+      12 service tests + updated domain-contract test confirm public-api
+      now exposes the factory + ports + in-memory store factories.
+      Persistence: in-memory only - Supabase adapter NOT in this slice
+      (BACKEND_PARTIAL, not IMPLEMENTED). Frontend: UI_SHELL_ONLY +
+      MOCK_LOCAL_ONLY in client/src/features-v2/social/contacts/.
 
   - name: content-v2
     type: OWNER_DOMAIN

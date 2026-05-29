@@ -30,7 +30,7 @@ export interface DomainEntry {
 
 export const DOMAIN_REGISTRY: DomainEntry[] = [
   { name: "identity", type: "OWNER_DOMAIN", status: "PARTIAL", owns: "profile, auth subject, public/private profile DTO, professions", doesNotOwn: "feed, friendships, communities, posts" },
-  { name: "social", type: "OWNER_DOMAIN", status: "SCAFFOLD_ONLY", owns: "friends/contact graph, relationship state, contact access", doesNotOwn: "profile PII, posts, feed engine" },
+  { name: "social", type: "OWNER_DOMAIN", status: "PARTIAL", owns: "friends/contact graph, relationship state, contact access", doesNotOwn: "profile PII, posts, feed engine" },
   { name: "communities-v2", type: "OWNER_DOMAIN", status: "SCAFFOLD_ONLY", owns: "community profile, members, roles, settings, invites, join requests, feed settings", doesNotOwn: "posts, comments, chat, events, modules" },
   { name: "content-v2", type: "OWNER_DOMAIN", status: "SCAFFOLD_ONLY", owns: "posts, feeds, comments, reactions, topics, read-models", doesNotOwn: "memberships, roles, profiles, friendships" },
   { name: "channels", type: "OWNER_DOMAIN", status: "SCAFFOLD_ONLY", owns: "channel definitions, memberships, settings", doesNotOwn: "messages, chat history, community roles" },
