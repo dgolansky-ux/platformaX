@@ -132,7 +132,7 @@ domains:
 
   - name: channels
     type: OWNER_DOMAIN
-    status: SCAFFOLD_ONLY
+    status: PARTIAL
     conflict: false
     evidence:
       - server/domains-v2/channels/README.md
@@ -140,12 +140,19 @@ domains:
       - server/domains-v2/channels/contracts.ts
       - server/domains-v2/channels/dto.ts
       - server/domains-v2/channels/policy.ts
+      - server/domains-v2/channels/ports.ts
+      - server/domains-v2/channels/store.ts
+      - server/domains-v2/channels/service.ts
+      - server/domains-v2/channels/mapper.ts
       - server/domains-v2/channels/events.ts
       - server/domains-v2/channels/index.ts
+      - server/domains-v2/channels/__tests__/channels-service.test.ts
       - server/domains-v2/channels/__tests__/domain-contract.test.ts
     notes: >
-      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
-      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
+      Graduated SCAFFOLD_ONLY -> PARTIAL by the product-backend-foundations slice.
+      In-memory runtime: channel owned by community; follows separate from
+      membership; community authority enforced by application use-case (no
+      cross-domain internals). Public DTO no PII. DB + transport pending.
       domain-status.md updated.
 
   - name: chat

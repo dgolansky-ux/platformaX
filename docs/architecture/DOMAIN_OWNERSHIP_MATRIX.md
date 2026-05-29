@@ -17,7 +17,7 @@
 | social | friends/contact graph, relationship state, contact access | profile PII, posts, feed engine | identity (public-api) | public-api, contracts, events | PARTIAL |
 | communities-v2 | community profile, members, roles, settings, invites, join requests, feed settings | posts, comments, chat, events, modules | identity, social (public-api) | public-api, contracts, events | PARTIAL |
 | content-v2 | posts, feeds, comments, reactions, topics, read-models | memberships, roles, profiles, friendships | identity, communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
-| channels | channel definitions, memberships, settings | messages, chat history, community roles | communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| channels | channel definitions, follows, settings | messages, chat history, community roles, community membership | communities-v2 (public-api) | public-api, contracts, events | PARTIAL |
 | chat | messages, conversations, read state, typing indicators | channels, community roles, profiles | channels, identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | events | event definitions, RSVPs, event lifecycle, visibility | community membership, profiles, posts | identity, communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | modules | ModuleDefinition, registry, enablement | actual module business data | communities-v2 (public-api) | public-api, contracts, events | PARTIAL |

@@ -1,8 +1,16 @@
 # channels
 
-Status: `SCAFFOLD_ONLY`
+Status: `BACKEND_PARTIAL`
 Owner: @dgolansky-ux
 Type: OWNER_DOMAIN
+
+## Runtime (BACKEND_PARTIAL)
+In-memory runtime: `dto/ports/policy/store/service/mapper/public-api`. A channel
+is owned by a community (`ownerType="community"`); following a channel is a
+SEPARATE relation from community membership. Community authority is enforced by
+the application use-case (via communities public-api) before createChannel —
+this domain imports no communities internals. Public DTO has no PII. No
+RingPost/feed runtime. DB + transport pending.
 
 ## Purpose
 Owns channel definitions, channel memberships, and channel settings.

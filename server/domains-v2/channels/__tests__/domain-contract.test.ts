@@ -1,9 +1,10 @@
 ﻿import { describe, it, expect } from "vitest";
 
 describe("channels domain contract", () => {
-  it("public-api exposes no runtime surface yet (SCAFFOLD_ONLY)", async () => {
+  it("public-api exposes the channels service factory (BACKEND_PARTIAL)", async () => {
     const mod = await import("../public-api");
-    expect(Object.keys(mod)).toHaveLength(0);
+    expect("createChannelsService" in mod).toBe(true);
+    expect("createInMemoryChannelRepository" in mod).toBe(true);
   });
 
   it("exports from public-api", async () => {

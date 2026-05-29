@@ -33,7 +33,7 @@ export const DOMAIN_REGISTRY: DomainEntry[] = [
   { name: "social", type: "OWNER_DOMAIN", status: "PARTIAL", owns: "friends/contact graph, relationship state, contact access", doesNotOwn: "profile PII, posts, feed engine" },
   { name: "communities-v2", type: "OWNER_DOMAIN", status: "PARTIAL", owns: "community profile, members, roles, settings, invites, join requests, feed settings", doesNotOwn: "posts, comments, chat, events, modules" },
   { name: "content-v2", type: "OWNER_DOMAIN", status: "SCAFFOLD_ONLY", owns: "posts, feeds, comments, reactions, topics, read-models", doesNotOwn: "memberships, roles, profiles, friendships" },
-  { name: "channels", type: "OWNER_DOMAIN", status: "SCAFFOLD_ONLY", owns: "channel definitions, memberships, settings", doesNotOwn: "messages, chat history, community roles" },
+  { name: "channels", type: "OWNER_DOMAIN", status: "PARTIAL", owns: "channel definitions, follows, settings", doesNotOwn: "messages, chat history, community roles, community membership" },
   { name: "chat", type: "OWNER_DOMAIN", status: "SCAFFOLD_ONLY", owns: "messages, conversations, read state, typing indicators", doesNotOwn: "channels, community roles, profiles" },
   { name: "events", type: "OWNER_DOMAIN", status: "SCAFFOLD_ONLY", owns: "event definitions, RSVPs, event lifecycle, visibility", doesNotOwn: "community membership, profiles, posts" },
   { name: "modules", type: "OWNER_DOMAIN", status: "PARTIAL", owns: "ModuleDefinition, registry, enablement", doesNotOwn: "actual module business data" },
