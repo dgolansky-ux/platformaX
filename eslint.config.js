@@ -26,100 +26,55 @@ export default tseslint.config(
       ],
     },
   },
-  // === eslint-plugin-boundaries (v5-style API, still supported in v6) ======
-  // Lint-time enforcement of V2 architecture boundaries. Runs PARALLEL_WITH_TOOLING
-  // with the existing custom regex guards (audit-domain-boundaries.mjs,
-  // check-architecture-import-graph.mjs, check-no-legacy-imports.mjs). The
-  // custom guards stay until the new tool catches equivalent red cases — see
-  // `tests/architecture/fixtures/` for the documented safe fixtures.
+  // === eslint-plugin-boundaries — INSTALLED but PARTIAL_NOT_ENFORCED ======
   //
-  // v6 introduced a unified `boundaries/dependencies` rule with a different
-  // selector schema; migration is tracked as PARTIAL_NOT_ENFORCED (deprecation
-  // warnings are informational, not lint failures).
+  // Status: PARTIAL_NOT_ENFORCED. The plugin is installed and ESLint loads
+  // it cleanly, but neither the legacy v5-style rules (`boundaries/element-types`
+  // + `boundaries/entry-point`) nor a quick `boundaries/dependencies` rewrite
+  // produce blocking errors on a planted `client/* -> @server/*` import on
+  // this codebase:
+  //
+  //  - v5 syntax: v6 detects the selector schema as "legacy" and only emits
+  //    deprecation warnings on the rule, never enforcement errors.
+  //  - v6 `boundaries/dependencies`: the source element is now correctly
+  //    typed (`from.type = "client-app-v2"`) but the target element comes
+  //    back as `to.isUnknown: true` because boundaries can neither resolve
+  //    the `@server/*` TypeScript path alias (no
+  //    `eslint-import-resolver-typescript` wired in) nor classify the
+  //    relative-path target without a matching `boundaries/elements` mode.
+  //
+  // Fixing this properly requires:
+  //  - installing `eslint-import-resolver-typescript` and wiring it into the
+  //    boundaries settings so `@server/*` resolves to its on-disk file,
+  //  - re-modelling every `boundaries/elements` entry with the captures and
+  //    `mode` flags that v6 expects,
+  //  - re-running `pnpm tooling:redcase --strict` end-to-end to confirm
+  //    every planted case BLOCKs through ESLint alone.
+  //
+  // That migration is tracked as the follow-up issue
+  // `FIX_ESLINT_PLUGIN_BOUNDARIES_V6_ENFORCEMENT` and intentionally NOT
+  // bundled into this spike — see the disclosure in
+  // `docs/architecture/PlatformaX-V2-coding-standards.md §22a` and the
+  // matching `Truth disclosures` row in
+  // `docs/review/tooling-spike/TOOLING_VERIFICATION_REPORT.md`.
+  //
+  // Why the gate stays green anyway: every red case that ESLint cannot
+  // currently block is still blocked by ALL of the following:
+  //   - `pnpm depcruise:check` (`no-client-to-server`,
+  //     `no-cross-domain-internal`, `no-circular`, `shared-no-runtime`,
+  //     `no-legacy-runtime-import`),
+  //   - `pnpm arch-tests` (Vitest specs, side-effect form covered),
+  //   - `node scripts/audit-domain-boundaries.mjs` (custom guard, hardened
+  //     2026-05-29 to catch `@server/*`, relative `../server/**` and
+  //     side-effect imports from both `client/**` and `shared/**`).
+  //
+  // The plugin block below loads the plugin so the ESLint config validates
+  // and reports nothing — explicit "do nothing" beats silently misclaiming
+  // PASS.
   {
     plugins: { boundaries },
-    settings: {
-      "boundaries/elements": [
-        { type: "client-app-v2", pattern: "client/src/app-v2/*" },
-        { type: "client-shared-ui", pattern: "client/src/features-v2/shared-ui/*" },
-        { type: "client-feature", pattern: "client/src/features-v2/*", capture: ["feature"] },
-        { type: "server-application", pattern: "server/application-v2/*" },
-        { type: "server-domain", pattern: "server/domains-v2/*", capture: ["domain"] },
-        { type: "shared", pattern: "shared/*" },
-        { type: "server-root", pattern: "server/*" },
-      ],
-      "boundaries/include": [
-        "client/src/**/*.{ts,tsx}",
-        "server/**/*.{ts,tsx}",
-        "shared/**/*.{ts,tsx}",
-      ],
-      "boundaries/ignore": [
-        "**/*.test.{ts,tsx}",
-        "**/__tests__/**",
-        "**/fixtures/**",
-        "**/dist/**",
-        "**/node_modules/**",
-      ],
-    },
     rules: {
       "boundaries/no-unknown": "off",
-      "boundaries/element-types": [
-        "error",
-        {
-          default: "disallow",
-          rules: [
-            // app-v2: composes features + shared UI + shared contracts; no
-            // server runtime allowed.
-            { from: ["client-app-v2"], allow: ["client-app-v2", "client-feature", "client-shared-ui", "shared"] },
-            // features-v2/<feature>: own internals + shared UI + shared
-            // contracts. Cross-feature deep imports are blocked by no-private.
-            { from: ["client-feature"], allow: ["client-feature", "client-shared-ui", "shared"] },
-            // Shared UI: leaf — depends only on more shared UI + shared contracts.
-            { from: ["client-shared-ui"], allow: ["client-shared-ui", "shared"] },
-            // server-domain: own internals + the public surface of other domains
-            // + shared contracts. entry-point below restricts which files of
-            // "another domain" are actually importable.
-            { from: ["server-domain"], allow: ["server-domain", "shared"] },
-            // application-v2 use-cases: orchestrate domains via public-api +
-            // shared contracts. No frontend imports.
-            { from: ["server-application"], allow: ["server-application", "server-domain", "shared"] },
-            // shared: contracts only — must not pull runtime in either half.
-            { from: ["shared"], allow: ["shared"] },
-            // server bootstrap: may compose everything server-side.
-            { from: ["server-root"], allow: ["server-root", "server-domain", "server-application", "shared"] },
-          ],
-        },
-      ],
-      "boundaries/entry-point": [
-        "error",
-        {
-          default: "disallow",
-          rules: [
-            { target: ["server-domain"], allow: "public-api.ts" },
-            { target: ["server-domain"], allow: "contracts.ts" },
-            { target: ["server-domain"], allow: "events.ts" },
-            { target: ["server-domain"], allow: "dto.ts" },
-            // Composition (server-root, tests, application) may reach the
-            // implementation factory from ./repository directly — this matches
-            // the documented public-surface README for identity/media.
-            { target: ["server-domain"], allow: "repository.ts" },
-            { target: ["server-application"], allow: "public-api.ts" },
-            { target: ["client-feature"], allow: "index.ts" },
-            { target: ["client-feature"], allow: "public-api.ts" },
-            { target: ["client-shared-ui"], allow: "**" },
-            { target: ["client-app-v2"], allow: "**" },
-            { target: ["shared"], allow: "**" },
-            { target: ["server-root"], allow: "**" },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
-    rules: {
-      "boundaries/element-types": "off",
-      "boundaries/entry-point": "off",
     },
   },
   {

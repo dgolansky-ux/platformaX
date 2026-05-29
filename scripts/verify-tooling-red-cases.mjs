@@ -43,11 +43,22 @@ import { tmpdir } from "node:os";
 const ROOT = process.cwd();
 const isWindows = process.platform === "win32";
 
+// CI-only switch — when set, TOOL_MISSING (binary/setup unavailable)
+// becomes a hard failure. Locally TOOL_MISSING is informational so a
+// developer without gitleaks/etc. can still run the verifier and see
+// every channel; in CI the binaries are installed so a missing one
+// means the lane regressed.
+const STRICT =
+  process.argv.includes("--strict") ||
+  process.env.REDCASE_STRICT === "1" ||
+  process.env.CI === "true";
+
 let exitCode = 0;
 let total = 0;
 let blocked = 0;
 let skipped = 0;
 let notEnforced = 0;
+const skippedReasons = [];
 
 function hasBinary(name) {
   try {
@@ -101,9 +112,16 @@ function report(name, status, detail) {
     console.log(`REDCASE_BLOCKED: ${name}${detail ? ` — ${detail}` : ""}`);
   } else if (status === "TOOL_MISSING") {
     skipped += 1;
+    skippedReasons.push(`${name}${detail ? ` — ${detail}` : ""}`);
     console.log(
       `REDCASE_TOOL_MISSING: ${name}${detail ? ` — ${detail}` : ""}`,
     );
+    if (STRICT) {
+      // In strict mode, a missing required tool is a hard failure. The
+      // overall report cannot claim PASS while gitleaks (or any other
+      // intended-to-enforce tool) silently did not run.
+      exitCode = 1;
+    }
   } else {
     notEnforced += 1;
     exitCode = 1;
@@ -326,7 +344,81 @@ function caseGitleaks() {
   }
 }
 
-// === 8. custom secret guards: real-looking secret outside narrow allowlist ==
+// === 8. custom guard: client -> @server (side-effect import) ===============
+function caseCustomGuardClientAtServer() {
+  const name =
+    "audit-domain-boundaries / client side-effect import @server/*";
+  caseHeader(name);
+  const file = join(ROOT, "client/src/app-v2/red_client_at_server.ts");
+  // Side-effect statement (no `from`) — the exact shape the adversarial
+  // audit on 2026-05-29 used to slip past every custom guard.
+  writeFileSync(file, `import "@server/domains-v2/identity/public-api";\n`);
+  const planted = plantedFiles(file);
+  try {
+    const r = run("node", ["scripts/audit-domain-boundaries.mjs"]);
+    console.log(tail(r.stdout + r.stderr));
+    if (r.status !== 0) report(name, "BLOCKED");
+    else
+      report(
+        name,
+        "NOT_ENFORCED",
+        "audit-domain-boundaries exited 0 on a side-effect @server import",
+      );
+  } finally {
+    planted.cleanup();
+  }
+}
+
+// === 9. custom guard: shared -> server (transitive bypass surface) ========
+function caseCustomGuardSharedAtServer() {
+  const name =
+    "audit-domain-boundaries / shared -> @server (transitive bypass)";
+  caseHeader(name);
+  const file = join(ROOT, "shared/red_shared_server.ts");
+  writeFileSync(
+    file,
+    `import { foo } from "@server/index";\nexport const bad = foo;\n`,
+  );
+  const planted = plantedFiles(file);
+  try {
+    const r = run("node", ["scripts/audit-domain-boundaries.mjs"]);
+    console.log(tail(r.stdout + r.stderr));
+    if (r.status !== 0) report(name, "BLOCKED");
+    else
+      report(
+        name,
+        "NOT_ENFORCED",
+        "audit-domain-boundaries exited 0 on shared/* importing @server",
+      );
+  } finally {
+    planted.cleanup();
+  }
+}
+
+// === 10. custom guard: shared relative ../server (transitive bypass) ======
+function caseCustomGuardSharedRelServer() {
+  const name =
+    "audit-domain-boundaries / shared -> ../server (relative bypass)";
+  caseHeader(name);
+  const file = join(ROOT, "shared/red_shared_rel_server.ts");
+  writeFileSync(file, `import "../server/index";\n`);
+  const planted = plantedFiles(file);
+  try {
+    const r = run("node", ["scripts/audit-domain-boundaries.mjs"]);
+    console.log(tail(r.stdout + r.stderr));
+    if (r.status !== 0) report(name, "BLOCKED");
+    else
+      report(
+        name,
+        "NOT_ENFORCED",
+        "audit-domain-boundaries exited 0 on shared/* with a relative ../server import",
+      );
+  } finally {
+    planted.cleanup();
+  }
+}
+
+// === 11. custom secret guards: real-looking secret outside narrow allowlist ==
 function caseCustomSecretGuards() {
   const name = "check-env-safety + check-diff-safety / real-looking secret outside allowlist";
   caseHeader(name);
@@ -362,6 +454,9 @@ try {
   caseKnipUnused();
   caseBoundaries();
   caseGitleaks();
+  caseCustomGuardClientAtServer();
+  caseCustomGuardSharedAtServer();
+  caseCustomGuardSharedRelServer();
   caseCustomSecretGuards();
 } catch (err) {
   console.error("VERIFY_TOOLING_RED_CASES_CRASH:", err?.stack ?? err);
@@ -377,6 +472,9 @@ try {
     "client/src/app-v2/redcase_at_side_effect.tsx",
     "shared/redcase_knip_unused.ts",
     "client/src/app-v2/redcase_boundaries.tsx",
+    "client/src/app-v2/red_client_at_server.ts",
+    "shared/red_shared_server.ts",
+    "shared/red_shared_rel_server.ts",
     "redcase_env_real.txt",
   ]) {
     safeUnlink(join(ROOT, stray));
@@ -385,13 +483,25 @@ try {
 
 console.log("");
 console.log("──────── summary ────────");
+console.log(`mode:             ${STRICT ? "STRICT (CI)" : "DEV (TOOL_MISSING informational)"}`);
 console.log(`total cases:      ${total}`);
 console.log(`BLOCKED:          ${blocked}`);
-console.log(`TOOL_MISSING:     ${skipped}`);
+console.log(`TOOL_MISSING:     ${skipped}${STRICT && skipped > 0 ? " — STRICT mode treats these as failures" : ""}`);
 console.log(`NOT_ENFORCED:     ${notEnforced}`);
+if (skippedReasons.length) {
+  console.log("");
+  console.log("TOOL_MISSING reasons:");
+  for (const r of skippedReasons) console.log(`  - ${r}`);
+}
 
 if (exitCode === 0) {
-  console.log("VERIFY_TOOLING_RED_CASES_PASS");
+  if (skipped > 0) {
+    console.log(
+      "VERIFY_TOOLING_RED_CASES_PARTIAL (PASS overall, but TOOL_MISSING present — see reasons above; re-run with --strict to make these block)",
+    );
+  } else {
+    console.log("VERIFY_TOOLING_RED_CASES_PASS");
+  }
 } else {
   console.error("VERIFY_TOOLING_RED_CASES_FAIL");
 }

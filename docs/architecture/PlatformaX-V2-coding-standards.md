@@ -494,7 +494,7 @@ against documented red-case fixtures in `tests/architecture/fixtures/`.
 
 | Tool | Local script | What it covers | Custom guard it parallels |
 |---|---|---|---|
-| `eslint-plugin-boundaries` | `pnpm boundaries:check` (folded into `pnpm lint`) | Element-type + entry-point boundaries (client/server, features, app-v2, server-domains) | `audit-domain-boundaries.mjs` |
+| `eslint-plugin-boundaries` | `pnpm boundaries:check` (folded into `pnpm lint`) | Status: `PARTIAL_NOT_ENFORCED` — plugin loads but v6 enforcement is blocked on missing TS path resolver wiring; tracked in `docs/governance/followups/FIX_ESLINT_PLUGIN_BOUNDARIES_V6_ENFORCEMENT.md`. Coverage today is via depcruise + arch-tests + `audit-domain-boundaries.mjs`. | `audit-domain-boundaries.mjs` |
 | `dependency-cruiser` | `pnpm depcruise:check` / `pnpm depcruise:graph` | Cycles, `no-client-to-server`, cross-domain internals, legacy runtime, shared-no-runtime | `audit-domain-boundaries.mjs`, `check-architecture-import-graph.mjs`, `check-no-legacy-imports.mjs` |
 | Architecture tests (Vitest) | `pnpm arch-tests` | Executable specs for the same invariants as above (PX-ARCH-001/003/004/008/009, PX-APP-001). Plain Vitest assertions — ArchUnitTS/tsarch evaluated and dropped, no DSL dependency. | Custom regex umbrella + ad-hoc walks |
 | `knip` | `pnpm knip:check` | Unused files / exports / dependencies (weekly lane) | — (new coverage) |
@@ -516,7 +516,7 @@ CI lanes (`.github/workflows/v2-gates.yml` + `v2-weekly-audit.yml`):
 
 Truth disclosures (do not claim PASS unless these hold):
 
-- **eslint-plugin-boundaries**: installed and rules ship, but v6 reports the v5 selector schema as "legacy" — enforcement falls back to warnings on those rules. depcruise + arch-tests carry the same invariants today; full enforcement migrates to `boundaries/dependencies` in a follow-up spike.
+- **eslint-plugin-boundaries**: `PARTIAL_NOT_ENFORCED`. The plugin loads but the previous v5-style rules were dropped (v6 emits only warnings on them) and a quick `boundaries/dependencies` rewrite was blocked on the missing `eslint-import-resolver-typescript` wiring (targets came back as `isUnknown: true`). Coverage stays via `dependency-cruiser`, `pnpm arch-tests`, and the hardened `audit-domain-boundaries.mjs`. Follow-up: `docs/governance/followups/FIX_ESLINT_PLUGIN_BOUNDARIES_V6_ENFORCEMENT.md`.
 - **gitleaks**: `secrets:gitleaks` exits 0 with a loud `GITLEAKS_BINARY_NOT_INSTALLED` log when the binary is missing — this is developer-friendly only. `secrets:gitleaks:required` (used in CI/deep gate) BLOCKS in that case.
 - **CodeQL**: workflow committed, but status is `CODEQL_NEEDS_GITHUB_SETUP` until the repo owner enables Code scanning in repo Settings.
 - **Knip**: weekly lane; `continue-on-error: true` for the Knip step so unused-code candidates do not block PRs by design.

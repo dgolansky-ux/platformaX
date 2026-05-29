@@ -109,5 +109,21 @@ jobs:
       - name: Gitleaks wrapper (required mode)
         run: pnpm secrets:gitleaks:required
 
-      - name: Tooling red-case verifier (proves tools actually enforce)
+      - name: Tooling red-case verifier (DEV mode — NOT_ENFORCED fails CI)
+        # DEV mode here is deliberate: the runner installs gitleaks via
+        # the gitleaks-action step earlier in this job, but boundaries
+        # enforcement is currently PARTIAL_NOT_ENFORCED (tracked in
+        # docs/governance/followups/FIX_ESLINT_PLUGIN_BOUNDARIES_V6_ENFORCEMENT.md).
+        # Until that lands, strict mode is a known fail; DEV mode keeps
+        # the gate honest on the NOT_ENFORCED axis while TOOL_MISSING
+        # rows stay visible in the log and in TOOLING_VERIFICATION_REPORT.md.
         run: pnpm tooling:redcase
+
+      - name: Tooling red-case verifier (STRICT — informational, allowed to fail)
+        # Strict mode treats every TOOL_MISSING as a failure. Wired here
+        # as an informational step so reviewers can see when the
+        # boundaries follow-up has shipped: this step will flip from
+        # red (expected) to green at that point, and the next step is
+        # to make this required.
+        run: pnpm tooling:redcase:strict
+        continue-on-error: true

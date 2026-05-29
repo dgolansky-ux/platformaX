@@ -38,6 +38,7 @@
     "secrets:gitleaks:required": "node scripts/run-gitleaks.mjs --required",
     "tooling:check": "pnpm boundaries:check && pnpm depcruise:check && pnpm arch-tests && pnpm secrets:gitleaks",
     "tooling:redcase": "node scripts/verify-tooling-red-cases.mjs",
+    "tooling:redcase:strict": "node scripts/verify-tooling-red-cases.mjs --strict",
     "tooling:weekly": "pnpm knip:check && pnpm depcruise:graph && pnpm auditzip",
     "scaffold:domain": "node scripts/scaffold-domain.mjs",
     "scaffold:ui-shell": "node scripts/scaffold-ui-shell.mjs",
