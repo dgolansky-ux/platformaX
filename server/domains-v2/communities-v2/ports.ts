@@ -56,6 +56,8 @@ export interface MembershipRepository {
   listForUser(userId: string): Promise<MembershipRecord[]>;
   listForCommunity(communityId: string): Promise<MembershipRecord[]>;
   updateRole(communityId: string, userId: string, role: MembershipRecord["role"]): Promise<MembershipRecord>;
+  /** Hard-removes membership; the founder rule is enforced at the service layer. */
+  remove(communityId: string, userId: string): Promise<void>;
 }
 
 export interface JoinRequestRepository {

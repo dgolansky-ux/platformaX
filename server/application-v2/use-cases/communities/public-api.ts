@@ -10,4 +10,7 @@ export type {
   EnableCommunityModuleInput,
   EnableCommunityModuleResult,
   EnableCommunityModuleErrorCode,
+  CommunityProfileView,
+  GetCommunityProfileViewResult,
+  CommunityMembershipActionResult,
 } from "./service";

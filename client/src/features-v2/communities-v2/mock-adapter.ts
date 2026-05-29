@@ -26,6 +26,10 @@ import {
   type ToggleCommunityModuleInput,
   type UpdateCommunitySettingsInput,
 } from "@shared/contracts/communities";
+import type {
+  CommunityProfileViewDTO,
+  CommunityViewerStateDTO,
+} from "@shared/contracts/communities-viewer";
 import {
   COMMUNITY_MODULE_CATALOG,
   COMMUNITY_SEED_FIXTURES,
@@ -302,6 +306,129 @@ async function requestJoin(slug: string): Promise<CommunityActionResult<Communit
   return { ok: true, value: { ...community.profile } };
 }
 
+function viewerStateFor(community: CommunityState): CommunityViewerStateDTO {
+  const member = community.members.find((m) => m.userId === FIXTURE_VIEWER_USER_ID);
+  const pending = community.joinRequests.find((r) => r.requesterUserId === FIXTURE_VIEWER_USER_ID);
+  if (member) {
+    return {
+      viewerUserId: FIXTURE_VIEWER_USER_ID,
+      relation: member.role,
+      canJoin: false,
+      canRequestJoin: false,
+      canCancelRequest: false,
+      pendingJoinRequestId: null,
+      canLeave: true,
+      canManage: member.role === "founder" || member.role === "admin",
+      canViewPrivateSections: true,
+    };
+  }
+  const isPublic = community.profile.visibility === "public";
+  return {
+    viewerUserId: FIXTURE_VIEWER_USER_ID,
+    relation: pending ? "pending_request" : "stranger",
+    canJoin: !pending && isPublic,
+    canRequestJoin: !pending && !isPublic,
+    canCancelRequest: !!pending,
+    pendingJoinRequestId: pending?.id ?? null,
+    canLeave: false,
+    canManage: false,
+    canViewPrivateSections: isPublic,
+  };
+}
+
+async function getCommunityProfileView(slug: string): Promise<CommunityActionResult<CommunityProfileViewDTO>> {
+  const fail = shouldFail<CommunityProfileViewDTO>();
+  if (fail) return fail;
+  const res = requireCommunity<CommunityProfileViewDTO>(slug);
+  if (!("state" in res)) return res;
+  return {
+    ok: true,
+    value: {
+      profile: { ...res.state.profile, bannerGradientIdx: res.state.bannerGradientIdx },
+      viewer: viewerStateFor(res.state),
+    },
+  };
+}
+
+async function joinCommunity(slug: string): Promise<CommunityActionResult<CommunityProfileViewDTO>> {
+  const fail = shouldFail<CommunityProfileViewDTO>();
+  if (fail) return fail;
+  const res = requireCommunity<CommunityProfileViewDTO>(slug);
+  if (!("state" in res)) return res;
+  const community = res.state;
+  if (community.profile.visibility !== "public") {
+    return { ok: false, error: { code: "VALIDATION", field: "visibility", message: "Ta społeczność wymaga akceptacji — użyj 'Poproś o dołączenie'." } };
+  }
+  if (community.members.some((m) => m.userId === FIXTURE_VIEWER_USER_ID)) {
+    return { ok: false, error: { code: "CONFLICT", message: "Jesteś już członkiem tej społeczności." } };
+  }
+  community.members.push({
+    userId: FIXTURE_VIEWER_USER_ID,
+    displayName: "Demo użytkownik",
+    role: "member",
+    joinedAt: new Date().toISOString(),
+  });
+  community.profile.memberCount = community.members.length;
+  recomputeViewerRelation(community);
+  return {
+    ok: true,
+    value: {
+      profile: { ...community.profile, bannerGradientIdx: community.bannerGradientIdx },
+      viewer: viewerStateFor(community),
+    },
+  };
+}
+
+async function cancelJoinRequest(slug: string): Promise<CommunityActionResult<CommunityProfileViewDTO>> {
+  const fail = shouldFail<CommunityProfileViewDTO>();
+  if (fail) return fail;
+  const res = requireCommunity<CommunityProfileViewDTO>(slug);
+  if (!("state" in res)) return res;
+  const community = res.state;
+  const idx = community.joinRequests.findIndex((r) => r.requesterUserId === FIXTURE_VIEWER_USER_ID);
+  if (idx === -1) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Nie masz oczekującej prośby do anulowania." } };
+  }
+  community.joinRequests.splice(idx, 1);
+  recomputeViewerRelation(community);
+  return {
+    ok: true,
+    value: {
+      profile: { ...community.profile, bannerGradientIdx: community.bannerGradientIdx },
+      viewer: viewerStateFor(community),
+    },
+  };
+}
+
+async function leaveCommunity(slug: string): Promise<CommunityActionResult<CommunityProfileViewDTO>> {
+  const fail = shouldFail<CommunityProfileViewDTO>();
+  if (fail) return fail;
+  const res = requireCommunity<CommunityProfileViewDTO>(slug);
+  if (!("state" in res)) return res;
+  const community = res.state;
+  const idx = community.members.findIndex((m) => m.userId === FIXTURE_VIEWER_USER_ID);
+  if (idx === -1) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Nie jesteś członkiem tej społeczności." } };
+  }
+  const me = community.members[idx];
+  if (me.role === "founder") {
+    const otherFounders = community.members.filter((m, i) => i !== idx && m.role === "founder").length;
+    if (otherFounders === 0) {
+      return { ok: false, error: { code: "FORBIDDEN", message: "Jako jedyny founder nie możesz opuścić społeczności — najpierw przekaż uprawnienia." } };
+    }
+  }
+  community.members.splice(idx, 1);
+  community.profile.memberCount = community.members.length;
+  recomputeViewerRelation(community);
+  return {
+    ok: true,
+    value: {
+      profile: { ...community.profile, bannerGradientIdx: community.bannerGradientIdx },
+      viewer: viewerStateFor(community),
+    },
+  };
+}
+
 async function listMembers(slug: string): Promise<CommunityActionResult<CommunityMemberSummaryDTO[]>> {
   const fail = shouldFail<CommunityMemberSummaryDTO[]>();
   if (fail) return fail;
@@ -482,8 +609,12 @@ export type CommunitiesMockAdapter = {
   listCategories(): Promise<readonly CommunityCategoryDTO[]>;
   createCommunity(input: CreateCommunityInput): Promise<CommunityActionResult<CommunityProfileDTO>>;
   getCommunityProfile(slug: string): Promise<CommunityActionResult<CommunityProfileDTO>>;
+  getCommunityProfileView(slug: string): Promise<CommunityActionResult<CommunityProfileViewDTO>>;
   updateSettings(input: UpdateCommunitySettingsInput): Promise<CommunityActionResult<CommunityProfileDTO>>;
   requestJoin(slug: string): Promise<CommunityActionResult<CommunityProfileDTO>>;
+  joinCommunity(slug: string): Promise<CommunityActionResult<CommunityProfileViewDTO>>;
+  cancelJoinRequest(slug: string): Promise<CommunityActionResult<CommunityProfileViewDTO>>;
+  leaveCommunity(slug: string): Promise<CommunityActionResult<CommunityProfileViewDTO>>;
   listMembers(slug: string): Promise<CommunityActionResult<CommunityMemberSummaryDTO[]>>;
   changeMemberRole(input: ChangeCommunityMemberRoleInput): Promise<CommunityActionResult<CommunityMemberSummaryDTO[]>>;
   listPendingJoinRequests(slug: string): Promise<CommunityActionResult<CommunityJoinRequestSummaryDTO[]>>;
@@ -510,8 +641,12 @@ export const communitiesMockAdapter: CommunitiesMockAdapter = {
   listCategories: listCategoriesImpl,
   createCommunity,
   getCommunityProfile,
+  getCommunityProfileView,
   updateSettings,
   requestJoin,
+  joinCommunity,
+  cancelJoinRequest,
+  leaveCommunity,
   listMembers,
   changeMemberRole,
   listPendingJoinRequests,

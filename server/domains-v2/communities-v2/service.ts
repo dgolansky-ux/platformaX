@@ -9,6 +9,7 @@ import type {
   CommunityJoinRequestDTO,
   CommunityMemberDTO,
   CommunityPublicDTO,
+  CommunityViewerStateDTO,
   CreateCommunityInput,
   DecideJoinRequestInput,
   UpdateCommunitySettingsInput,
@@ -23,8 +24,12 @@ import { canUpdateSettings, hasCommunityAuthority, isValidCommunitySlug } from "
 import { toPublicCommunityDTO } from "./mapper";
 import { COMMUNITY_CATEGORIES, isValidCategorySlug, type CommunityCategoryRef } from "./categories";
 import {
+  cancelJoinRequest as cancelJoinRequestOp,
   changeMemberRole as changeMemberRoleOp,
   decideJoinRequest as decideJoinRequestOp,
+  getViewerState as getViewerStateOp,
+  joinCommunity as joinCommunityOp,
+  leaveCommunity as leaveCommunityOp,
   listMembers as listMembersOp,
   listPendingJoinRequests as listPendingJoinRequestsOp,
 } from "./service-member-ops";
@@ -49,7 +54,11 @@ export type CommunitiesErrorCode =
   | "JOIN_DUPLICATE"
   | "JOIN_REQUEST_NOT_PENDING"
   | "MEMBER_NOT_FOUND"
-  | "FOUNDER_PROTECTED";
+  | "FOUNDER_PROTECTED"
+  | "ALREADY_MEMBER"
+  | "JOIN_REQUIRES_APPROVAL"
+  | "FOUNDER_CANNOT_LEAVE"
+  | "NOT_MEMBER";
 
 export type CommunitiesResult<T> =
   | { ok: true; value: T }
@@ -62,6 +71,9 @@ export interface CommunitiesService extends CommunityAuthorityResolver {
   createCommunity(input: CreateCommunityInput): Promise<CommunitiesResult<CommunityPublicDTO>>;
   updateSettings(input: UpdateCommunitySettingsInput): Promise<CommunitiesResult<CommunityPublicDTO>>;
   requestJoin(communityId: string, requesterUserId: string): Promise<CommunitiesResult<CommunityJoinRequestDTO>>;
+  joinCommunity(communityId: string, userId: string): Promise<CommunitiesResult<CommunityMemberDTO>>;
+  cancelJoinRequest(communityId: string, joinRequestId: string, actorUserId: string): Promise<CommunitiesResult<CommunityJoinRequestDTO>>;
+  leaveCommunity(communityId: string, userId: string): Promise<CommunitiesResult<true>>;
   acceptJoinRequest(input: DecideJoinRequestInput): Promise<CommunitiesResult<CommunityJoinRequestDTO>>;
   rejectJoinRequest(input: DecideJoinRequestInput): Promise<CommunitiesResult<CommunityJoinRequestDTO>>;
   listPendingJoinRequests(communityId: string, actorUserId: string): Promise<CommunitiesResult<CommunityJoinRequestDTO[]>>;
@@ -69,6 +81,7 @@ export interface CommunitiesService extends CommunityAuthorityResolver {
   changeMemberRole(input: ChangeMemberRoleInput): Promise<CommunitiesResult<CommunityMemberDTO>>;
   getPublicCommunityBySlug(slug: string): Promise<CommunityPublicDTO | null>;
   getViewerRole(communityId: string, userId: string): Promise<CommunitiesResult<CommunityRoleOrNull>>;
+  getViewerState(communityId: string, viewerUserId: string | null): Promise<CommunitiesResult<CommunityViewerStateDTO>>;
   listMyCommunities(userId: string): Promise<CommunityPublicDTO[]>; // SCALABILITY_HOT_PATH_EXCEPTION: stable order by id; bounded in-memory foundation
   listPublicCommunities(cursor: string | null, limit?: number, categorySlug?: string | null): Promise<{ items: CommunityPublicDTO[]; nextCursor: string | null }>; // SCALABILITY_HOT_PATH_EXCEPTION: stable order by id; DB cursor later
   listCategories(): readonly CommunityCategoryRef[];
@@ -166,6 +179,10 @@ export function createCommunitiesService(deps: Deps): CommunitiesService {
     createCommunity: (input) => createCommunity(deps, input),
     updateSettings: (input) => updateSettings(deps, input),
     requestJoin: (communityId, requesterUserId) => requestJoin(deps, communityId, requesterUserId),
+    joinCommunity: (communityId, userId) => joinCommunityOp(deps, communityId, userId),
+    cancelJoinRequest: (communityId, joinRequestId, actorUserId) => cancelJoinRequestOp(deps, actorUserId, communityId, joinRequestId),
+    leaveCommunity: (communityId, userId) => leaveCommunityOp(deps, communityId, userId),
+    getViewerState: (communityId, viewerUserId) => getViewerStateOp(deps, communityId, viewerUserId),
     acceptJoinRequest: (input) => decideJoinRequestOp(deps, input, "accepted"),
     rejectJoinRequest: (input) => decideJoinRequestOp(deps, input, "rejected"),
     listPendingJoinRequests: (communityId, actorUserId) => listPendingJoinRequestsOp(deps, communityId, actorUserId),

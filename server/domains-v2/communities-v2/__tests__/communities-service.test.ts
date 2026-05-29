@@ -228,4 +228,132 @@ describe("communities-v2 service", () => {
     expect(forStranger.ok).toBe(false);
     if (!forStranger.ok) expect(forStranger.error.code).toBe("FORBIDDEN");
   });
+
+  it("joinCommunity adds the user to a public community", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    const joined = await svc.joinCommunity(c.value.id, STRANGER);
+    expect(joined.ok).toBe(true);
+    if (!joined.ok) return;
+    expect(joined.value.role).toBe("member");
+    const role = await svc.getViewerRole(c.value.id, STRANGER);
+    expect(role.ok && role.value).toBe("member");
+  });
+
+  it("joinCommunity refuses private communities (must request)", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs", visibility: "private" });
+    if (!c.ok) throw new Error("setup");
+    const joined = await svc.joinCommunity(c.value.id, STRANGER);
+    expect(joined.ok).toBe(false);
+    if (!joined.ok) expect(joined.error.code).toBe("JOIN_REQUIRES_APPROVAL");
+  });
+
+  it("joinCommunity refuses an existing member", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    await svc.joinCommunity(c.value.id, STRANGER);
+    const second = await svc.joinCommunity(c.value.id, STRANGER);
+    expect(second.ok).toBe(false);
+    if (!second.ok) expect(second.error.code).toBe("ALREADY_MEMBER");
+  });
+
+  it("cancelJoinRequest cancels only the requester's own pending request", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs", visibility: "private" });
+    if (!c.ok) throw new Error("setup");
+    const req = await svc.requestJoin(c.value.id, STRANGER);
+    if (!req.ok) throw new Error("setup");
+
+    const byFounder = await svc.cancelJoinRequest(c.value.id, req.value.id, FOUNDER);
+    expect(byFounder.ok).toBe(false);
+    if (!byFounder.ok) expect(byFounder.error.code).toBe("FORBIDDEN");
+
+    const byOwner = await svc.cancelJoinRequest(c.value.id, req.value.id, STRANGER);
+    expect(byOwner.ok).toBe(true);
+    if (byOwner.ok) expect(byOwner.value.status).toBe("cancelled");
+
+    const again = await svc.cancelJoinRequest(c.value.id, req.value.id, STRANGER);
+    expect(again.ok).toBe(false);
+    if (!again.ok) expect(again.error.code).toBe("JOIN_REQUEST_NOT_PENDING");
+  });
+
+  it("leaveCommunity removes a regular member", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    await svc.joinCommunity(c.value.id, STRANGER);
+    const left = await svc.leaveCommunity(c.value.id, STRANGER);
+    expect(left.ok).toBe(true);
+    const role = await svc.getViewerRole(c.value.id, STRANGER);
+    expect(role.ok && role.value).toBeNull();
+  });
+
+  it("leaveCommunity refuses the sole founder", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    const res = await svc.leaveCommunity(c.value.id, FOUNDER);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("FOUNDER_CANNOT_LEAVE");
+  });
+
+  it("leaveCommunity refuses a non-member", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    const res = await svc.leaveCommunity(c.value.id, STRANGER);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("NOT_MEMBER");
+  });
+
+  it("getViewerState describes stranger, member and founder relations", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    const stranger = await svc.getViewerState(c.value.id, STRANGER);
+    expect(stranger.ok && stranger.value.relation).toBe("stranger");
+    expect(stranger.ok && stranger.value.canJoin).toBe(true);
+    expect(stranger.ok && stranger.value.canRequestJoin).toBe(false);
+
+    const founder = await svc.getViewerState(c.value.id, FOUNDER);
+    expect(founder.ok && founder.value.relation).toBe("founder");
+    expect(founder.ok && founder.value.canManage).toBe(true);
+    expect(founder.ok && founder.value.canLeave).toBe(true);
+
+    await svc.joinCommunity(c.value.id, STRANGER);
+    const member = await svc.getViewerState(c.value.id, STRANGER);
+    expect(member.ok && member.value.relation).toBe("member");
+    expect(member.ok && member.value.canLeave).toBe(true);
+    expect(member.ok && member.value.canManage).toBe(false);
+  });
+
+  it("getViewerState describes pending_request and the cancel/can-request-join flags", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs", visibility: "private" });
+    if (!c.ok) throw new Error("setup");
+    const before = await svc.getViewerState(c.value.id, STRANGER);
+    expect(before.ok && before.value.canRequestJoin).toBe(true);
+    expect(before.ok && before.value.canViewPrivateSections).toBe(false);
+    await svc.requestJoin(c.value.id, STRANGER);
+    const pending = await svc.getViewerState(c.value.id, STRANGER);
+    expect(pending.ok && pending.value.relation).toBe("pending_request");
+    expect(pending.ok && pending.value.canCancelRequest).toBe(true);
+    expect(pending.ok && pending.value.canRequestJoin).toBe(false);
+  });
+
+  it("getViewerState returns unauthenticated when viewer id is null", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs", visibility: "private" });
+    if (!c.ok) throw new Error("setup");
+    const anon = await svc.getViewerState(c.value.id, null);
+    expect(anon.ok && anon.value.relation).toBe("unauthenticated");
+    expect(anon.ok && anon.value.viewerUserId).toBeNull();
+    expect(anon.ok && anon.value.canJoin).toBe(false);
+    expect(anon.ok && anon.value.canViewPrivateSections).toBe(false);
+  });
+
+  it("getViewerState DTO carries no PII", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    const res = await svc.getViewerState(c.value.id, FOUNDER);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    const keys = Object.keys(res.value);
+    expect(keys).not.toContain("email");
+    expect(keys).not.toContain("phone");
+    expect(keys).not.toContain("dateOfBirth");
+  });
 });

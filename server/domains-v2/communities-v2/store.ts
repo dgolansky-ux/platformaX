@@ -69,6 +69,9 @@ export function createInMemoryMembershipRepository(): MembershipRepository {
       rows.set(key(communityId, userId), next);
       return next;
     },
+    async remove(communityId, userId) {
+      rows.delete(key(communityId, userId));
+    },
   };
 }
 

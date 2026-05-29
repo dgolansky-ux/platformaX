@@ -60,3 +60,26 @@ export function canChangeRole(
   const actor = actorRole ? RANK[actorRole] : -1;
   return actor > RANK[targetCurrentRole] && actor > RANK[nextRole];
 }
+
+/**
+ * Members may leave a community on their own. A founder may leave ONLY when
+ * another founder exists, otherwise the community would be ownerless. (Slice 2
+ * does not implement founder transfer; founders blocked here must use Slice 3
+ * once it ships.)
+ */
+export function canLeaveCommunity(
+  role: CommunityRole | null,
+  totalFoundersAfterLeave: number,
+): boolean {
+  if (!role) return false;
+  if (role === "founder" && totalFoundersAfterLeave < 1) return false;
+  return true;
+}
+
+/** A pending join request may be cancelled ONLY by the requester. */
+export function canCancelOwnJoinRequest(
+  actorUserId: string,
+  requesterUserId: string,
+): boolean {
+  return actorUserId === requesterUserId;
+}

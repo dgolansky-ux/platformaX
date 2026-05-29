@@ -16,13 +16,23 @@ export type CommunityVisibility = "public" | "private" | "unlisted";
 
 export type CommunityRole = "founder" | "admin" | "moderator" | "member";
 
+/**
+ * Relation between the current viewer and a community.
+ *
+ * Both legacy variants (`not_member`, `requested`) and Slice 2 variants
+ * (`stranger`, `pending_request`, `unauthenticated`) are accepted so cards and
+ * profile UIs can coexist while the adapter migrates.
+ */
 export type CommunityViewerRelation =
   | "founder"
   | "admin"
   | "moderator"
   | "member"
   | "requested"
-  | "not_member";
+  | "pending_request"
+  | "not_member"
+  | "stranger"
+  | "unauthenticated";
 
 export type CommunityCategoryDTO = {
   slug: string;
@@ -61,6 +71,8 @@ export type CommunityProfileDTO = {
   memberCount: number;
   viewerRelation: CommunityViewerRelation;
   canManage: boolean;
+  /** Stable visual seed for banner gradient (0..N-1). Public, no PII. */
+  bannerGradientIdx?: number;
 };
 
 export type CommunityMemberSummaryDTO = {
@@ -110,7 +122,9 @@ export function toCommunityId(id: string): CommunityId {
 }
 
 // Re-export action shapes so existing `from "@shared/contracts/communities"`
-// imports continue to compile without flooding the export count.
+// imports keep compiling. Viewer-state DTOs live in
+// `@shared/contracts/communities-viewer` to keep this file's export budget
+// under the per-file cap.
 export type {
   CreateCommunityInput,
   UpdateCommunitySettingsInput,

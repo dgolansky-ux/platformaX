@@ -31,11 +31,20 @@ export type {
   CommunityRole,
   CommunityVisibility,
   CommunityStatus,
+  CommunityViewerRelation,
+  CommunityViewerStateDTO,
   CreateCommunityInput,
   UpdateCommunitySettingsInput,
   DecideJoinRequestInput,
   ChangeMemberRoleInput,
 } from "./dto";
 export type { CommunityPublicSummary, CommunityAuthorityResolver } from "./contracts";
-export { hasCommunityAuthority, canRemoveMember, isValidCommunitySlug, canChangeRole } from "./policy";
+export {
+  hasCommunityAuthority,
+  canRemoveMember,
+  isValidCommunitySlug,
+  canChangeRole,
+  canLeaveCommunity,
+  canCancelOwnJoinRequest,
+} from "./policy";
 export { COMMUNITY_CATEGORIES, isValidCategorySlug, type CommunityCategoryRef } from "./categories";

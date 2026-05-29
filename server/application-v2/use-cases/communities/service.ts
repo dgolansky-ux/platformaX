@@ -9,7 +9,10 @@
 import type { CommunityAuthorityResolver } from "@server/domains-v2/communities-v2/contracts";
 import type {
   CommunitiesService,
+  CommunityJoinRequestDTO,
+  CommunityMemberDTO,
   CommunityPublicDTO,
+  CommunityViewerStateDTO,
   CommunitiesErrorCode,
   CreateCommunityInput,
 } from "@server/domains-v2/communities-v2/public-api";
@@ -51,9 +54,28 @@ export type CreateCommunityWithDefaultsResult =
   | { ok: true; value: CreateCommunityWithDefaultsValue }
   | { ok: false; error: { code: CommunitiesErrorCode; message: string } };
 
+export type CommunityProfileView = {
+  profile: CommunityPublicDTO;
+  viewer: CommunityViewerStateDTO;
+};
+
+export type GetCommunityProfileViewResult =
+  | { ok: true; value: CommunityProfileView }
+  | { ok: false; error: { code: CommunitiesErrorCode; message: string } };
+
+export type CommunityMembershipActionResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: { code: CommunitiesErrorCode; message: string } };
+
 export interface CommunitiesUseCase {
   createCommunityWithDefaults(input: CreateCommunityInput): Promise<CreateCommunityWithDefaultsResult>;
   enableCommunityModule(input: EnableCommunityModuleInput): Promise<EnableCommunityModuleResult>;
+  getCommunityProfileView(slug: string, viewerUserId: string | null): Promise<GetCommunityProfileViewResult>;
+  getCommunityViewerState(communityId: string, viewerUserId: string | null): Promise<CommunityMembershipActionResult<CommunityViewerStateDTO>>;
+  joinCommunity(communityId: string, viewerUserId: string): Promise<CommunityMembershipActionResult<CommunityMemberDTO>>;
+  requestJoinCommunity(communityId: string, viewerUserId: string): Promise<CommunityMembershipActionResult<CommunityJoinRequestDTO>>;
+  cancelJoinRequest(communityId: string, joinRequestId: string, viewerUserId: string): Promise<CommunityMembershipActionResult<CommunityJoinRequestDTO>>;
+  leaveCommunity(communityId: string, viewerUserId: string): Promise<CommunityMembershipActionResult<true>>;
 }
 
 const MAX_DEFAULT_MODULES = 8;
@@ -87,5 +109,22 @@ export function createCommunitiesUseCase(deps: CreateCommunityWithDefaultsDeps):
       if (!res.ok) return res;
       return { ok: true, value: res.value };
     },
+
+    async getCommunityProfileView(slug, viewerUserId) {
+      const profile = await deps.communities.getPublicCommunityBySlug(slug);
+      if (!profile) {
+        return { ok: false, error: { code: "NOT_FOUND", message: "Community not found." } };
+      }
+      const viewer = await deps.communities.getViewerState(profile.id, viewerUserId);
+      if (!viewer.ok) return viewer;
+      return { ok: true, value: { profile, viewer: viewer.value } };
+    },
+
+    getCommunityViewerState: (communityId, viewerUserId) => deps.communities.getViewerState(communityId, viewerUserId),
+    joinCommunity: (communityId, viewerUserId) => deps.communities.joinCommunity(communityId, viewerUserId),
+    requestJoinCommunity: (communityId, viewerUserId) => deps.communities.requestJoin(communityId, viewerUserId),
+    cancelJoinRequest: (communityId, joinRequestId, viewerUserId) =>
+      deps.communities.cancelJoinRequest(communityId, joinRequestId, viewerUserId),
+    leaveCommunity: (communityId, viewerUserId) => deps.communities.leaveCommunity(communityId, viewerUserId),
   };
 }

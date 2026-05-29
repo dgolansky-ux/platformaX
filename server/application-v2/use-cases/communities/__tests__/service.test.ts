@@ -99,3 +99,80 @@ describe("communities use-case — enableCommunityModule", () => {
     if (!denied.ok) expect(denied.error.code).toBe("UNKNOWN_MODULE");
   });
 });
+
+describe("communities use-case — profile + viewer state", () => {
+  const STRANGER = "u-stranger";
+
+  it("getCommunityProfileView composes public profile and viewer state for a stranger", async () => {
+    const usecase = createCommunitiesUseCase(makeDeps());
+    await usecase.createCommunityWithDefaults({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    const view = await usecase.getCommunityProfileView("devs", STRANGER);
+    expect(view.ok).toBe(true);
+    if (!view.ok) return;
+    expect(view.value.profile.slug).toBe("devs");
+    expect(view.value.viewer.relation).toBe("stranger");
+    expect(view.value.viewer.canJoin).toBe(true);
+  });
+
+  it("getCommunityProfileView returns NOT_FOUND for an unknown slug", async () => {
+    const usecase = createCommunitiesUseCase(makeDeps());
+    const res = await usecase.getCommunityProfileView("missing", STRANGER);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("NOT_FOUND");
+  });
+
+  it("getCommunityProfileView never exposes PII or founder id", async () => {
+    const usecase = createCommunitiesUseCase(makeDeps());
+    await usecase.createCommunityWithDefaults({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    const view = await usecase.getCommunityProfileView("devs", FOUNDER);
+    if (!view.ok) throw new Error("setup");
+    const profileKeys = Object.keys(view.value.profile);
+    expect(profileKeys).not.toContain("founderUserId");
+    expect(profileKeys).not.toContain("email");
+    expect(profileKeys).not.toContain("phone");
+    expect(view.value.viewer.viewerUserId).toBe(FOUNDER);
+    expect(view.value.viewer.relation).toBe("founder");
+    expect(view.value.viewer.canManage).toBe(true);
+  });
+
+  it("joinCommunity / leaveCommunity flip viewer relation for a public community", async () => {
+    const usecase = createCommunitiesUseCase(makeDeps());
+    const created = await usecase.createCommunityWithDefaults({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!created.ok) throw new Error("setup");
+    const id = created.value.community.id;
+
+    const joined = await usecase.joinCommunity(id, STRANGER);
+    expect(joined.ok).toBe(true);
+    const member = await usecase.getCommunityViewerState(id, STRANGER);
+    expect(member.ok && member.value.relation).toBe("member");
+
+    const left = await usecase.leaveCommunity(id, STRANGER);
+    expect(left.ok).toBe(true);
+    const stranger = await usecase.getCommunityViewerState(id, STRANGER);
+    expect(stranger.ok && stranger.value.relation).toBe("stranger");
+  });
+
+  it("requestJoinCommunity / cancelJoinRequest flip viewer relation for a private community", async () => {
+    const usecase = createCommunitiesUseCase(makeDeps());
+    const created = await usecase.createCommunityWithDefaults({
+      founderUserId: FOUNDER,
+      name: "Devs",
+      slug: "devs",
+      visibility: "private",
+    });
+    if (!created.ok) throw new Error("setup");
+    const id = created.value.community.id;
+
+    const requested = await usecase.requestJoinCommunity(id, STRANGER);
+    expect(requested.ok).toBe(true);
+    if (!requested.ok) return;
+    const pending = await usecase.getCommunityViewerState(id, STRANGER);
+    expect(pending.ok && pending.value.relation).toBe("pending_request");
+    expect(pending.ok && pending.value.canCancelRequest).toBe(true);
+
+    const cancelled = await usecase.cancelJoinRequest(id, requested.value.id, STRANGER);
+    expect(cancelled.ok).toBe(true);
+    const after = await usecase.getCommunityViewerState(id, STRANGER);
+    expect(after.ok && after.value.relation).toBe("stranger");
+  });
+});

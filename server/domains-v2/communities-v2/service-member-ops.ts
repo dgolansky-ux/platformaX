@@ -7,6 +7,7 @@ import type {
   ChangeMemberRoleInput,
   CommunityJoinRequestDTO,
   CommunityMemberDTO,
+  CommunityViewerStateDTO,
   DecideJoinRequestInput,
 } from "./dto";
 import type {
@@ -14,15 +15,23 @@ import type {
   JoinRequestRepository,
   MembershipRepository,
 } from "./ports";
-import { canChangeRole, canManageMembers } from "./policy";
+import {
+  canCancelOwnJoinRequest,
+  canChangeRole,
+  canLeaveCommunity,
+  canManageMembers,
+  hasCommunityAuthority,
+} from "./policy";
 
 type Clock = { now: () => Date };
+type IdGen = { next: () => string };
 
 export type MemberOpsDeps = {
   communities: CommunityRepository;
   members: MembershipRepository;
   joinRequests: JoinRequestRepository;
   clock: Clock;
+  ids?: IdGen;
 };
 
 export type MemberOpsErrorCode =
@@ -30,7 +39,11 @@ export type MemberOpsErrorCode =
   | "FORBIDDEN"
   | "JOIN_REQUEST_NOT_PENDING"
   | "MEMBER_NOT_FOUND"
-  | "FOUNDER_PROTECTED";
+  | "FOUNDER_PROTECTED"
+  | "ALREADY_MEMBER"
+  | "JOIN_REQUIRES_APPROVAL"
+  | "FOUNDER_CANNOT_LEAVE"
+  | "NOT_MEMBER";
 
 export type MemberOpsResult<T> =
   | { ok: true; value: T }
@@ -121,4 +134,147 @@ export async function changeMemberRole(
     return { ok: false, error: { code: "FORBIDDEN", message: "Actor cannot perform this role change." } };
   }
   return { ok: true, value: { ...(await deps.members.updateRole(input.communityId, input.targetUserId, input.nextRole)) } };
+}
+
+/**
+ * Direct join for a public community. For private communities the caller must
+ * route through `requestJoin` instead — joinCommunity returns JOIN_REQUIRES_APPROVAL.
+ */
+export async function joinCommunity(
+  deps: MemberOpsDeps,
+  communityId: string,
+  userId: string,
+): Promise<MemberOpsResult<CommunityMemberDTO>> {
+  const community = await deps.communities.getById(communityId);
+  if (!community) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Community not found." } };
+  }
+  if (community.visibility !== "public") {
+    return { ok: false, error: { code: "JOIN_REQUIRES_APPROVAL", message: "This community is not open — request to join instead." } };
+  }
+  const existing = await deps.members.get(communityId, userId);
+  if (existing) {
+    return { ok: false, error: { code: "ALREADY_MEMBER", message: "You are already a member of this community." } };
+  }
+  const record: CommunityMemberDTO = {
+    communityId,
+    userId,
+    role: "member",
+    status: "active",
+    joinedAt: deps.clock.now().toISOString(),
+  };
+  await deps.members.add(record);
+  return { ok: true, value: record };
+}
+
+/**
+ * Cancel the actor's own pending join request. Other users (including
+ * founders/admins) must reject via `rejectJoinRequest`, not cancel.
+ */
+export async function cancelJoinRequest(
+  deps: MemberOpsDeps,
+  actorUserId: string,
+  communityId: string,
+  joinRequestId: string,
+): Promise<MemberOpsResult<CommunityJoinRequestDTO>> {
+  if (!(await deps.communities.getById(communityId))) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Community not found." } };
+  }
+  const request = await deps.joinRequests.getById(joinRequestId);
+  if (!request || request.communityId !== communityId) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Join request not found." } };
+  }
+  if (!canCancelOwnJoinRequest(actorUserId, request.requesterUserId)) {
+    return { ok: false, error: { code: "FORBIDDEN", message: "Only the requester may cancel their join request." } };
+  }
+  if (request.status !== "pending") {
+    return { ok: false, error: { code: "JOIN_REQUEST_NOT_PENDING", message: "Join request already decided." } };
+  }
+  return { ok: true, value: await deps.joinRequests.update(request.id, { status: "cancelled" }) };
+}
+
+/**
+ * Leave a community. Members/moderators/admins can leave freely. A founder may
+ * leave only when another founder exists — otherwise FOUNDER_CANNOT_LEAVE.
+ */
+export async function leaveCommunity(
+  deps: MemberOpsDeps,
+  communityId: string,
+  userId: string,
+): Promise<MemberOpsResult<true>> {
+  if (!(await deps.communities.getById(communityId))) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Community not found." } };
+  }
+  const membership = await deps.members.get(communityId, userId);
+  if (!membership) {
+    return { ok: false, error: { code: "NOT_MEMBER", message: "You are not a member of this community." } };
+  }
+  // SCALABILITY_HOT_PATH_EXCEPTION: founder count is bounded per community; single bounded read, no broadcast.
+  const founders = (await deps.members.listForCommunity(communityId)).filter((m) => m.role === "founder");
+  const remainingFounders = membership.role === "founder" ? founders.length - 1 : founders.length;
+  if (!canLeaveCommunity(membership.role, remainingFounders)) {
+    return {
+      ok: false,
+      error: { code: "FOUNDER_CANNOT_LEAVE", message: "Last founder cannot leave; transfer ownership first." },
+    };
+  }
+  await deps.members.remove(communityId, userId);
+  return { ok: true, value: true };
+}
+
+/** Derive viewer state without exposing raw membership records or PII. */
+export async function getViewerState(
+  deps: MemberOpsDeps,
+  communityId: string,
+  viewerUserId: string | null,
+): Promise<MemberOpsResult<CommunityViewerStateDTO>> {
+  const community = await deps.communities.getById(communityId);
+  if (!community) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Community not found." } };
+  }
+  if (!viewerUserId) {
+    return {
+      ok: true,
+      value: {
+        viewerUserId: null,
+        relation: "unauthenticated",
+        canJoin: false,
+        canRequestJoin: false,
+        canCancelRequest: false,
+        canLeave: false,
+        canManage: false,
+        canViewPrivateSections: community.visibility === "public",
+      },
+    };
+  }
+  const membership = await deps.members.get(communityId, viewerUserId);
+  const pending = await deps.joinRequests.findPending(communityId, viewerUserId);
+  if (membership) {
+    return {
+      ok: true,
+      value: {
+        viewerUserId,
+        relation: membership.role,
+        canJoin: false,
+        canRequestJoin: false,
+        canCancelRequest: false,
+        canLeave: true, // service guards last-founder rule at the leave call site
+        canManage: hasCommunityAuthority(membership.role),
+        canViewPrivateSections: true,
+      },
+    };
+  }
+  return {
+    ok: true,
+    value: {
+      viewerUserId,
+      relation: pending ? "pending_request" : "stranger",
+      canJoin: !pending && community.visibility === "public",
+      canRequestJoin: !pending && community.visibility !== "public",
+      canCancelRequest: !!pending,
+      canLeave: false,
+      canManage: false,
+      canViewPrivateSections: community.visibility === "public",
+    },
+  };
 }
