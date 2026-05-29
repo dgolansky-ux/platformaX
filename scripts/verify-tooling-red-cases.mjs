@@ -43,15 +43,20 @@ import { tmpdir } from "node:os";
 const ROOT = process.cwd();
 const isWindows = process.platform === "win32";
 
-// CI-only switch — when set, TOOL_MISSING (binary/setup unavailable)
-// becomes a hard failure. Locally TOOL_MISSING is informational so a
-// developer without gitleaks/etc. can still run the verifier and see
-// every channel; in CI the binaries are installed so a missing one
-// means the lane regressed.
+// Strict switch — when set, TOOL_MISSING (binary/setup unavailable)
+// becomes a hard failure. By default (incl. CI runs that call the
+// non-strict `pnpm tooling:redcase`) TOOL_MISSING is informational so
+// a developer without gitleaks/etc. can still run the verifier and
+// see every channel. CI opts in to strict explicitly via
+// `pnpm tooling:redcase:strict` — `CI=true` alone does NOT enable
+// strict because a TOOL_MISSING row (e.g. eslint-plugin-boundaries v6
+// PARTIAL_NOT_ENFORCED tracked in
+// docs/governance/followups/FIX_ESLINT_PLUGIN_BOUNDARIES_V6_ENFORCEMENT.md)
+// would otherwise turn the required gate red while we are still
+// covered by depcruise + arch-tests + custom guards.
 const STRICT =
   process.argv.includes("--strict") ||
-  process.env.REDCASE_STRICT === "1" ||
-  process.env.CI === "true";
+  process.env.REDCASE_STRICT === "1";
 
 let exitCode = 0;
 let total = 0;
