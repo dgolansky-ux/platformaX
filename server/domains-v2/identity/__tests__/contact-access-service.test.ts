@@ -103,6 +103,29 @@ describe("contact-access-service / requests", () => {
     if (!second.ok) expect(second.error.code).toBe("PENDING_DUPLICATE");
   });
 
+  it("does NOT block the reverse direction: A→B pending leaves B→A allowed", async () => {
+    // Intended behaviour (LEGACY_CONTACTS_ANALYSIS §4 row 4): at most one
+    // non-terminal request PER DIRECTION. A pending A→B request is about A
+    // wanting B's fields; it must not stop B from independently asking A.
+    const aToB = await svc.sendContactRequest({
+      fromUserId: SENDER,
+      toUserId: OWNER,
+      message: "A asks B",
+    });
+    expect(aToB.ok).toBe(true);
+    const bToA = await svc.sendContactRequest({
+      fromUserId: OWNER,
+      toUserId: SENDER,
+      message: "B asks A",
+    });
+    expect(bToA.ok).toBe(true);
+    if (bToA.ok && aToB.ok) {
+      expect(bToA.value.id).not.toBe(aToB.value.id);
+      expect(bToA.value.fromUserId).toBe(OWNER);
+      expect(bToA.value.toUserId).toBe(SENDER);
+    }
+  });
+
   it("only the receiver may respond to a pending request", async () => {
     const created = await svc.sendContactRequest({
       fromUserId: SENDER,

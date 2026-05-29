@@ -9,8 +9,8 @@ import type {
 } from "@shared/contracts/professions";
 import {
   effectiveProfessionSlug,
+  effectiveSpecializationSlug,
   findDuplicateIssues,
-  normalizeSlug,
   validateImportRow,
 } from "../policy";
 
@@ -28,15 +28,15 @@ export function dryRunImport(
   const validRowIdx = rows.map((_, i) => i).filter((i) => !rowsWithIssues.has(i));
 
   const newProfessionSlugs = new Set<string>();
-  const newSpecializationSlugs = new Set<string>();
+  // Specializations are keyed per profession — the same spec slug under two
+  // different professions counts as two distinct specializations.
+  const newSpecializationKeys = new Set<string>();
   for (const i of validRowIdx) {
     const row = rows[i];
-    newProfessionSlugs.add(effectiveProfessionSlug(row));
-    if (row.specializationName && row.specializationName.trim().length > 0) {
-      newSpecializationSlugs.add(
-        row.specializationSlug ?? normalizeSlug(row.specializationName),
-      );
-    }
+    const professionSlug = effectiveProfessionSlug(row);
+    newProfessionSlugs.add(professionSlug);
+    const specSlug = effectiveSpecializationSlug(row);
+    if (specSlug) newSpecializationKeys.add(`${professionSlug}::${specSlug}`);
   }
 
   return {
@@ -44,7 +44,7 @@ export function dryRunImport(
     totalRows: rows.length,
     validRows: validRowIdx.length,
     newProfessions: newProfessionSlugs.size,
-    newSpecializations: newSpecializationSlugs.size,
+    newSpecializations: newSpecializationKeys.size,
     issues,
     persisted: false,
   };

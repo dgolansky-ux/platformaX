@@ -118,6 +118,42 @@ describe("professions / import dry-run validator", () => {
     expect(report.issues.some((i) => i.code === "DUPLICATE_SLUG")).toBe(true);
     expect(report.issues.some((i) => i.code === "DUPLICATE_NAME")).toBe(true);
   });
+
+  it("flags an empty specialization name when one is declared", () => {
+    const rows: ImportProfessionRow[] = [
+      { categorySlug: "technologia-i-it", professionName: "Programista", specializationName: "   " },
+    ];
+    const report = dryRunImport(rows, new Set(["technologia-i-it"]));
+    expect(
+      report.issues.some((i) => i.field === "specializationName" && i.code === "EMPTY_NAME"),
+    ).toBe(true);
+  });
+
+  it("detects duplicate specialization WITHIN the same profession", () => {
+    const rows: ImportProfessionRow[] = [
+      { categorySlug: "technologia-i-it", professionName: "Programista", specializationName: "Frontend" },
+      { categorySlug: "technologia-i-it", professionName: "Programista", specializationName: "Frontend" },
+    ];
+    const report = dryRunImport(rows, new Set(["technologia-i-it"]));
+    expect(
+      report.issues.some((i) => i.field === "specializationSlug" && i.code === "DUPLICATE_SLUG"),
+    ).toBe(true);
+  });
+
+  it("allows the SAME specialization slug under DIFFERENT professions", () => {
+    const rows: ImportProfessionRow[] = [
+      { categorySlug: "technologia-i-it", professionName: "Programista", specializationName: "Frontend" },
+      { categorySlug: "design-i-projektowanie", professionName: "Projektant", specializationName: "Frontend" },
+    ];
+    const report = dryRunImport(
+      rows,
+      new Set(["technologia-i-it", "design-i-projektowanie"]),
+    );
+    expect(report.issues.length).toBe(0);
+    expect(report.validRows).toBe(2);
+    expect(report.newSpecializations).toBe(2);
+    expect(report.persisted).toBe(false);
+  });
 });
 
 describe("professions / slug normalization", () => {

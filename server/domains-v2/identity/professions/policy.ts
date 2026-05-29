@@ -63,6 +63,10 @@ export function validateImportRow(
   if (row.specializationSlug && !isValidSlug(row.specializationSlug)) {
     issues.push({ rowIndex, field: "specializationSlug", code: "INVALID_SLUG", message: `Invalid slug: ${row.specializationSlug}` });
   }
+  // A specialization is optional, but if a row declares one its name must be non-empty.
+  if (row.specializationName !== undefined && row.specializationName.trim().length === 0) {
+    issues.push({ rowIndex, field: "specializationName", code: "EMPTY_NAME", message: "Specialization name must not be empty when provided." });
+  }
   if (!knownCategorySlugs.has(row.categorySlug)) {
     issues.push({ rowIndex, field: "categorySlug", code: "UNKNOWN_CATEGORY", message: `Unknown category: ${row.categorySlug}` });
   }
@@ -74,11 +78,27 @@ export function effectiveProfessionSlug(row: ImportProfessionRow): string {
   return row.professionSlug ?? normalizeSlug(row.professionName);
 }
 
-/** Cross-row duplicate detection on the effective profession slug + name. */
+/** Effective specialization slug for a row, or null when the row has none. */
+export function effectiveSpecializationSlug(row: ImportProfessionRow): string | null {
+  if (!row.specializationName || row.specializationName.trim().length === 0) return null;
+  return row.specializationSlug ?? normalizeSlug(row.specializationName);
+}
+
+/**
+ * Cross-row duplicate detection.
+ *
+ * - Professions: deduped by effective slug + name (globally — a profession slug
+ *   is unique across the whole dataset).
+ * - Specializations: deduped PER PROFESSION, keyed `${professionSlug}::${specSlug}`.
+ *   The SAME specialization slug under a DIFFERENT profession is allowed
+ *   (e.g. "frontend" under both "programista" and "designer") — it is only a
+ *   duplicate when it repeats within the same parent profession.
+ */
 export function findDuplicateIssues(rows: readonly ImportProfessionRow[]): ImportIssue[] {
   const issues: ImportIssue[] = [];
   const seenSlug = new Map<string, number>();
   const seenName = new Map<string, number>();
+  const seenSpec = new Map<string, number>();
   rows.forEach((row, rowIndex) => {
     const slug = effectiveProfessionSlug(row);
     const name = row.professionName.trim().toLowerCase();
@@ -91,6 +111,15 @@ export function findDuplicateIssues(rows: readonly ImportProfessionRow[]): Impor
       issues.push({ rowIndex, field: "professionName", code: "DUPLICATE_NAME", message: `Duplicate name: ${row.professionName}` });
     } else if (name.length > 0) {
       seenName.set(name, rowIndex);
+    }
+    const specSlug = effectiveSpecializationSlug(row);
+    if (specSlug) {
+      const key = `${slug}::${specSlug}`;
+      if (seenSpec.has(key)) {
+        issues.push({ rowIndex, field: "specializationSlug", code: "DUPLICATE_SLUG", message: `Duplicate specialization "${specSlug}" within profession "${slug}" (first seen row ${seenSpec.get(key)})` });
+      } else {
+        seenSpec.set(key, rowIndex);
+      }
     }
   });
   return issues;
