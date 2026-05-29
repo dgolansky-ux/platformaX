@@ -93,11 +93,7 @@ export interface ContactsApplicationService {
     responderUserId: UserId;
   }): Promise<ContactsApplicationResult<ContactRequest>>;
 
-  /**
-   * Owner-local: put a person into one of MY circles (or clear with "none").
-   * Requires NO consent from the person and grants NO PII — it only changes
-   * how the owner's own Kontakty view groups them.
-   */
+  /** Owner-local: label a person with a circle (or "none"); no consent, no PII. */
   setFriendCircle(input: {
     ownerId: UserId;
     personId: UserId;
@@ -123,39 +119,15 @@ function actionsFor(rel: {
   if (rel.isOwner) return [];
   const out: ContactProfileAction[] = [];
 
-  // friendships
-  if (rel.isFriend) {
-    out.push("REMOVE_FRIEND");
-  } else if (rel.friendRequestStatus === "pending_received") {
-    out.push("RESPOND_TO_FRIEND_REQUEST");
-  } else if (rel.friendRequestStatus === "none") {
-    out.push("SEND_FRIEND_REQUEST");
-  }
+  if (rel.isFriend) out.push("REMOVE_FRIEND");
+  else if (rel.friendRequestStatus === "pending_received") out.push("RESPOND_TO_FRIEND_REQUEST");
+  else if (rel.friendRequestStatus === "none") out.push("SEND_FRIEND_REQUEST");
 
-  // contact request
-  if (rel.contactRequestStatus === "pending_received") {
-    out.push("RESPOND_TO_CONTACT_REQUEST");
-  } else if (
-    rel.contactRequestStatus === "none" ||
-    rel.contactRequestStatus === "rejected" ||
-    rel.contactRequestStatus === "cancelled"
-  ) {
-    out.push("REQUEST_CONTACT");
-  }
+  if (rel.contactRequestStatus === "pending_received") out.push("RESPOND_TO_CONTACT_REQUEST");
+  else if (["none", "rejected", "cancelled"].includes(rel.contactRequestStatus)) out.push("REQUEST_CONTACT");
 
-  // address book
-  if (rel.isAddressBookContact) {
-    out.push("REMOVE_FROM_CONTACTS");
-  } else {
-    out.push("ADD_TO_CONTACTS");
-  }
-
-  // specialist
-  if (rel.isSpecialist) {
-    out.push("REMOVE_SPECIALIST");
-  } else {
-    out.push("ADD_AS_SPECIALIST");
-  }
+  out.push(rel.isAddressBookContact ? "REMOVE_FROM_CONTACTS" : "ADD_TO_CONTACTS");
+  out.push(rel.isSpecialist ? "REMOVE_SPECIALIST" : "ADD_AS_SPECIALIST");
 
   return out;
 }
@@ -174,6 +146,15 @@ function mapErrorCode(
     default:
       return "UNKNOWN";
   }
+}
+
+/** Re-map a domain Result error onto the application error shape. */
+function mapResult<T>(
+  res: { ok: true; value: T } | { ok: false; error: { code: string; message: string } },
+): ContactsApplicationResult<T> {
+  return res.ok
+    ? { ok: true, value: res.value }
+    : { ok: false, error: { code: mapErrorCode(res.error.code), message: res.error.message } };
 }
 
 /**
@@ -372,56 +353,32 @@ export function createContactsApplicationService(
     },
 
     async requestContactAccess(input) {
-      const res = await deps.identityContactAccess.sendContactRequest(input);
-      if (!res.ok) {
-        return {
-          ok: false,
-          error: { code: mapErrorCode(res.error.code), message: res.error.message },
-        };
-      }
-      return { ok: true, value: res.value };
+      return mapResult(await deps.identityContactAccess.sendContactRequest(input));
     },
 
     async acceptContactRequest(input) {
-      const res = await deps.identityContactAccess.respondToContactRequest({
-        requestId: input.requestId,
-        responderUserId: input.responderUserId,
-        action: "accepted",
-        approvedFields: input.approvedFields,
-      });
-      if (!res.ok) {
-        return {
-          ok: false,
-          error: { code: mapErrorCode(res.error.code), message: res.error.message },
-        };
-      }
-      return { ok: true, value: res.value };
+      return mapResult(
+        await deps.identityContactAccess.respondToContactRequest({
+          requestId: input.requestId,
+          responderUserId: input.responderUserId,
+          action: "accepted",
+          approvedFields: input.approvedFields,
+        }),
+      );
     },
 
     async rejectContactRequest(input) {
-      const res = await deps.identityContactAccess.respondToContactRequest({
-        requestId: input.requestId,
-        responderUserId: input.responderUserId,
-        action: "rejected",
-      });
-      if (!res.ok) {
-        return {
-          ok: false,
-          error: { code: mapErrorCode(res.error.code), message: res.error.message },
-        };
-      }
-      return { ok: true, value: res.value };
+      return mapResult(
+        await deps.identityContactAccess.respondToContactRequest({
+          requestId: input.requestId,
+          responderUserId: input.responderUserId,
+          action: "rejected",
+        }),
+      );
     },
 
     async setFriendCircle(input) {
-      const res = await deps.socialContacts.setFriendCircle(input);
-      if (!res.ok) {
-        return {
-          ok: false,
-          error: { code: mapErrorCode(res.error.code), message: res.error.message },
-        };
-      }
-      return { ok: true, value: res.value };
+      return mapResult(await deps.socialContacts.setFriendCircle(input));
     },
   };
 }
