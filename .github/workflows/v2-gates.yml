@@ -19,6 +19,22 @@ permissions:
 #   - WEEKLY: Knip + dependency graph + audit ZIP via `.github/workflows/v2-weekly-audit.yml`.
 
 jobs:
+  # Branch-protection alias: the protection rule on `main` requires a
+  # status check named exactly `Check / Lint / Test / Build / Guards`
+  # (the historical name of the original gate). We renamed the actual
+  # gate to the STANDARD/DEEP/WEEKLY split below, so this no-op alias
+  # exists only to satisfy the required-check-name match. It depends on
+  # STANDARD + DEEP, so a regression there fails this too — no
+  # weakening of the gate.
+  required-check-alias:
+    name: Check / Lint / Test / Build / Guards
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [standard, deep]
+    steps:
+      - name: Alias confirms STANDARD + DEEP both passed
+        run: echo "STANDARD and DEEP both green — required-check-alias OK."
+
   standard:
     name: STANDARD — check / lint+boundaries / test / build / guards / arch-tests
     runs-on: ubuntu-latest
