@@ -44,3 +44,19 @@ export function canRemoveMember(
 export function hasCommunityAuthority(role: CommunityRole | null): boolean {
   return role === "founder" || role === "admin";
 }
+
+/**
+ * A role change is permitted only when the actor outranks BOTH the target's
+ * current role and the next role. Founder is never touched by this path
+ * (callers reject any attempt to assign or revoke founder).
+ */
+export function canChangeRole(
+  actorRole: CommunityRole | null,
+  targetCurrentRole: CommunityRole,
+  nextRole: CommunityRole,
+): boolean {
+  if (!canManageMembers(actorRole)) return false;
+  if (targetCurrentRole === "founder" || nextRole === "founder") return false;
+  const actor = actorRole ? RANK[actorRole] : -1;
+  return actor > RANK[targetCurrentRole] && actor > RANK[nextRole];
+}

@@ -125,17 +125,22 @@ domains:
       - server/domains-v2/communities-v2/ports.ts
       - server/domains-v2/communities-v2/store.ts
       - server/domains-v2/communities-v2/service.ts
+      - server/domains-v2/communities-v2/service-member-ops.ts
       - server/domains-v2/communities-v2/mapper.ts
+      - server/domains-v2/communities-v2/categories.ts
       - server/domains-v2/communities-v2/events.ts
       - server/domains-v2/communities-v2/index.ts
       - server/domains-v2/communities-v2/__tests__/communities-service.test.ts
       - server/domains-v2/communities-v2/__tests__/domain-contract.test.ts
     notes: >
-      Graduated SCAFFOLD_ONLY -> PARTIAL by the product-backend-foundations slice.
-      In-memory runtime: service, store (in-memory repos behind ports), policy,
-      mapper. Founder membership created with community; founder non-removable.
-      Public DTO no PII / no founder id. No posts stored. DB + transport pending.
-      domain-status.md updated.
+      Communities MVP slice + Slice 1 (list/cards/wizard) graduated coverage.
+      In-memory runtime: createCommunity (categorySlug + validation), updateSettings,
+      requestJoin lifecycle (accept/reject), listMembers (gated to members),
+      changeMemberRole (founder-protected via canChangeRole policy),
+      listPendingJoinRequests, listMyCommunities, listPublicCommunities
+      (filterable by categorySlug, stable id-cursor), listCategories (12 ref
+      categories with emoji + sortOrder). Public DTO no PII / no founder id.
+      No posts stored. DB + HTTP transport pending. domain-status.md updated.
 
   - name: channels
     type: OWNER_DOMAIN

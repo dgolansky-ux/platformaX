@@ -1,72 +1,65 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, test } from "vitest";
-import type { CommunitiesShellData } from "@shared/contracts/communities";
-import { toCommunityId } from "@shared/contracts/communities";
 import { CommunitiesShell } from "../CommunitiesShell";
 import { communitiesMockAdapter } from "../mock-adapter";
 
 function renderShell() {
-  return render(<CommunitiesShell />);
+  return render(
+    <MemoryRouter initialEntries={["/communities"]}>
+      <Routes>
+        <Route path="/communities" element={<CommunitiesShell />} />
+        <Route path="/communities/new" element={<div>NEW_ROUTE</div>} />
+        <Route path="/communities/:slug" element={<div>PROFILE_ROUTE</div>} />
+      </Routes>
+    </MemoryRouter>,
+  );
 }
 
-const EMPTY_DATA: CommunitiesShellData = {
-  myCommunities: [],
-  discoverCommunities: [],
-};
-
-describe("CommunitiesShell — MOCK_LOCAL_ONLY communities route UI", () => {
+describe("CommunitiesShell — Slice 1 legacy layout", () => {
   beforeEach(() => {
     communitiesMockAdapter.__resetForTests();
   });
 
-  test("renders loading state and seeded personal communities", async () => {
+  test("renders header + Utwórz CTA + seeded sections", async () => {
     renderShell();
-    expect(screen.getByText("Ładowanie społeczności...")).toBeInTheDocument();
+    expect(screen.getByText("Ładowanie społeczności…")).toBeInTheDocument();
     expect(await screen.findByRole("heading", { name: "Społeczności" })).toBeInTheDocument();
-    expect(await screen.findByText("Product Builders")).toBeInTheDocument();
-    expect(screen.getByText("Prywatna")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Utwórz społeczność/ })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /Otwórz Product Builders/ })).toBeDisabled();
+    // My communities section
+    expect(await screen.findByRole("region", { name: /Moje społeczności/ })).toBeInTheDocument();
+    // Recommended section (seeded discover has 2 entries → recommended renders)
+    expect(screen.getByRole("region", { name: /Polecane dla Ciebie/ })).toBeInTheDocument();
+    // Categories grid
+    expect(screen.getByRole("region", { name: /Odkryj społeczności/ })).toBeInTheDocument();
+    expect(screen.getByText("Technologia")).toBeInTheDocument();
   });
 
-  test("switches to discover communities without backend transport", async () => {
+  test("Utwórz społeczność CTA navigates to /communities/new", async () => {
     renderShell();
-    fireEvent.click(await screen.findByRole("tab", { name: /Odkrywaj/ }));
-    await waitFor(() => expect(screen.getByText("Lokalne wydarzenia")).toBeInTheDocument());
-    expect(screen.getByText("Open Source PL")).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("button", { name: /Utwórz społeczność/ }));
+    await screen.findByText("NEW_ROUTE");
   });
 
-  test("shows empty state for an empty local fixture", async () => {
-    communitiesMockAdapter.__setDataForTests(EMPTY_DATA);
+  test("typing in search filters communities + shows empty state on no match", async () => {
     renderShell();
-    expect(await screen.findByText("Nie masz jeszcze społeczności")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: /Odkrywaj/ }));
-    expect(await screen.findByText("Brak społeczności do odkrycia")).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "Społeczności" });
+    fireEvent.click(screen.getByRole("button", { name: /Wyszukaj społeczność/ }));
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "zzzzzzzzz" } });
+    await waitFor(() => expect(screen.getByText("Brak wyników")).toBeInTheDocument(), { timeout: 1500 });
+  });
+
+  test("clicking a category chip activates it (filters search)", async () => {
+    renderShell();
+    await screen.findByRole("heading", { name: "Społeczności" });
+    const techChip = screen.getByRole("button", { name: /Technologia/, pressed: false });
+    fireEvent.click(techChip);
+    // Tylko społeczności z categorySlug=technologia ujawniają się; pozostałe nie.
+    await waitFor(() => expect(screen.getByText("Product Builders")).toBeInTheDocument());
   });
 
   test("shows adapter error state", async () => {
     communitiesMockAdapter.__setFailureForTests("mock adapter down");
     renderShell();
     expect(await screen.findByRole("alert")).toHaveTextContent("mock adapter down");
-  });
-
-  test("accepts typed fixture data without server imports", async () => {
-    communitiesMockAdapter.__setDataForTests({
-      myCommunities: [
-        {
-          id: toCommunityId("community-test"),
-          slug: "test",
-          name: "Testowa społeczność",
-          description: "Minimalny typed fixture.",
-          visibility: "public",
-          memberCount: 1,
-          viewerRole: "admin",
-        },
-      ],
-      discoverCommunities: [],
-    });
-    renderShell();
-    expect(await screen.findByText("Testowa społeczność")).toBeInTheDocument();
-    expect(screen.getByText("Rola: admin")).toBeInTheDocument();
   });
 });

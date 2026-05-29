@@ -1,24 +1,44 @@
 /**
  * features-v2/communities-v2 / CommunitiesShell — UI_SHELL_ONLY + MOCK_LOCAL_ONLY.
  *
- * Renders /communities from a local adapter only. No `@server/*` imports and no
- * persistence claims until a real transport adapter exists.
+ * Clean-room re-implementation odpowiednika legacy Communities.tsx — pełen
+ * layout listy społeczności:
+ *
+ *   header (H1 + CTA Utwórz) → search panel → search results (gdy aktywny) →
+ *   moje społeczności → polecane dla Ciebie → siatka kategorii.
+ *
+ * Wszystkie dane przez MOCK_LOCAL_ONLY adapter; żadnego @server/* importu.
  */
-import { useEffect, useMemo, useState } from "react";
-import type { CommunitiesShellData } from "@shared/contracts/communities";
-import { CommunitiesList } from "./CommunitiesList";
-import { CommunityTabs, type CommunitiesTabKey } from "./CommunityTabs";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import type {
+  CommunitiesShellData,
+  CommunityCardDTO,
+  CommunityCategoryDTO,
+} from "@shared/contracts/communities";
+import { CommunityCard } from "./CommunityCard";
 import { communitiesMockAdapter } from "./mock-adapter";
+import { CategoriesSection } from "./sections/CategoriesSection";
+import {
+  CommunitiesSearch,
+  type CommunitiesSearchFilters,
+} from "./sections/CommunitiesSearch";
+import { MyCommunitiesSection } from "./sections/MyCommunitiesSection";
+import { RecommendedSection } from "./sections/RecommendedSection";
 import styles from "./CommunitiesShell.module.css";
+import sections from "./sections/Sections.module.css";
 
 type LoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "ready"; data: CommunitiesShellData };
 
+const EMPTY_FILTERS: CommunitiesSearchFilters = { query: "", locationMode: null, categorySlug: null };
+
 export function CommunitiesShell() {
-  const [activeTab, setActiveTab] = useState<CommunitiesTabKey>("mine");
+  const navigate = useNavigate();
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [filters, setFilters] = useState<CommunitiesSearchFilters>(EMPTY_FILTERS);
 
   useEffect(() => {
     let alive = true;
@@ -36,13 +56,18 @@ export function CommunitiesShell() {
     };
   }, []);
 
-  const stats = useMemo(() => {
-    if (state.status !== "ready") return { mine: 0, discover: 0 };
-    return {
-      mine: state.data.myCommunities.length,
-      discover: state.data.discoverCommunities.length,
-    };
-  }, [state]);
+  const handleSelectCategory = useCallback((slug: string) => {
+    setFilters((prev) => ({ ...prev, categorySlug: prev.categorySlug === slug ? null : slug }));
+  }, []);
+
+  const handleFiltersChange = useCallback((next: CommunitiesSearchFilters) => {
+    setFilters(next);
+  }, []);
+
+  const isSearchMode = useMemo(
+    () => filters.query.length > 0 || filters.locationMode !== null || filters.categorySlug !== null,
+    [filters],
+  );
 
   return (
     <section className={styles.root} aria-labelledby="communities-heading">
@@ -51,48 +76,107 @@ export function CommunitiesShell() {
           <p className={styles.brand}>Społeczności</p>
           <h1 id="communities-heading" className={styles.title}>Społeczności</h1>
           <p className={styles.modeNote}>
-            Lokalny shell pod przyszły transport. Dane pochodzą z public-safe
-            fixture, więc tworzenie i szczegóły są jeszcze wyłączone.
+            Znajdź społeczności, dołącz do nich albo utwórz własną. Dane MOCK_LOCAL_ONLY —
+            flow tworzenia, dołączania i zarządzania jest realny w obrębie sesji.
           </p>
         </div>
         <button
           type="button"
           className={styles.primaryButton}
-          disabled
-          aria-label="Utwórz społeczność — transport społeczności nie jest jeszcze podłączony"
+          onClick={() => navigate("/communities/new")}
         >
-          Utwórz społeczność
+          ＋ Utwórz społeczność
         </button>
       </header>
 
-      <CommunityTabs
-        activeTab={activeTab}
-        mineCount={stats.mine}
-        discoverCount={stats.discover}
-        onSelect={setActiveTab}
-      />
+      {state.status === "loading" ? (
+        <div className={styles.loadingState} aria-busy="true">Ładowanie społeczności…</div>
+      ) : null}
+      {state.status === "error" ? (
+        <div className={styles.errorState} role="alert">
+          Nie udało się załadować społeczności: {state.message}
+        </div>
+      ) : null}
 
-      <div className={styles.panel}>
-        {state.status === "loading" ? (
-          <div className={styles.loadingState} aria-busy="true">Ładowanie społeczności...</div>
-        ) : null}
-        {state.status === "error" ? (
-          <div className={styles.errorState} role="alert">
-            Nie udało się załadować społeczności: {state.message}
-          </div>
-        ) : null}
-        {state.status === "ready" ? (
-          <CommunitiesList
-            communities={
-              activeTab === "mine"
-                ? state.data.myCommunities
-                : state.data.discoverCommunities
-            }
-            emptyTitle={activeTab === "mine" ? "Nie masz jeszcze społeczności" : "Brak społeczności do odkrycia"}
-            emptyBody={activeTab === "mine" ? "Dołącz do publicznych społeczności albo wróć, gdy transport utworzy pierwszą." : "Lista odkrywania jest pusta w lokalnym fixture."}
-          />
-        ) : null}
-      </div>
+      {state.status === "ready" ? (
+        <ShellBody
+          data={state.data}
+          filters={filters}
+          isSearchMode={isSearchMode}
+          onFiltersChange={handleFiltersChange}
+          onSelectCategory={handleSelectCategory}
+        />
+      ) : null}
     </section>
   );
 }
+
+type ShellBodyProps = {
+  data: CommunitiesShellData;
+  filters: CommunitiesSearchFilters;
+  isSearchMode: boolean;
+  onFiltersChange: (filters: CommunitiesSearchFilters) => void;
+  onSelectCategory: (slug: string) => void;
+};
+
+function ShellBody({ data, filters, isSearchMode, onFiltersChange, onSelectCategory }: ShellBodyProps) {
+  const categories = data.categories ?? [];
+  const my = data.myCommunities;
+  const recommended = data.recommendedCommunities ?? [];
+  const discover = data.discoverCommunities;
+  const searchResults = useMemo(() => filterCommunities([...my, ...discover], filters), [my, discover, filters]);
+
+  return (
+    <>
+      <CommunitiesSearch categories={categories} onChange={onFiltersChange} />
+
+      {isSearchMode ? (
+        <SearchResults results={searchResults} />
+      ) : (
+        <>
+          <MyCommunitiesSection communities={my} />
+          <RecommendedSection communities={recommended} categories={categories} />
+          <CategoriesSection
+            categories={categories}
+            activeSlug={filters.categorySlug}
+            onSelect={onSelectCategory}
+          />
+        </>
+      )}
+    </>
+  );
+}
+
+function SearchResults({ results }: { results: readonly CommunityCardDTO[] }) {
+  if (results.length === 0) {
+    return (
+      <div className={sections.searchEmpty}>
+        <span className={sections.searchEmptyIcon} aria-hidden="true">🔍</span>
+        <p>Brak wyników</p>
+      </div>
+    );
+  }
+  return (
+    <div className={sections.searchResults}>
+      {results.map((c) => (
+        <CommunityCard key={c.id} community={c} />
+      ))}
+    </div>
+  );
+}
+
+function filterCommunities(
+  communities: readonly CommunityCardDTO[],
+  filters: CommunitiesSearchFilters,
+): CommunityCardDTO[] {
+  const q = filters.query.trim().toLowerCase();
+  return communities.filter((c) => {
+    if (q && !c.name.toLowerCase().includes(q) && !c.description.toLowerCase().includes(q)) return false;
+    if (filters.categorySlug && c.categorySlug !== filters.categorySlug) return false;
+    void filters.locationMode; // adapter nie przechowuje per-card location mode w shell payload
+    return true;
+  });
+}
+
+// Re-export legacy aliases for compatibility with downstream test imports.
+export type { CommunityCategoryDTO };

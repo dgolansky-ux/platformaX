@@ -1,0 +1,210 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.sectionSubtitle {
+  margin: -4px 0 8px;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.expandToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 0;
+  background: #eef2ff;
+  color: #1e4fd8;
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.myList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expandFooter {
+  margin-top: 4px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  border: 1.5px dashed #cbd5e1;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: center;
+}
+
+.recommendedRow {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+}
+
+.recommendedRow::-webkit-scrollbar {
+  display: none;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.searchPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #eef2f7;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.searchToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.searchToggleChevron {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.searchBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.searchInputWrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.searchInput {
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.searchInput:focus-visible {
+  outline: 3px solid #eef2ff;
+  border-color: #1e4fd8;
+}
+
+.searchRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.searchLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.chipGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.searchChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.searchChipActive {
+  border-color: #1e4fd8;
+  background: #eef2ff;
+  color: #1e4fd8;
+}
+
+.searchClear {
+  align-self: flex-end;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #b91c1c;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.searchResults {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.searchEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px;
+  border: 1px dashed #e2e8f0;
+  border-radius: 18px;
+  background: #f8fafc;
+  text-align: center;
+  color: #64748b;
+}
+
+.searchEmptyIcon {
+  font-size: 2rem;
+}

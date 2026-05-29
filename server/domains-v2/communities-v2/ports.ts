@@ -20,6 +20,7 @@ export type CommunityRecord = {
   founderUserId: string;
   avatarRef: string | null;
   bannerRef: string | null;
+  categorySlug: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -46,7 +47,7 @@ export interface CommunityRepository {
   getById(id: string): Promise<CommunityRecord | null>;
   getBySlug(slug: string): Promise<CommunityRecord | null>;
   update(id: string, patch: Partial<CommunityRecord>): Promise<CommunityRecord>;
-  listPublic(cursor: string | null, limit: number): Promise<CommunityRecord[]>;
+  listPublic(cursor: string | null, limit: number, categorySlug?: string | null): Promise<CommunityRecord[]>;
 }
 
 export interface MembershipRepository {
@@ -54,9 +55,14 @@ export interface MembershipRepository {
   get(communityId: string, userId: string): Promise<MembershipRecord | null>;
   listForUser(userId: string): Promise<MembershipRecord[]>;
   listForCommunity(communityId: string): Promise<MembershipRecord[]>;
+  updateRole(communityId: string, userId: string, role: MembershipRecord["role"]): Promise<MembershipRecord>;
 }
 
 export interface JoinRequestRepository {
   add(record: JoinRequestRecord): Promise<JoinRequestRecord>;
   findPending(communityId: string, requesterUserId: string): Promise<JoinRequestRecord | null>;
+  getById(id: string): Promise<JoinRequestRecord | null>;
+  update(id: string, patch: Partial<JoinRequestRecord>): Promise<JoinRequestRecord>;
+  listPending(communityId: string): Promise<JoinRequestRecord[]>;
 }
+

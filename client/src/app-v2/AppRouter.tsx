@@ -8,6 +8,12 @@ import { OnboardingFlow } from "./onboarding/OnboardingFlow";
 import { ProfilePage } from "./profile/ProfilePage";
 import { ContactsPage } from "./contacts/ContactsPage";
 import { CommunitiesPage } from "./communities/CommunitiesPage";
+import { CreateCommunityPage } from "./communities/CreateCommunityPage";
+import { CommunityProfilePage } from "./communities/CommunityProfilePage";
+import { CommunityManagePage } from "./communities/CommunityManagePage";
+import { CommunityModulesManagePage } from "./communities/CommunityModulesManagePage";
+import { CommunityChannelsPage } from "./communities/CommunityChannelsPage";
+import { CommunityHubPage } from "./communities/CommunityHubPage";
 import { ManageDashboard } from "./manage/ManageDashboard";
 import { PersonalProfileManageRoute } from "./manage/PersonalProfileManageRoute";
 import { ProfessionalSectionRoute } from "./manage/ProfessionalSectionRoute";
@@ -25,6 +31,12 @@ export function AppRouter() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/contacts" element={<ContactsPage />} />
         <Route path="/communities" element={<CommunitiesPage />} />
+        <Route path="/communities/new" element={<CreateCommunityPage />} />
+        <Route path="/communities/:slug" element={<CommunityProfilePage />} />
+        <Route path="/communities/:slug/manage" element={<CommunityManagePage />} />
+        <Route path="/communities/:slug/manage/modules" element={<CommunityModulesManagePage />} />
+        <Route path="/communities/:slug/channels" element={<CommunityChannelsPage />} />
+        <Route path="/communities/:slug/hub" element={<CommunityHubPage />} />
         <Route path="/manage" element={<ManageDashboard />} />
         <Route path="/manage/profil-osobisty" element={<PersonalProfileManageRoute />} />
         <Route path="/manage/sekcja-zawodowa" element={<ProfessionalSectionRoute />} />

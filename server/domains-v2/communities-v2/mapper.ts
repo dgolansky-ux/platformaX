@@ -16,6 +16,7 @@ export function toPublicCommunityDTO(r: CommunityRecord, memberCount: number): C
     memberCount,
     avatarRef: r.avatarRef,
     bannerRef: r.bannerRef,
+    categorySlug: r.categorySlug,
   };
 }
 

@@ -53,3 +53,49 @@ describe("communities use-case — createCommunityWithDefaults", () => {
     expect(res.value.enabledModules.map((m) => m.moduleKey)).toEqual(["topics"]);
   });
 });
+
+describe("communities use-case — enableCommunityModule", () => {
+  it("allows founder to enable a whitelisted module", async () => {
+    const deps = makeDeps();
+    const usecase = createCommunitiesUseCase(deps);
+    const created = await usecase.createCommunityWithDefaults({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!created.ok) throw new Error("setup");
+    const enabled = await usecase.enableCommunityModule({
+      actorUserId: FOUNDER,
+      communityId: created.value.community.id,
+      moduleKey: "events",
+      enabled: true,
+    });
+    expect(enabled.ok).toBe(true);
+  });
+
+  it("rejects a stranger trying to enable a module", async () => {
+    const deps = makeDeps();
+    const usecase = createCommunitiesUseCase(deps);
+    const created = await usecase.createCommunityWithDefaults({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!created.ok) throw new Error("setup");
+    const denied = await usecase.enableCommunityModule({
+      actorUserId: "u-stranger",
+      communityId: created.value.community.id,
+      moduleKey: "events",
+      enabled: true,
+    });
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) expect(denied.error.code).toBe("FORBIDDEN");
+  });
+
+  it("rejects unknown module keys", async () => {
+    const deps = makeDeps();
+    const usecase = createCommunitiesUseCase(deps);
+    const created = await usecase.createCommunityWithDefaults({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!created.ok) throw new Error("setup");
+    const denied = await usecase.enableCommunityModule({
+      actorUserId: FOUNDER,
+      communityId: created.value.community.id,
+      moduleKey: "casino",
+      enabled: true,
+    });
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) expect(denied.error.code).toBe("UNKNOWN_MODULE");
+  });
+});

@@ -1,0 +1,272 @@
+.dotGreen {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+  flex-shrink: 0;
+}
+
+/* ── My communities row ───────────────────────────────────────────── */
+.myRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #eef2f7;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  text-decoration: none;
+  color: inherit;
+  font-family: inherit;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.myRow:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.myAvatarWrap {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+
+.orbitRing {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.myAvatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e4fd8, #7c3aed);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #1e4fd8;
+}
+
+.myBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.myTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.myTitle {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #111827;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.crown {
+  font-size: 0.85rem;
+}
+
+.myMeta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 0.68rem;
+}
+
+.chevron {
+  color: #94a3b8;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* ── Recommended card ─────────────────────────────────────────────── */
+.recommendedCard {
+  flex-shrink: 0;
+  width: 140px;
+  border-radius: 16px;
+  border: 1px solid #eef2f7;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.recommendedHead {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  text-decoration: none;
+  font-size: 28px;
+}
+
+.recommendedEmoji {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+}
+
+.recommendedBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.recommendedName {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recommendedMeta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #64748b;
+  font-size: 0.64rem;
+}
+
+.recommendedJoin {
+  margin-top: 4px;
+  padding: 6px;
+  border-radius: 8px;
+  border: 0;
+  background: #1e4fd8;
+  color: #ffffff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.recommendedJoin:hover {
+  background: #1a44b8;
+}
+
+/* ── Category chip ────────────────────────────────────────────────── */
+.categoryChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 76px;
+  height: 76px;
+  border: 2px solid #eef2f7;
+  border-radius: 16px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  flex-shrink: 0;
+  transition: border-color 150ms ease, background 150ms ease, transform 100ms ease;
+}
+
+.categoryChip:hover {
+  border-color: #1e4fd8;
+  background: #eef2ff;
+  transform: translateY(-1px);
+}
+
+.categoryChip:focus-visible {
+  outline: 3px solid #c7d2fe;
+  outline-offset: 2px;
+}
+
+.categoryChipActive {
+  border-color: #1e4fd8;
+  background: #eef2ff;
+}
+
+.categoryEmoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.categoryName {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-align: center;
+  padding-inline: 4px;
+  line-height: 1.15;
+  color: #334155;
+}
+
+/* ── Create community CTA card ────────────────────────────────────── */
+.createCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1.5px dashed #cbd5e1;
+  background: #f8fafc;
+  color: #1e293b;
+  text-decoration: none;
+  font-family: inherit;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.createCard:hover {
+  border-color: #1e4fd8;
+  background: #eef2ff;
+}
+
+.createCardIcon {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e4fd8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.createCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.createCardTitle {
+  margin: 0;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.createCardHelp {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}

@@ -33,5 +33,9 @@ export type {
   CommunityStatus,
   CreateCommunityInput,
   UpdateCommunitySettingsInput,
+  DecideJoinRequestInput,
+  ChangeMemberRoleInput,
 } from "./dto";
-export { hasCommunityAuthority, canRemoveMember, isValidCommunitySlug } from "./policy";
+export type { CommunityPublicSummary, CommunityAuthorityResolver } from "./contracts";
+export { hasCommunityAuthority, canRemoveMember, isValidCommunitySlug, canChangeRole } from "./policy";
+export { COMMUNITY_CATEGORIES, isValidCategorySlug, type CommunityCategoryRef } from "./categories";

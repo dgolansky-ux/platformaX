@@ -35,9 +35,10 @@ export function createInMemoryCommunityRepository(): CommunityRepository {
       rows.set(id, next);
       return next;
     },
-    async listPublic(cursor, limit) {
+    async listPublic(cursor, limit, categorySlug) {
       const all = [...rows.values()]
         .filter((r) => !r.deletedAt && r.visibility === "public" && r.status === "active")
+        .filter((r) => !categorySlug || r.categorySlug === categorySlug)
         .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
       const start = cursor ? all.findIndex((r) => r.id === cursor) + 1 : 0;
       return all.slice(start, start + limit);
@@ -61,6 +62,13 @@ export function createInMemoryMembershipRepository(): MembershipRepository {
     async listForCommunity(communityId) {
       return [...rows.values()].filter((m) => m.communityId === communityId && m.status === "active");
     },
+    async updateRole(communityId, userId, role) {
+      const existing = rows.get(key(communityId, userId));
+      if (!existing) throw new Error(`membership ${communityId}/${userId} not found`);
+      const next: MembershipRecord = { ...existing, role };
+      rows.set(key(communityId, userId), next);
+      return next;
+    },
   };
 }
 
@@ -80,6 +88,21 @@ export function createInMemoryJoinRequestRepository(): JoinRequestRepository {
             r.status === "pending",
         ) ?? null
       );
+    },
+    async getById(id) {
+      return rows.get(id) ?? null;
+    },
+    async update(id, patch) {
+      const existing = rows.get(id);
+      if (!existing) throw new Error(`join request ${id} not found`);
+      const next: JoinRequestRecord = { ...existing, ...patch };
+      rows.set(id, next);
+      return next;
+    },
+    async listPending(communityId) {
+      return [...rows.values()]
+        .filter((r) => r.communityId === communityId && r.status === "pending")
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     },
   };
 }

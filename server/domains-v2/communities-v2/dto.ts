@@ -23,6 +23,7 @@ export type CommunityPublicDTO = {
   memberCount: number;
   avatarRef: string | null;
   bannerRef: string | null;
+  categorySlug: string | null;
 };
 
 /** Owner/admin view: adds the viewer's role. Authorized users only. */
@@ -53,6 +54,7 @@ export type CreateCommunityInput = {
   slug: string;
   description?: string;
   visibility?: CommunityVisibility;
+  categorySlug?: string | null;
 };
 
 export type UpdateCommunitySettingsInput = {
@@ -61,4 +63,18 @@ export type UpdateCommunitySettingsInput = {
   name?: string;
   description?: string;
   visibility?: CommunityVisibility;
+};
+
+export type DecideJoinRequestInput = {
+  actorUserId: string;
+  communityId: string;
+  joinRequestId: string;
+};
+
+export type ChangeMemberRoleInput = {
+  actorUserId: string;
+  communityId: string;
+  targetUserId: string;
+  /** Founder may not be assigned or revoked through this path. */
+  nextRole: Exclude<CommunityRole, "founder">;
 };

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { CommunityCardDTO, CommunityVisibility } from "@shared/contracts/communities";
 import styles from "./CommunitiesShell.module.css";
 
@@ -11,7 +12,18 @@ type CommunityCardProps = {
   community: CommunityCardDTO;
 };
 
+function relationLabel(community: CommunityCardDTO): { label: string; cta: string } {
+  if (community.viewerRelation === "founder") return { label: "Jesteś founderem", cta: "Otwórz" };
+  if (community.viewerRelation === "admin") return { label: "Jesteś adminem", cta: "Otwórz" };
+  if (community.viewerRelation === "moderator") return { label: "Jesteś moderatorem", cta: "Otwórz" };
+  if (community.viewerRelation === "member") return { label: "Jesteś członkiem", cta: "Otwórz" };
+  if (community.viewerRelation === "requested") return { label: "Zgłoszenie wysłane", cta: "Zobacz" };
+  if (community.visibility === "public") return { label: "Otwarta społeczność", cta: "Dołącz" };
+  return { label: "Wymaga zaproszenia", cta: "Poproś o dołączenie" };
+}
+
 export function CommunityCard({ community }: CommunityCardProps) {
+  const { label, cta } = relationLabel(community);
   return (
     <article className={styles.card}>
       <div className={styles.cardHeader}>
@@ -24,16 +36,15 @@ export function CommunityCard({ community }: CommunityCardProps) {
       <p className={styles.description}>{community.description}</p>
       <div className={styles.metaRow}>
         <span>{community.memberCount.toLocaleString("pl-PL")} członków</span>
-        {community.viewerRole ? <span>Rola: {community.viewerRole}</span> : null}
+        <span>{label}</span>
       </div>
-      <button
-        type="button"
+      <Link
+        to={`/communities/${community.slug}`}
         className={styles.secondaryButton}
-        disabled
-        aria-label={`Otwórz ${community.name} — szczegóły społeczności wkrótce`}
+        aria-label={`${cta} — ${community.name}`}
       >
-        Otwórz
-      </button>
+        {cta}
+      </Link>
     </article>
   );
 }

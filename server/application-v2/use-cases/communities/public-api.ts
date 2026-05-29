@@ -7,4 +7,7 @@ export type {
   CreateCommunityWithDefaultsDeps,
   CreateCommunityWithDefaultsValue,
   CreateCommunityWithDefaultsResult,
+  EnableCommunityModuleInput,
+  EnableCommunityModuleResult,
+  EnableCommunityModuleErrorCode,
 } from "./service";
