@@ -88,22 +88,29 @@ domains:
 
   - name: content-v2
     type: OWNER_DOMAIN
-    status: SCAFFOLD_ONLY
+    status: PARTIAL
     conflict: false
     evidence:
       - server/domains-v2/content-v2/README.md
       - server/domains-v2/content-v2/public-api.ts
       - server/domains-v2/content-v2/contracts.ts
       - server/domains-v2/content-v2/dto.ts
+      - server/domains-v2/content-v2/ports.ts
       - server/domains-v2/content-v2/policy.ts
+      - server/domains-v2/content-v2/store.ts
+      - server/domains-v2/content-v2/service.ts
+      - server/domains-v2/content-v2/mapper.ts
       - server/domains-v2/content-v2/events.ts
       - server/domains-v2/content-v2/index.ts
+      - server/domains-v2/content-v2/__tests__/content-feed-service.test.ts
       - server/domains-v2/content-v2/__tests__/domain-contract.test.ts
     notes: >
-      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
-      Folder has extensive subdomain structure (posts, feeds, comments, reactions,
-      topics, publisher, read-models) with DTOs and contracts, but NO service.ts
-      or repository.ts. SCAFFOLD_ONLY is correct. domain-status.md updated.
+      BACKEND_PARTIAL / READ_MODEL_SKELETON. In-memory posts + friend-feed
+      foundation: createPost (EMPTY_BODY guard) and listFriendFeed (cursor +
+      DEFAULT/MAX limit, canSeePost visibility filter). Feed is scoped to an
+      explicit author set (viewer's friends) via PostRepository.listByAuthors —
+      NO global feed, NO ranking, NO write fanout. Comments/reactions/topics and
+      DB adapter remain out of scope.
 
   - name: communities-v2
     type: OWNER_DOMAIN

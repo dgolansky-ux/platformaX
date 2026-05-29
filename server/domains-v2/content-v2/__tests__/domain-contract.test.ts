@@ -1,9 +1,10 @@
 ﻿import { describe, it, expect } from "vitest";
 
 describe("content-v2 domain contract", () => {
-  it("public-api exposes no runtime surface yet (SCAFFOLD_ONLY)", async () => {
+  it("public-api exposes the content service factory (BACKEND_PARTIAL)", async () => {
     const mod = await import("../public-api");
-    expect(Object.keys(mod)).toHaveLength(0);
+    expect("createContentService" in mod).toBe(true);
+    expect("createInMemoryPostRepository" in mod).toBe(true);
   });
 
   it("exports from public-api", async () => {

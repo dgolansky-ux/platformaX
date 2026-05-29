@@ -1,12 +1,42 @@
 # content-v2
 
-Status: `SCAFFOLD_ONLY`
+Status: `PARTIAL` (BACKEND_PARTIAL / READ_MODEL_SKELETON)
 Owner: @dgolansky-ux
 Type: OWNER_DOMAIN
 
 ## Purpose
 
 Content domain for PlatformaX V2. Owns all content-related data and read models.
+
+## Implemented (BACKEND_PARTIAL)
+
+In-memory runtime foundation for posts + friend feed read model:
+
+- `dto.ts` — `PostVisibility` (private|friends|public), `PostStatus`,
+  `PostContextType` (profile_presentation|friend_post), `PostPublicDTO`,
+  `FriendFeedItemDTO`, `CreatePostInput`, `FriendFeedQuery`. Public DTO, no PII.
+- `policy.ts` — `canSeePost(post, viewerUserId, isFriend)` (public→all,
+  friends→owner|friend, private→owner), `bodyPreview` (PREVIEW_MAX=280).
+- `ports.ts` — `PostRepository` with `listByAuthors(authorUserIds, cursor, limit)`:
+  a **scoped** read model. There is **no whole-table / global feed query**.
+- `store.ts` — in-memory `PostRepository`, stable order (createdAt desc, id tiebreak).
+- `service.ts` — `createContentService`: `createPost` (EMPTY_BODY guard),
+  `listFriendFeed` (cursor + DEFAULT_LIMIT 20 / MAX_LIMIT 50, `canSeePost` filter).
+
+### READ_MODEL_SKELETON
+
+The friend feed is a **single-owner read-model skeleton**: the feed is composed
+by querying an explicit set of `authorUserIds` (the viewer's friends, resolved by
+the application layer via the social domain). There is no fanout, no ranking, no
+materialised timeline yet — those graduate later behind the same `PostRepository`
+port when a DB adapter lands.
+
+## NOT implemented (intentionally out of scope here)
+
+- comments / reactions runtime, topics taxonomy
+- global / discovery feed, ranking, recommendation
+- synchronous write fanout to followers
+- media payloads (only `mediaRefs` references pass through DTOs)
 
 ## Owns
 
