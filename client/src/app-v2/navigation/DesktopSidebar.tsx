@@ -196,7 +196,7 @@ export function DesktopSidebar({
         <div className={styles.sectionDivider}>
           <span className={styles.sectionLabel}>USŁUGI</span>
         </div>
-        <NavItem icon={<IconSettings />} label="Zarządzaj" active={active === "zarzadzaj"} onClick={() => navigate("/manage/sekcja-zawodowa")} />
+        <NavItem icon={<IconSettings />} label="Zarządzaj" active={active === "zarzadzaj"} onClick={() => navigate("/manage")} />
       </nav>
     </aside>
   );
