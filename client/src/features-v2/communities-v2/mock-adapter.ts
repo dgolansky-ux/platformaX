@@ -27,8 +27,11 @@ import {
   type UpdateCommunitySettingsInput,
 } from "@shared/contracts/communities";
 import type {
+  CommunityInviteSummaryDTO,
+  CommunityManageViewDTO,
   CommunityProfileViewDTO,
   CommunityViewerStateDTO,
+  CreateCommunityInviteFrontendInput,
 } from "@shared/contracts/communities-viewer";
 import {
   COMMUNITY_MODULE_CATALOG,
@@ -59,6 +62,7 @@ type CommunityState = {
   profile: CommunityProfileDTO;
   members: CommunityMemberSummaryDTO[];
   joinRequests: CommunityJoinRequestSummaryDTO[];
+  invites: CommunityInviteSummaryDTO[];
   modules: CommunityModuleSummaryDTO[];
   channels: CommunityChannelSummaryDTO[];
   categorySlug: string | null;
@@ -80,6 +84,7 @@ function cloneSeed(seed: CommunityFixtureSeed): CommunityState {
     profile: { ...seed.profile },
     members: seed.members.map((m) => ({ ...m })),
     joinRequests: seed.joinRequests.map((r) => ({ ...r })),
+    invites: [],
     modules: seed.modules.map((m) => ({ ...m })),
     channels: seed.channels.map((c) => ({ ...c })),
     categorySlug: seed.profile.slug === "product-builders" ? "technologia"
@@ -230,6 +235,7 @@ async function createCommunity(
       },
     ],
     joinRequests: [],
+    invites: [],
     modules: COMMUNITY_MODULE_CATALOG.map((m) => ({ ...m, enabled: m.key === "topics" || m.key === "channel_entry" })),
     channels: [],
     categorySlug: input.categorySlug ?? null,
@@ -583,6 +589,124 @@ async function changeMemberRole(
   return { ok: true, value: community.members.map((m) => ({ ...m })) };
 }
 
+const RANK_LOCAL = { founder: 3, admin: 2, moderator: 1, member: 0 } as const;
+type RoleRank = keyof typeof RANK_LOCAL;
+
+async function removeMember(
+  slug: string,
+  targetUserId: string,
+): Promise<CommunityActionResult<CommunityMemberSummaryDTO[]>> {
+  const fail = shouldFail<CommunityMemberSummaryDTO[]>();
+  if (fail) return fail;
+  const res = requireManager<CommunityMemberSummaryDTO[]>(slug);
+  if (!("state" in res)) return res;
+  const community = res.state;
+  if (targetUserId === FIXTURE_VIEWER_USER_ID) {
+    return { ok: false, error: { code: "FORBIDDEN", message: "Aby opuścić społeczność, użyj akcji „Opuść” na profilu." } };
+  }
+  const idx = community.members.findIndex((m) => m.userId === targetUserId);
+  if (idx === -1) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Członek nie istnieje." } };
+  }
+  const target = community.members[idx];
+  if (target.role === "founder") {
+    return { ok: false, error: { code: "FORBIDDEN", message: "Foundera nie można usunąć." } };
+  }
+  const actor = community.members.find((m) => m.userId === FIXTURE_VIEWER_USER_ID);
+  if (!actor) {
+    return { ok: false, error: { code: "FORBIDDEN", message: "Brak uprawnień." } };
+  }
+  if (RANK_LOCAL[actor.role as RoleRank] <= RANK_LOCAL[target.role as RoleRank]) {
+    return { ok: false, error: { code: "FORBIDDEN", message: "Twoja rola nie pozwala usunąć tego członka." } };
+  }
+  community.members.splice(idx, 1);
+  community.profile.memberCount = community.members.length;
+  return { ok: true, value: community.members.map((m) => ({ ...m })) };
+}
+
+async function getCommunityManageView(slug: string): Promise<CommunityActionResult<CommunityManageViewDTO>> {
+  const fail = shouldFail<CommunityManageViewDTO>();
+  if (fail) return fail;
+  const res = requireCommunity<CommunityManageViewDTO>(slug);
+  if (!("state" in res)) return res;
+  if (!res.state.profile.canManage) {
+    return { ok: false, error: { code: "FORBIDDEN", message: "Tylko founder/admin może zarządzać tą społecznością." } };
+  }
+  const community = res.state;
+  return {
+    ok: true,
+    value: {
+      profile: { ...community.profile, bannerGradientIdx: community.bannerGradientIdx },
+      viewer: viewerStateFor(community),
+      members: community.members.map((m) => ({ ...m })),
+      joinRequests: community.joinRequests.map((r) => ({ ...r })),
+      invites: community.invites.map((i) => ({ ...i })),
+    },
+  };
+}
+
+async function createInvite(
+  input: CreateCommunityInviteFrontendInput,
+): Promise<CommunityActionResult<CommunityInviteSummaryDTO>> {
+  const fail = shouldFail<CommunityInviteSummaryDTO>();
+  if (fail) return fail;
+  const res = requireManager<CommunityInviteSummaryDTO>(input.slug);
+  if (!("state" in res)) return res;
+  const community = res.state;
+  const invitedUserId = input.invitedUserId?.trim() || null;
+  const invitedEmail = input.invitedEmail?.trim() || null;
+  if (!invitedUserId && !invitedEmail) {
+    return { ok: false, error: { code: "VALIDATION", field: "target", message: "Podaj userId lub email zapraszanej osoby." } };
+  }
+  const duplicate = community.invites.some(
+    (i) =>
+      i.status === "pending" &&
+      ((invitedUserId !== null && i.invitedUserId === invitedUserId) ||
+        (invitedEmail !== null && i.invitedEmail === invitedEmail)),
+  );
+  if (duplicate) {
+    return { ok: false, error: { code: "CONFLICT", message: "Zaproszenie do tej osoby już istnieje." } };
+  }
+  const invite: CommunityInviteSummaryDTO = {
+    id: nextId("inv"),
+    inviterUserId: FIXTURE_VIEWER_USER_ID,
+    invitedUserId,
+    invitedEmail,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+  };
+  community.invites.push(invite);
+  return { ok: true, value: { ...invite } };
+}
+
+async function cancelInvite(
+  slug: string,
+  inviteId: string,
+): Promise<CommunityActionResult<CommunityInviteSummaryDTO>> {
+  const fail = shouldFail<CommunityInviteSummaryDTO>();
+  if (fail) return fail;
+  const res = requireManager<CommunityInviteSummaryDTO>(slug);
+  if (!("state" in res)) return res;
+  const community = res.state;
+  const invite = community.invites.find((i) => i.id === inviteId);
+  if (!invite) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Zaproszenie nie istnieje." } };
+  }
+  if (invite.status !== "pending") {
+    return { ok: false, error: { code: "CONFLICT", message: "Zaproszenie zostało już sfinalizowane." } };
+  }
+  invite.status = "cancelled";
+  return { ok: true, value: { ...invite } };
+}
+
+async function listInvitesForManage(slug: string): Promise<CommunityActionResult<CommunityInviteSummaryDTO[]>> {
+  const fail = shouldFail<CommunityInviteSummaryDTO[]>();
+  if (fail) return fail;
+  const res = requireManager<CommunityInviteSummaryDTO[]>(slug);
+  if (!("state" in res)) return res;
+  return { ok: true, value: res.state.invites.map((i) => ({ ...i })) };
+}
+
 async function getCommunityHub(slug: string): Promise<CommunityActionResult<CommunityHubViewDTO>> {
   const fail = shouldFail<CommunityHubViewDTO>();
   if (fail) return fail;
@@ -617,6 +741,11 @@ export type CommunitiesMockAdapter = {
   leaveCommunity(slug: string): Promise<CommunityActionResult<CommunityProfileViewDTO>>;
   listMembers(slug: string): Promise<CommunityActionResult<CommunityMemberSummaryDTO[]>>;
   changeMemberRole(input: ChangeCommunityMemberRoleInput): Promise<CommunityActionResult<CommunityMemberSummaryDTO[]>>;
+  removeMember(slug: string, targetUserId: string): Promise<CommunityActionResult<CommunityMemberSummaryDTO[]>>;
+  getCommunityManageView(slug: string): Promise<CommunityActionResult<CommunityManageViewDTO>>;
+  createInvite(input: CreateCommunityInviteFrontendInput): Promise<CommunityActionResult<CommunityInviteSummaryDTO>>;
+  cancelInvite(slug: string, inviteId: string): Promise<CommunityActionResult<CommunityInviteSummaryDTO>>;
+  listInvitesForManage(slug: string): Promise<CommunityActionResult<CommunityInviteSummaryDTO[]>>;
   listPendingJoinRequests(slug: string): Promise<CommunityActionResult<CommunityJoinRequestSummaryDTO[]>>;
   acceptJoinRequest(input: DecideJoinRequestInput): Promise<CommunityActionResult<CommunityJoinRequestSummaryDTO[]>>;
   rejectJoinRequest(input: DecideJoinRequestInput): Promise<CommunityActionResult<CommunityJoinRequestSummaryDTO[]>>;
@@ -649,6 +778,11 @@ export const communitiesMockAdapter: CommunitiesMockAdapter = {
   leaveCommunity,
   listMembers,
   changeMemberRole,
+  removeMember,
+  getCommunityManageView,
+  createInvite,
+  cancelInvite,
+  listInvitesForManage,
   listPendingJoinRequests,
   acceptJoinRequest,
   rejectJoinRequest,

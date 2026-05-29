@@ -5,6 +5,8 @@
 import type {
   CommunityRecord,
   CommunityRepository,
+  InviteRecord,
+  InviteRepository,
   JoinRequestRecord,
   JoinRequestRepository,
   MembershipRecord,
@@ -106,6 +108,42 @@ export function createInMemoryJoinRequestRepository(): JoinRequestRepository {
       return [...rows.values()]
         .filter((r) => r.communityId === communityId && r.status === "pending")
         .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    },
+  };
+}
+
+export function createInMemoryInviteRepository(): InviteRepository {
+  const rows = new Map<string, InviteRecord>();
+  return {
+    async add(record) {
+      rows.set(record.id, record);
+      return record;
+    },
+    async getById(id) {
+      return rows.get(id) ?? null;
+    },
+    async listForCommunity(communityId) {
+      return [...rows.values()]
+        .filter((r) => r.communityId === communityId)
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    },
+    async findPendingForTarget(communityId, invitedUserId, invitedEmail) {
+      return (
+        [...rows.values()].find(
+          (r) =>
+            r.communityId === communityId &&
+            r.status === "pending" &&
+            ((invitedUserId !== null && r.invitedUserId === invitedUserId) ||
+              (invitedEmail !== null && r.invitedEmail === invitedEmail)),
+        ) ?? null
+      );
+    },
+    async update(id, patch) {
+      const existing = rows.get(id);
+      if (!existing) throw new Error(`invite ${id} not found`);
+      const next: InviteRecord = { ...existing, ...patch };
+      rows.set(id, next);
+      return next;
     },
   };
 }

@@ -3,6 +3,7 @@ import {
   canRemoveMember,
   createCommunitiesService,
   createInMemoryCommunityRepository,
+  createInMemoryInviteRepository,
   createInMemoryJoinRequestRepository,
   createInMemoryMembershipRepository,
   type CommunitiesService,
@@ -18,6 +19,7 @@ function makeService(): { svc: CommunitiesService; members: ReturnType<typeof cr
     communities: createInMemoryCommunityRepository(),
     members,
     joinRequests: createInMemoryJoinRequestRepository(),
+    invites: createInMemoryInviteRepository(),
     clock: { now: () => new Date("2026-05-29T00:00:00Z") },
     ids: { next: () => `c-${++seq}` },
   });
@@ -355,5 +357,121 @@ describe("communities-v2 service", () => {
     expect(keys).not.toContain("email");
     expect(keys).not.toContain("phone");
     expect(keys).not.toContain("dateOfBirth");
+  });
+
+  it("removeMember refuses self-removal and founder; allows admin to remove member", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    await svc.joinCommunity(c.value.id, STRANGER);
+    await svc.changeMemberRole({
+      actorUserId: FOUNDER,
+      communityId: c.value.id,
+      targetUserId: STRANGER,
+      nextRole: "admin",
+    });
+    const adminUser = STRANGER;
+    const targetUser = "u-target";
+    await svc.joinCommunity(c.value.id, targetUser);
+
+    // Admin can remove a member.
+    const removed = await svc.removeMember({ actorUserId: adminUser, communityId: c.value.id, targetUserId: targetUser });
+    expect(removed.ok).toBe(true);
+
+    // Admin cannot remove the founder.
+    const attackFounder = await svc.removeMember({ actorUserId: adminUser, communityId: c.value.id, targetUserId: FOUNDER });
+    expect(attackFounder.ok).toBe(false);
+    if (!attackFounder.ok) expect(attackFounder.error.code).toBe("FORBIDDEN");
+
+    // Self-removal forbidden.
+    const self = await svc.removeMember({ actorUserId: adminUser, communityId: c.value.id, targetUserId: adminUser });
+    expect(self.ok).toBe(false);
+    if (!self.ok) expect(self.error.code).toBe("FORBIDDEN");
+  });
+
+  it("removeMember refuses a member-acting-on-member", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    await svc.joinCommunity(c.value.id, STRANGER);
+    await svc.joinCommunity(c.value.id, "u-other");
+    const res = await svc.removeMember({ actorUserId: STRANGER, communityId: c.value.id, targetUserId: "u-other" });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.error.code).toBe("FORBIDDEN");
+  });
+
+  it("createInvite requires founder/admin and a target", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+
+    const blank = await svc.createInvite({ actorUserId: FOUNDER, communityId: c.value.id });
+    expect(blank.ok).toBe(false);
+    if (!blank.ok) expect(blank.error.code).toBe("INVITE_TARGET_REQUIRED");
+
+    const byStranger = await svc.createInvite({
+      actorUserId: STRANGER,
+      communityId: c.value.id,
+      invitedUserId: "u-want-in",
+    });
+    expect(byStranger.ok).toBe(false);
+    if (!byStranger.ok) expect(byStranger.error.code).toBe("FORBIDDEN");
+
+    const created = await svc.createInvite({
+      actorUserId: FOUNDER,
+      communityId: c.value.id,
+      invitedUserId: "u-want-in",
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(created.value.status).toBe("pending");
+  });
+
+  it("createInvite blocks duplicate pending for the same target", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    await svc.createInvite({ actorUserId: FOUNDER, communityId: c.value.id, invitedEmail: "x@example.com" });
+    const dup = await svc.createInvite({ actorUserId: FOUNDER, communityId: c.value.id, invitedEmail: "x@example.com" });
+    expect(dup.ok).toBe(false);
+    if (!dup.ok) expect(dup.error.code).toBe("INVITE_DUPLICATE");
+  });
+
+  it("cancelInvite + listInvites round-trip; cancel of finalised invite blocked", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    const created = await svc.createInvite({ actorUserId: FOUNDER, communityId: c.value.id, invitedUserId: "u-1" });
+    if (!created.ok) throw new Error("setup");
+
+    const list1 = await svc.listInvitesForManage(c.value.id, FOUNDER);
+    expect(list1.ok && list1.value.length).toBe(1);
+
+    const cancelled = await svc.cancelInvite({ actorUserId: FOUNDER, communityId: c.value.id, inviteId: created.value.id });
+    expect(cancelled.ok && cancelled.value.status).toBe("cancelled");
+
+    const cancelAgain = await svc.cancelInvite({ actorUserId: FOUNDER, communityId: c.value.id, inviteId: created.value.id });
+    expect(cancelAgain.ok).toBe(false);
+    if (!cancelAgain.ok) expect(cancelAgain.error.code).toBe("INVITE_NOT_PENDING");
+  });
+
+  it("CommunityInvitePublicDTO carries no invitedEmail", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    await svc.createInvite({ actorUserId: FOUNDER, communityId: c.value.id, invitedEmail: "leak@example.com" });
+    const publicList = await svc.listInvitesPublic(c.value.id);
+    expect(publicList.ok).toBe(true);
+    if (!publicList.ok) return;
+    expect(publicList.value.length).toBe(1);
+    const keys = Object.keys(publicList.value[0]);
+    expect(keys).not.toContain("invitedEmail");
+  });
+
+  it("listInvitesForManage is gated to founder/admin and exposes invitedEmail for them only", async () => {
+    const c = await svc.createCommunity({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!c.ok) throw new Error("setup");
+    await svc.createInvite({ actorUserId: FOUNDER, communityId: c.value.id, invitedEmail: "leak@example.com" });
+
+    const blocked = await svc.listInvitesForManage(c.value.id, STRANGER);
+    expect(blocked.ok).toBe(false);
+    if (!blocked.ok) expect(blocked.error.code).toBe("FORBIDDEN");
+
+    const allowed = await svc.listInvitesForManage(c.value.id, FOUNDER);
+    expect(allowed.ok && allowed.value[0].invitedEmail).toBe("leak@example.com");
   });
 });

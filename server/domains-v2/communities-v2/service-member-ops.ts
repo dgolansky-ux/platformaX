@@ -9,6 +9,7 @@ import type {
   CommunityMemberDTO,
   CommunityViewerStateDTO,
   DecideJoinRequestInput,
+  RemoveMemberInput,
 } from "./dto";
 import type {
   CommunityRepository,
@@ -20,6 +21,7 @@ import {
   canChangeRole,
   canLeaveCommunity,
   canManageMembers,
+  canRemoveMember,
   hasCommunityAuthority,
 } from "./policy";
 
@@ -134,6 +136,33 @@ export async function changeMemberRole(
     return { ok: false, error: { code: "FORBIDDEN", message: "Actor cannot perform this role change." } };
   }
   return { ok: true, value: { ...(await deps.members.updateRole(input.communityId, input.targetUserId, input.nextRole)) } };
+}
+
+/**
+ * Removes a member from the community. Founder is never removable through
+ * this path. The actor must outrank the target (admin can remove member/mod,
+ * founder can remove anyone except themselves).
+ */
+export async function removeMember(
+  deps: MemberOpsDeps,
+  input: RemoveMemberInput,
+): Promise<MemberOpsResult<true>> {
+  if (!(await deps.communities.getById(input.communityId))) {
+    return { ok: false, error: { code: "NOT_FOUND", message: "Community not found." } };
+  }
+  if (input.actorUserId === input.targetUserId) {
+    return { ok: false, error: { code: "FORBIDDEN", message: "Use leaveCommunity to remove yourself." } };
+  }
+  const target = await deps.members.get(input.communityId, input.targetUserId);
+  if (!target) {
+    return { ok: false, error: { code: "MEMBER_NOT_FOUND", message: "Target user is not a community member." } };
+  }
+  const actor = await deps.members.get(input.communityId, input.actorUserId);
+  if (!actor || !canRemoveMember({ role: actor.role }, { role: target.role })) {
+    return { ok: false, error: { code: "FORBIDDEN", message: "Actor cannot remove this member." } };
+  }
+  await deps.members.remove(input.communityId, input.targetUserId);
+  return { ok: true, value: true };
 }
 
 /**

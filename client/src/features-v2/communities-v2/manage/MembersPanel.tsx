@@ -11,10 +11,42 @@ const ROLE_LABEL: Record<CommunityRole, string> = {
   member: "Członek",
 };
 
+const ROLE_BADGE_CLASS: Record<CommunityRole, string> = {
+  founder: styles.founderBadge,
+  admin: styles.roleBadgeAdmin,
+  moderator: styles.roleBadgeMod,
+  member: styles.roleBadgeMember,
+};
+
+const ROLE_ICON: Record<CommunityRole, string> = {
+  founder: "👑",
+  admin: "🛡",
+  moderator: "🛡",
+  member: "·",
+};
+
 export type MembersPanelProps = {
   members: readonly CommunityMemberSummaryDTO[];
+  viewerUserId: string;
+  viewerRole: CommunityRole | null;
   onChangeRole: (targetUserId: string, nextRole: Exclude<CommunityRole, "founder">) => Promise<void>;
+  onRemove: (targetUserId: string) => Promise<void>;
 };
+
+function avatarInitial(name: string): string {
+  return name.trim().slice(0, 1).toUpperCase() || "?";
+}
+
+function canActOn(
+  viewerRole: CommunityRole | null,
+  targetRole: CommunityRole,
+  isSelf: boolean,
+): boolean {
+  if (isSelf || targetRole === "founder") return false;
+  if (viewerRole === "founder") return true;
+  if (viewerRole === "admin") return targetRole !== "admin";
+  return false;
+}
 
 function RoleSelector({
   value,
@@ -36,36 +68,64 @@ function RoleSelector({
           }
         }}
       >
-        <option value="admin">Admin</option>
-        <option value="moderator">Moderator</option>
-        <option value="member">Członek</option>
+        <option value="admin">Mianuj administratorem</option>
+        <option value="moderator">Mianuj moderatorem</option>
+        <option value="member">Degraduj do członka</option>
       </select>
     </label>
   );
 }
 
-export function MembersPanel({ members, onChangeRole }: MembersPanelProps) {
+export function MembersPanel({
+  members,
+  viewerUserId,
+  viewerRole,
+  onChangeRole,
+  onRemove,
+}: MembersPanelProps) {
   return (
     <section className={styles.panel} aria-labelledby="members-heading">
       <h2 id="members-heading" className={styles.panelTitle}>Członkowie ({members.length})</h2>
       <ul className={styles.list}>
-        {members.map((member) => (
-          <li key={member.userId} className={styles.listItem}>
-            <div>
-              <p className={styles.listItemTitle}>{member.displayName}</p>
-              <p className={styles.listItemMeta}>
-                {ROLE_LABEL[member.role]} · od {new Date(member.joinedAt).toLocaleDateString("pl-PL")}
-              </p>
-            </div>
-            {member.role !== "founder" ? (
-              <div className={styles.listItemActions}>
-                <RoleSelector value={member.role} onChange={(next) => void onChangeRole(member.userId, next)} />
+        {members.map((member) => {
+          const isSelf = member.userId === viewerUserId;
+          const actionable = canActOn(viewerRole, member.role, isSelf);
+          return (
+            <li key={member.userId} className={styles.listItem}>
+              <div className={styles.memberLeft}>
+                <span className={styles.memberAvatar} aria-hidden>{avatarInitial(member.displayName)}</span>
+                <div>
+                  <p className={styles.listItemTitle}>
+                    {member.displayName}
+                    {isSelf ? <span aria-hidden> · ty</span> : null}
+                  </p>
+                  <p className={styles.listItemMeta}>
+                    od {new Date(member.joinedAt).toLocaleDateString("pl-PL")}
+                  </p>
+                </div>
               </div>
-            ) : (
-              <span className={styles.founderBadge}>Founder</span>
-            )}
-          </li>
-        ))}
+              <div className={styles.listItemActions}>
+                <span className={ROLE_BADGE_CLASS[member.role]} aria-label={`Rola: ${ROLE_LABEL[member.role]}`}>
+                  <span aria-hidden>{ROLE_ICON[member.role]}</span>
+                  {ROLE_LABEL[member.role]}
+                </span>
+                {actionable ? (
+                  <>
+                    <RoleSelector value={member.role} onChange={(next) => void onChangeRole(member.userId, next)} />
+                    <button
+                      type="button"
+                      className={styles.dangerButton}
+                      onClick={() => void onRemove(member.userId)}
+                      aria-label={`Usuń ze społeczności: ${member.displayName}`}
+                    >
+                      Usuń
+                    </button>
+                  </>
+                ) : null}
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

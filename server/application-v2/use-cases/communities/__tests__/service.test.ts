@@ -3,6 +3,7 @@ import { createCommunitiesUseCase } from "../public-api";
 import {
   createCommunitiesService,
   createInMemoryCommunityRepository,
+  createInMemoryInviteRepository,
   createInMemoryMembershipRepository,
   createInMemoryJoinRequestRepository,
 } from "@server/domains-v2/communities-v2/public-api";
@@ -19,6 +20,7 @@ function makeDeps(defaultModuleKeys?: string[]) {
     communities: createInMemoryCommunityRepository(),
     members: createInMemoryMembershipRepository(),
     joinRequests: createInMemoryJoinRequestRepository(),
+    invites: createInMemoryInviteRepository(),
     clock: { now: () => new Date("2026-05-29T00:00:00Z") },
     ids: { next: () => `c-${++seq}` },
   });
@@ -174,5 +176,79 @@ describe("communities use-case — profile + viewer state", () => {
     expect(cancelled.ok).toBe(true);
     const after = await usecase.getCommunityViewerState(id, STRANGER);
     expect(after.ok && after.value.relation).toBe("stranger");
+  });
+});
+
+describe("communities use-case — manage view + invites", () => {
+  const STRANGER = "u-stranger";
+
+  it("getCommunityManageView is gated to founder/admin and composes safe summaries", async () => {
+    const usecase = createCommunitiesUseCase(makeDeps());
+    const created = await usecase.createCommunityWithDefaults({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!created.ok) throw new Error("setup");
+
+    const denied = await usecase.getCommunityManageView("devs", STRANGER);
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) expect(denied.error.code).toBe("FORBIDDEN");
+
+    const allowed = await usecase.getCommunityManageView("devs", FOUNDER);
+    expect(allowed.ok).toBe(true);
+    if (!allowed.ok) return;
+    expect(allowed.value.viewer.canManage).toBe(true);
+    expect(allowed.value.profile.slug).toBe("devs");
+    expect(allowed.value.members.length).toBe(1);
+    expect(allowed.value.joinRequests).toEqual([]);
+    expect(allowed.value.invites).toEqual([]);
+    expect(Object.keys(allowed.value.profile)).not.toContain("founderUserId");
+    expect(Object.keys(allowed.value.profile)).not.toContain("email");
+  });
+
+  it("manage flow round-trip: change role, remove member, accept request, create+cancel invite", async () => {
+    const usecase = createCommunitiesUseCase(makeDeps());
+    const created = await usecase.createCommunityWithDefaults({ founderUserId: FOUNDER, name: "Devs", slug: "devs" });
+    if (!created.ok) throw new Error("setup");
+    const id = created.value.community.id;
+
+    await usecase.joinCommunity(id, "u-target");
+    await usecase.requestJoinCommunity(id, "u-pending");
+    const requests = await usecase.getCommunityManageView("devs", FOUNDER);
+    if (!requests.ok) throw new Error("setup");
+    expect(requests.value.joinRequests.length).toBe(1);
+
+    const promoted = await usecase.changeCommunityMemberRole({
+      actorUserId: FOUNDER,
+      communityId: id,
+      targetUserId: "u-target",
+      nextRole: "moderator",
+    });
+    expect(promoted.ok && promoted.value.role).toBe("moderator");
+
+    const removed = await usecase.removeCommunityMember({
+      actorUserId: FOUNDER,
+      communityId: id,
+      targetUserId: "u-target",
+    });
+    expect(removed.ok).toBe(true);
+
+    const accepted = await usecase.acceptCommunityJoinRequest({
+      actorUserId: FOUNDER,
+      communityId: id,
+      joinRequestId: requests.value.joinRequests[0].id,
+    });
+    expect(accepted.ok && accepted.value.status).toBe("accepted");
+
+    const invite = await usecase.createCommunityInvite({
+      actorUserId: FOUNDER,
+      communityId: id,
+      invitedEmail: "guest@example.com",
+    });
+    expect(invite.ok && invite.value.status).toBe("pending");
+    if (!invite.ok) return;
+    const cancelled = await usecase.cancelCommunityInvite({
+      actorUserId: FOUNDER,
+      communityId: id,
+      inviteId: invite.value.id,
+    });
+    expect(cancelled.ok && cancelled.value.status).toBe("cancelled");
   });
 });

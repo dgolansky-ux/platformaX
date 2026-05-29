@@ -7,7 +7,10 @@
   --c-primary: #1e4fd8;
   --c-primary-soft: #eef2ff;
   --c-danger: #b91c1c;
-
+  --c-danger-soft: #fee2e2;
+  --c-warning: #d97706;
+  --c-success: #059669;
+  --c-success-soft: #d1fae5;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -17,7 +20,6 @@
   color: var(--c-text);
   font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
 }
-
 .hero {
   display: flex;
   align-items: flex-start;
@@ -29,7 +31,6 @@
   background: #ffffff;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
 }
-
 .kicker {
   margin: 0 0 4px;
   color: var(--c-primary);
@@ -37,20 +38,8 @@
   font-weight: 800;
   text-transform: uppercase;
 }
-
-.title {
-  margin: 0;
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.subtitle {
-  margin: 4px 0 0;
-  color: var(--c-text-soft);
-  font-size: 0.9rem;
-}
-
+.title { margin: 0; font-size: clamp(1.5rem, 2.4vw, 2rem); font-weight: 800; letter-spacing: -0.02em; }
+.subtitle { margin: 4px 0 0; color: var(--c-text-soft); font-size: 0.9rem; }
 .backButton {
   padding: 8px 14px;
   border-radius: 999px;
@@ -62,16 +51,39 @@
   text-decoration: none;
   font-size: 0.85rem;
 }
-
 .actionError {
   padding: 10px 14px;
   border-radius: 12px;
-  background: #fee2e2;
+  background: var(--c-danger-soft);
   color: var(--c-danger);
   font-size: 0.9rem;
   margin: 0;
 }
-
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: 14px;
+  background: var(--c-surface);
+}
+.tabButton {
+  flex: 1;
+  min-width: 120px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--c-text-soft);
+  font-weight: 700;
+  font-family: inherit;
+  font-size: 0.88rem;
+  border: 0;
+  cursor: pointer;
+}
+.tabButton:hover { background: var(--c-primary-soft); color: var(--c-primary); }
+.tabActive { background: var(--c-primary); color: #ffffff; }
+.tabActive:hover { background: var(--c-primary); color: #ffffff; filter: brightness(1.05); }
 .panel {
   display: flex;
   flex-direction: column;
@@ -82,34 +94,10 @@
   background: #ffffff;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
-
-.panelTitle {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 800;
-}
-
-.settingsForm {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border: 0;
-  padding: 0;
-  margin: 0;
-}
-
-.label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--c-text);
-}
-
+.panelTitle { margin: 0; font-size: 1.05rem; font-weight: 800; }
+.settingsForm { display: flex; flex-direction: column; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; margin: 0; }
+.label { font-size: 0.85rem; font-weight: 700; color: var(--c-text); }
 .input,
 .textarea {
   padding: 10px 12px;
@@ -120,18 +108,9 @@
   font-family: inherit;
   color: var(--c-text);
 }
-
 .input:focus-visible,
-.textarea:focus-visible {
-  outline: 3px solid var(--c-primary-soft);
-  border-color: var(--c-primary);
-}
-
-.textarea {
-  resize: vertical;
-  min-height: 84px;
-}
-
+.textarea:focus-visible { outline: 3px solid var(--c-primary-soft); border-color: var(--c-primary); }
+.textarea { resize: vertical; min-height: 84px; }
 .radioRow {
   display: inline-flex;
   align-items: center;
@@ -139,14 +118,10 @@
   margin-right: 12px;
   font-size: 0.9rem;
 }
-
-.formActions {
-  display: flex;
-  justify-content: flex-end;
-}
-
+.formActions { display: flex; justify-content: flex-end; gap: 8px; }
 .primaryButton,
-.secondaryButton {
+.secondaryButton,
+.dangerButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -158,32 +133,22 @@
   font-size: 0.85rem;
   border: 1px solid transparent;
 }
-
-.primaryButton {
-  color: #ffffff;
-  background: var(--c-primary);
-  border-color: var(--c-primary);
-}
-
-.primaryButton:disabled {
+.primaryButton { color: #ffffff; background: var(--c-primary); border-color: var(--c-primary); }
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled {
   color: #94a3b8;
   background: #f1f5f9;
   border-color: #e2e8f0;
   cursor: not-allowed;
 }
-
-.secondaryButton {
-  color: var(--c-primary);
-  background: var(--c-primary-soft);
-  border-color: var(--c-primary-soft);
-}
-
+.secondaryButton { color: var(--c-primary); background: var(--c-primary-soft); border-color: var(--c-primary-soft); }
+.dangerButton { color: #ffffff; background: var(--c-danger); border-color: var(--c-danger); }
 .tilesRow {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
-
 .tile {
   display: flex;
   flex-direction: column;
@@ -196,27 +161,9 @@
   text-decoration: none;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
-
-.tile h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.tile p {
-  margin: 0;
-  color: var(--c-text-soft);
-  font-size: 0.85rem;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
+.tile h3 { margin: 0; font-size: 1rem; }
+.tile p { margin: 0; color: var(--c-text-soft); font-size: 0.85rem; }
+.list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .listItem {
   display: flex;
   align-items: center;
@@ -227,33 +174,24 @@
   border-radius: 12px;
   background: #fafbff;
 }
-
-.listItemTitle {
-  margin: 0;
-  font-weight: 700;
-}
-
-.listItemMeta {
-  margin: 2px 0 0;
-  color: var(--c-text-soft);
-  font-size: 0.82rem;
-}
-
-.listItemActions {
-  display: flex;
-  gap: 6px;
-}
-
-.empty {
-  margin: 0;
-  color: var(--c-text-soft);
+.memberLeft { display: flex; align-items: center; gap: 10px; }
+.memberAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
   font-size: 0.9rem;
 }
-
-.roleSelectLabel {
-  display: inline-flex;
-}
-
+.listItemTitle { margin: 0; font-weight: 700; }
+.listItemMeta { margin: 2px 0 0; color: var(--c-text-soft); font-size: 0.82rem; }
+.listItemActions { display: flex; gap: 6px; align-items: center; }
+.empty { margin: 0; color: var(--c-text-soft); font-size: 0.9rem; }
+.roleSelectLabel { display: inline-flex; }
 .roleSelect {
   padding: 6px 10px;
   border: 1px solid var(--c-border);
@@ -262,36 +200,80 @@
   font-size: 0.82rem;
   font-family: inherit;
 }
-
-.founderBadge {
+.founderBadge,
+.roleBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.founderBadge { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+.roleBadgeAdmin { background: rgba(30, 79, 216, 0.1); color: var(--c-primary); }
+.roleBadgeMod { background: rgba(16, 185, 129, 0.12); color: var(--c-success); }
+.roleBadgeMember { background: #f3f4f6; color: var(--c-text-soft); }
+.dangerZone {
+  border: 2px solid #fecaca;
+  border-radius: 16px;
+  background: #fef2f2;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dangerHeading {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--c-danger);
+  align-items: center;
+}
+.dangerNote { margin: 0; color: #b91c1c; font-size: 0.85rem; line-height: 1.45; }
+.dangerActions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.dangerDisabled {
+  background: #ffffff;
+  border: 1px dashed #fecaca;
+  color: var(--c-danger);
+  font-size: 0.8rem;
   padding: 6px 12px;
   border-radius: 999px;
-  background: var(--c-primary-soft);
-  color: var(--c-primary);
-  font-size: 0.8rem;
-  font-weight: 800;
 }
-
+.inviteForm { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+.inviteField { flex: 1; min-width: 160px; }
+.inviteStatusBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #f3f4f6;
+  color: var(--c-text-soft);
+}
+.inviteStatusPending { background: rgba(217, 119, 6, 0.1); color: var(--c-warning); }
+.inviteStatusCancelled { background: #f3f4f6; color: var(--c-text-soft); }
+.transportNote {
+  margin: 0;
+  color: var(--c-text-soft);
+  font-size: 0.78rem;
+  font-style: italic;
+}
 .loadingState,
 .errorState,
 .forbiddenState {
   padding: 28px;
   text-align: center;
   color: var(--c-text-soft);
+  border: 1px solid var(--c-border-soft);
+  border-radius: 16px;
+  background: #ffffff;
 }
-
 .errorState,
-.forbiddenState {
-  color: var(--c-danger);
-}
-
-.forbiddenState h2 {
-  margin: 0 0 8px;
-}
-
+.forbiddenState { color: var(--c-danger); }
+.forbiddenState h2 { margin: 0 0 8px; }
 @media (max-width: 760px) {
-  .hero {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  .hero { flex-direction: column; align-items: stretch; }
+  .tabButton { min-width: 100%; }
 }

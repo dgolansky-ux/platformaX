@@ -8,13 +8,19 @@
  */
 import type { CommunityAuthorityResolver } from "@server/domains-v2/communities-v2/contracts";
 import type {
+  CancelCommunityInviteInput,
   CommunitiesService,
+  CommunityInviteManageDTO,
   CommunityJoinRequestDTO,
   CommunityMemberDTO,
   CommunityPublicDTO,
   CommunityViewerStateDTO,
   CommunitiesErrorCode,
   CreateCommunityInput,
+  CreateCommunityInviteInput,
+  DecideJoinRequestInput,
+  RemoveMemberInput,
+  UpdateCommunitySettingsInput,
 } from "@server/domains-v2/communities-v2/public-api";
 import type {
   ModuleEnablementDTO,
@@ -67,6 +73,18 @@ export type CommunityMembershipActionResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: { code: CommunitiesErrorCode; message: string } };
 
+export type CommunityManageView = {
+  profile: CommunityPublicDTO;
+  viewer: CommunityViewerStateDTO;
+  members: readonly CommunityMemberDTO[];
+  joinRequests: readonly CommunityJoinRequestDTO[];
+  invites: readonly CommunityInviteManageDTO[];
+};
+
+export type GetCommunityManageViewResult =
+  | { ok: true; value: CommunityManageView }
+  | { ok: false; error: { code: CommunitiesErrorCode; message: string } };
+
 export interface CommunitiesUseCase {
   createCommunityWithDefaults(input: CreateCommunityInput): Promise<CreateCommunityWithDefaultsResult>;
   enableCommunityModule(input: EnableCommunityModuleInput): Promise<EnableCommunityModuleResult>;
@@ -76,6 +94,14 @@ export interface CommunitiesUseCase {
   requestJoinCommunity(communityId: string, viewerUserId: string): Promise<CommunityMembershipActionResult<CommunityJoinRequestDTO>>;
   cancelJoinRequest(communityId: string, joinRequestId: string, viewerUserId: string): Promise<CommunityMembershipActionResult<CommunityJoinRequestDTO>>;
   leaveCommunity(communityId: string, viewerUserId: string): Promise<CommunityMembershipActionResult<true>>;
+  getCommunityManageView(slug: string, actorUserId: string): Promise<GetCommunityManageViewResult>;
+  updateCommunitySettings(input: UpdateCommunitySettingsInput): Promise<CommunityMembershipActionResult<CommunityPublicDTO>>;
+  changeCommunityMemberRole(input: import("@server/domains-v2/communities-v2/public-api").ChangeMemberRoleInput): Promise<CommunityMembershipActionResult<CommunityMemberDTO>>;
+  removeCommunityMember(input: RemoveMemberInput): Promise<CommunityMembershipActionResult<true>>;
+  acceptCommunityJoinRequest(input: DecideJoinRequestInput): Promise<CommunityMembershipActionResult<CommunityJoinRequestDTO>>;
+  rejectCommunityJoinRequest(input: DecideJoinRequestInput): Promise<CommunityMembershipActionResult<CommunityJoinRequestDTO>>;
+  createCommunityInvite(input: CreateCommunityInviteInput): Promise<CommunityMembershipActionResult<CommunityInviteManageDTO>>;
+  cancelCommunityInvite(input: CancelCommunityInviteInput): Promise<CommunityMembershipActionResult<CommunityInviteManageDTO>>;
 }
 
 const MAX_DEFAULT_MODULES = 8;
@@ -126,5 +152,35 @@ export function createCommunitiesUseCase(deps: CreateCommunityWithDefaultsDeps):
     cancelJoinRequest: (communityId, joinRequestId, viewerUserId) =>
       deps.communities.cancelJoinRequest(communityId, joinRequestId, viewerUserId),
     leaveCommunity: (communityId, viewerUserId) => deps.communities.leaveCommunity(communityId, viewerUserId),
+
+    async getCommunityManageView(slug, actorUserId) {
+      const profile = await deps.communities.getPublicCommunityBySlug(slug);
+      if (!profile) return { ok: false, error: { code: "NOT_FOUND", message: "Community not found." } };
+      const viewer = await deps.communities.getViewerState(profile.id, actorUserId);
+      if (!viewer.ok) return viewer;
+      if (!viewer.value.canManage) {
+        return { ok: false, error: { code: "FORBIDDEN", message: "Only founder/admin may open the manage view." } };
+      }
+      const [members, requests, invites] = await Promise.all([
+        deps.communities.listMembers(profile.id, actorUserId),
+        deps.communities.listPendingJoinRequests(profile.id, actorUserId),
+        deps.communities.listInvitesForManage(profile.id, actorUserId),
+      ]);
+      if (!members.ok) return members;
+      if (!requests.ok) return requests;
+      if (!invites.ok) return invites;
+      return {
+        ok: true,
+        value: { profile, viewer: viewer.value, members: members.value, joinRequests: requests.value, invites: invites.value },
+      };
+    },
+
+    updateCommunitySettings: (input) => deps.communities.updateSettings(input),
+    changeCommunityMemberRole: (input) => deps.communities.changeMemberRole(input),
+    removeCommunityMember: (input) => deps.communities.removeMember(input),
+    acceptCommunityJoinRequest: (input) => deps.communities.acceptJoinRequest(input),
+    rejectCommunityJoinRequest: (input) => deps.communities.rejectJoinRequest(input),
+    createCommunityInvite: (input) => deps.communities.createInvite(input),
+    cancelCommunityInvite: (input) => deps.communities.cancelInvite(input),
   };
 }

@@ -13,4 +13,6 @@ export type {
   CommunityProfileView,
   GetCommunityProfileViewResult,
   CommunityMembershipActionResult,
+  CommunityManageView,
+  GetCommunityManageViewResult,
 } from "./service";

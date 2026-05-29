@@ -3,6 +3,7 @@
  * repository.ts; a DB adapter will implement the same interfaces later.
  */
 import type {
+  CommunityInviteStatus,
   CommunityRole,
   CommunityStatus,
   CommunityVisibility,
@@ -66,5 +67,24 @@ export interface JoinRequestRepository {
   getById(id: string): Promise<JoinRequestRecord | null>;
   update(id: string, patch: Partial<JoinRequestRecord>): Promise<JoinRequestRecord>;
   listPending(communityId: string): Promise<JoinRequestRecord[]>;
+}
+
+export type InviteRecord = {
+  id: string;
+  communityId: string;
+  inviterUserId: string;
+  invitedUserId: string | null;
+  invitedEmail: string | null;
+  status: CommunityInviteStatus;
+  createdAt: string;
+  expiresAt: string | null;
+};
+
+export interface InviteRepository {
+  add(record: InviteRecord): Promise<InviteRecord>;
+  getById(id: string): Promise<InviteRecord | null>;
+  listForCommunity(communityId: string): Promise<InviteRecord[]>;
+  findPendingForTarget(communityId: string, invitedUserId: string | null, invitedEmail: string | null): Promise<InviteRecord | null>;
+  update(id: string, patch: Partial<InviteRecord>): Promise<InviteRecord>;
 }
 

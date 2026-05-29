@@ -17,11 +17,13 @@ export {
   createInMemoryCommunityRepository,
   createInMemoryMembershipRepository,
   createInMemoryJoinRequestRepository,
+  createInMemoryInviteRepository,
 } from "./store";
 export type {
   CommunityRepository,
   MembershipRepository,
   JoinRequestRepository,
+  InviteRepository,
 } from "./ports";
 export type {
   CommunityPublicDTO,
@@ -33,7 +35,13 @@ export type {
   CommunityStatus,
   CommunityViewerRelation,
   CommunityViewerStateDTO,
+  CommunityInviteStatus,
+  CommunityInvitePublicDTO,
+  CommunityInviteManageDTO,
   CreateCommunityInput,
+  CreateCommunityInviteInput,
+  CancelCommunityInviteInput,
+  RemoveMemberInput,
   UpdateCommunitySettingsInput,
   DecideJoinRequestInput,
   ChangeMemberRoleInput,
@@ -46,5 +54,6 @@ export {
   canChangeRole,
   canLeaveCommunity,
   canCancelOwnJoinRequest,
+  canManageInvites,
 } from "./policy";
 export { COMMUNITY_CATEGORIES, isValidCategorySlug, type CommunityCategoryRef } from "./categories";

@@ -12,31 +12,6 @@ export type CommunityRole = "founder" | "admin" | "moderator" | "member";
 export type MembershipStatus = "active" | "pending" | "removed";
 export type JoinRequestStatus = "pending" | "accepted" | "rejected" | "cancelled";
 
-/**
- * What the current viewer may do on a community. Computed by the service from
- * role + visibility + pending state. Booleans are derived (no PII) so the
- * frontend can drive CTAs without re-implementing policy.
- */
-export type CommunityViewerRelation =
-  | "unauthenticated"
-  | "stranger"
-  | "pending_request"
-  | "member"
-  | "moderator"
-  | "admin"
-  | "founder";
-
-export type CommunityViewerStateDTO = {
-  viewerUserId: string | null;
-  relation: CommunityViewerRelation;
-  canJoin: boolean;
-  canRequestJoin: boolean;
-  canCancelRequest: boolean;
-  canLeave: boolean;
-  canManage: boolean;
-  canViewPrivateSections: boolean;
-};
-
 /** Public community card — safe for anonymous viewers. No PII. */
 export type CommunityPublicDTO = {
   id: string;
@@ -103,3 +78,19 @@ export type ChangeMemberRoleInput = {
   /** Founder may not be assigned or revoked through this path. */
   nextRole: Exclude<CommunityRole, "founder">;
 };
+
+export type RemoveMemberInput = {
+  actorUserId: string;
+  communityId: string;
+  targetUserId: string;
+};
+
+export type {
+  CommunityInviteStatus,
+  CommunityInvitePublicDTO,
+  CommunityInviteManageDTO,
+  CreateCommunityInviteInput,
+  CancelCommunityInviteInput,
+  CommunityViewerRelation,
+  CommunityViewerStateDTO,
+} from "./dto-invites";

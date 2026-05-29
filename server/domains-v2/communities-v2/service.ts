@@ -5,18 +5,24 @@
  * as module-level functions so the factory stays small.
  */
 import type {
+  CancelCommunityInviteInput,
   ChangeMemberRoleInput,
+  CommunityInviteManageDTO,
+  CommunityInvitePublicDTO,
   CommunityJoinRequestDTO,
   CommunityMemberDTO,
   CommunityPublicDTO,
   CommunityViewerStateDTO,
   CreateCommunityInput,
+  CreateCommunityInviteInput,
   DecideJoinRequestInput,
+  RemoveMemberInput,
   UpdateCommunitySettingsInput,
 } from "./dto";
 import type { CommunityAuthorityResolver, CommunityPublicSummary } from "./contracts";
 import type {
   CommunityRepository,
+  InviteRepository,
   JoinRequestRepository,
   MembershipRepository,
 } from "./ports";
@@ -32,7 +38,9 @@ import {
   leaveCommunity as leaveCommunityOp,
   listMembers as listMembersOp,
   listPendingJoinRequests as listPendingJoinRequestsOp,
+  removeMember as removeMemberOp,
 } from "./service-member-ops";
+import { createInviteBridge } from "./service-invite-bridge";
 
 export type CommunitiesClock = { now: () => Date };
 export type CommunitiesIdGenerator = { next: () => string };
@@ -41,6 +49,7 @@ export type CommunitiesServiceDeps = {
   communities: CommunityRepository;
   members: MembershipRepository;
   joinRequests: JoinRequestRepository;
+  invites?: InviteRepository;
   clock: CommunitiesClock;
   ids: CommunitiesIdGenerator;
 };
@@ -58,7 +67,11 @@ export type CommunitiesErrorCode =
   | "ALREADY_MEMBER"
   | "JOIN_REQUIRES_APPROVAL"
   | "FOUNDER_CANNOT_LEAVE"
-  | "NOT_MEMBER";
+  | "NOT_MEMBER"
+  | "INVITE_TARGET_REQUIRED"
+  | "INVITE_DUPLICATE"
+  | "INVITE_NOT_PENDING"
+  | "INVITES_NOT_CONFIGURED";
 
 export type CommunitiesResult<T> =
   | { ok: true; value: T }
@@ -79,6 +92,11 @@ export interface CommunitiesService extends CommunityAuthorityResolver {
   listPendingJoinRequests(communityId: string, actorUserId: string): Promise<CommunitiesResult<CommunityJoinRequestDTO[]>>;
   listMembers(communityId: string, actorUserId: string): Promise<CommunitiesResult<CommunityMemberDTO[]>>;
   changeMemberRole(input: ChangeMemberRoleInput): Promise<CommunitiesResult<CommunityMemberDTO>>;
+  removeMember(input: RemoveMemberInput): Promise<CommunitiesResult<true>>;
+  createInvite(input: CreateCommunityInviteInput): Promise<CommunitiesResult<CommunityInviteManageDTO>>;
+  cancelInvite(input: CancelCommunityInviteInput): Promise<CommunitiesResult<CommunityInviteManageDTO>>;
+  listInvitesForManage(communityId: string, actorUserId: string): Promise<CommunitiesResult<CommunityInviteManageDTO[]>>;
+  listInvitesPublic(communityId: string): Promise<CommunitiesResult<CommunityInvitePublicDTO[]>>;
   getPublicCommunityBySlug(slug: string): Promise<CommunityPublicDTO | null>;
   getViewerRole(communityId: string, userId: string): Promise<CommunitiesResult<CommunityRoleOrNull>>;
   getViewerState(communityId: string, viewerUserId: string | null): Promise<CommunitiesResult<CommunityViewerStateDTO>>;
@@ -175,6 +193,7 @@ async function listPublic(deps: Deps, cursor: string | null, limit?: number, cat
 }
 
 export function createCommunitiesService(deps: Deps): CommunitiesService {
+  const invites = createInviteBridge(deps);
   return {
     createCommunity: (input) => createCommunity(deps, input),
     updateSettings: (input) => updateSettings(deps, input),
@@ -188,6 +207,11 @@ export function createCommunitiesService(deps: Deps): CommunitiesService {
     listPendingJoinRequests: (communityId, actorUserId) => listPendingJoinRequestsOp(deps, communityId, actorUserId),
     listMembers: (communityId, actorUserId) => listMembersOp(deps, communityId, actorUserId),
     changeMemberRole: (input) => changeMemberRoleOp(deps, input),
+    removeMember: (input) => removeMemberOp(deps, input),
+    createInvite: invites.createInvite,
+    cancelInvite: invites.cancelInvite,
+    listInvitesForManage: invites.listInvitesForManage,
+    listInvitesPublic: invites.listInvitesPublic,
     listMyCommunities: (userId) => listMine(deps, userId), // SCALABILITY_HOT_PATH_EXCEPTION: delegate; stable order by id
     listPublicCommunities: (cursor, limit, categorySlug) => listPublic(deps, cursor, limit, categorySlug), // SCALABILITY_HOT_PATH_EXCEPTION: delegate; stable order by id
     listCategories: () => [...COMMUNITY_CATEGORIES].sort((a, b) => a.sortOrder - b.sortOrder),

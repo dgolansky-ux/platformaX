@@ -83,3 +83,8 @@ export function canCancelOwnJoinRequest(
 ): boolean {
   return actorUserId === requesterUserId;
 }
+
+/** Founder/admin may create or cancel community invites. */
+export function canManageInvites(role: CommunityRole | null): boolean {
+  return role === "founder" || role === "admin";
+}

@@ -2,20 +2,23 @@
  * features-v2/communities-v2 / CommunityManageShell — UI_SHELL_ONLY +
  * MOCK_LOCAL_ONLY founder/admin management screen.
  *
- * Composes three live panels (settings, members, join requests) and link
- * tiles to modules/channels/hub. Logic lives in this shell; presentational
- * pieces are split into ./manage/* to keep this file under the structural
- * size budget. No `@server/*` imports.
+ * Slice 3 composes a tabbed manage view (Ustawienia / Członkowie / Prośby /
+ * Zaproszenia / Strefa niebezpieczna). Visual layout mirrors the legacy
+ * `pages/CommunityDetailSettings.tsx` + `CommunityMembersPanel`; legacy
+ * runtime (tRPC mutations, toasts, blocking native confirms, MembersCarousel,
+ * ban action, Stripe/Modules settings, inline image uploads) is intentionally
+ * not carried over. No `@server/*` imports.
  */
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type {
-  CommunityJoinRequestSummaryDTO,
-  CommunityMemberSummaryDTO,
   CommunityProfileDTO,
   CommunityRole,
 } from "@shared/contracts/communities";
+import type { CommunityManageViewDTO } from "@shared/contracts/communities-viewer";
 import { communitiesMockAdapter } from "./mock-adapter";
+import { DangerZone } from "./manage/DangerZone";
+import { InvitesPanel } from "./manage/InvitesPanel";
 import { JoinRequestsPanel } from "./manage/JoinRequestsPanel";
 import { MembersPanel } from "./manage/MembersPanel";
 import { SettingsPanel } from "./manage/SettingsPanel";
@@ -23,42 +26,38 @@ import styles from "./CommunityManage.module.css";
 
 type CommunityManageShellProps = { slug: string };
 
-type ManageData = {
-  profile: CommunityProfileDTO;
-  members: CommunityMemberSummaryDTO[];
-  requests: CommunityJoinRequestSummaryDTO[];
-};
-
 type LoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "forbidden"; message: string }
-  | { status: "ready"; data: ManageData };
+  | { status: "ready"; view: CommunityManageViewDTO };
+
+type TabKey = "settings" | "members" | "requests" | "invites" | "danger";
+
+const TABS: ReadonlyArray<{ key: TabKey; label: string }> = [
+  { key: "settings", label: "Ustawienia" },
+  { key: "members", label: "Członkowie" },
+  { key: "requests", label: "Prośby" },
+  { key: "invites", label: "Zaproszenia" },
+  { key: "danger", label: "Strefa niebezpieczna" },
+];
 
 export function CommunityManageShell({ slug }: CommunityManageShellProps) {
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [actionError, setActionError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabKey>("settings");
 
   const load = useCallback(async () => {
-    const profileRes = await communitiesMockAdapter.getCommunityProfile(slug);
-    if (!profileRes.ok) {
-      setState({ status: "error", message: profileRes.error.message });
+    const res = await communitiesMockAdapter.getCommunityManageView(slug);
+    if (!res.ok) {
+      if (res.error.code === "FORBIDDEN") {
+        setState({ status: "forbidden", message: res.error.message });
+      } else {
+        setState({ status: "error", message: res.error.message });
+      }
       return;
     }
-    if (!profileRes.value.canManage) {
-      setState({ status: "forbidden", message: "Tylko founder/admin może zarządzać tą społecznością." });
-      return;
-    }
-    const [membersRes, requestsRes] = await Promise.all([
-      communitiesMockAdapter.listMembers(slug),
-      communitiesMockAdapter.listPendingJoinRequests(slug),
-    ]);
-    if (!membersRes.ok) return setState({ status: "error", message: membersRes.error.message });
-    if (!requestsRes.ok) return setState({ status: "error", message: requestsRes.error.message });
-    setState({
-      status: "ready",
-      data: { profile: profileRes.value, members: membersRes.value, requests: requestsRes.value },
-    });
+    setState({ status: "ready", view: res.value });
   }, [slug]);
 
   useEffect(() => {
@@ -79,70 +78,84 @@ export function CommunityManageShell({ slug }: CommunityManageShellProps) {
     );
   }
 
-  const { profile, members, requests } = state.data;
+  const { profile, viewer, members, joinRequests, invites } = state.view;
 
-  const handleSettingsSubmit = async (input: { name?: string; description?: string; visibility?: "public" | "private" }) => {
+  const wrap = async (op: () => Promise<{ ok: boolean; error?: { message: string } }>) => {
     setActionError(null);
-    const res = await communitiesMockAdapter.updateSettings({ slug, ...input });
-    if (!res.ok) setActionError(res.error.message);
+    const res = await op();
+    if (!res.ok && res.error) setActionError(res.error.message);
     await load();
   };
 
-  const handleAcceptRequest = async (requestId: string) => {
-    setActionError(null);
-    const res = await communitiesMockAdapter.acceptJoinRequest({ communitySlug: slug, joinRequestId: requestId });
-    if (!res.ok) setActionError(res.error.message);
-    await load();
-  };
-
-  const handleRejectRequest = async (requestId: string) => {
-    setActionError(null);
-    const res = await communitiesMockAdapter.rejectJoinRequest({ communitySlug: slug, joinRequestId: requestId });
-    if (!res.ok) setActionError(res.error.message);
-    await load();
-  };
-
-  const handleRoleChange = async (targetUserId: string, nextRole: Exclude<CommunityRole, "founder">) => {
-    setActionError(null);
-    const res = await communitiesMockAdapter.changeMemberRole({ communitySlug: slug, targetUserId, nextRole });
-    if (!res.ok) setActionError(res.error.message);
-    await load();
-  };
+  const onSettings = (input: { name?: string; description?: string; visibility?: "public" | "private" }) =>
+    wrap(() => communitiesMockAdapter.updateSettings({ slug, ...input }));
+  const onAccept = (id: string) =>
+    wrap(() => communitiesMockAdapter.acceptJoinRequest({ communitySlug: slug, joinRequestId: id }));
+  const onReject = (id: string) =>
+    wrap(() => communitiesMockAdapter.rejectJoinRequest({ communitySlug: slug, joinRequestId: id }));
+  const onRoleChange = (targetUserId: string, nextRole: Exclude<CommunityRole, "founder">) =>
+    wrap(() => communitiesMockAdapter.changeMemberRole({ communitySlug: slug, targetUserId, nextRole }));
+  const onRemoveMember = (targetUserId: string) =>
+    wrap(() => communitiesMockAdapter.removeMember(slug, targetUserId));
+  const onCreateInvite = (input: { invitedUserId?: string; invitedEmail?: string }) =>
+    wrap(() => communitiesMockAdapter.createInvite({ slug, ...input }));
+  const onCancelInvite = (inviteId: string) =>
+    wrap(() => communitiesMockAdapter.cancelInvite(slug, inviteId));
 
   return (
     <section className={styles.root} aria-labelledby="manage-heading">
-      <header className={styles.hero}>
-        <div>
-          <p className={styles.kicker}>Zarządzanie społecznością</p>
-          <h1 id="manage-heading" className={styles.title}>{profile.name}</h1>
-          <p className={styles.subtitle}>
-            /{profile.slug} · {profile.visibility === "public" ? "Publiczna" : "Prywatna"}
-          </p>
-        </div>
-        <Link to={`/communities/${slug}`} className={styles.backButton}>← Wróć do profilu</Link>
-      </header>
-
+      <ManageHero profile={profile} slug={slug} />
       {actionError ? <p className={styles.actionError} role="alert">{actionError}</p> : null}
-
-      <SettingsPanel profile={profile} onSubmit={handleSettingsSubmit} />
-
-      <div className={styles.tilesRow}>
-        <Link to={`/communities/${slug}/manage/modules`} className={styles.tile}>
-          <h3>Moduły</h3>
-          <p>Włącz lub wyłącz dostępne moduły społeczności.</p>
-        </Link>
-        <Link to={`/communities/${slug}/channels`} className={styles.tile}>
-          <h3>Kanały</h3>
-          <p>Zarządzaj kanałami i ich widocznością.</p>
-        </Link>
-        <Link to={`/communities/${slug}/hub`} className={styles.tile}>
-          <h3>Public Hub</h3>
-          <p>Zobacz publiczną kompozycję społeczności.</p>
-        </Link>
+      <div className={styles.tabs} role="tablist" aria-label="Sekcje zarządzania">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            role="tab"
+            id={`manage-tab-${tab.key}`}
+            aria-selected={activeTab === tab.key}
+            aria-controls={`manage-panel-${tab.key}`}
+            type="button"
+            className={`${styles.tabButton} ${activeTab === tab.key ? styles.tabActive : ""}`.trim()}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
-
-      <JoinRequestsPanel requests={requests} onAccept={handleAcceptRequest} onReject={handleRejectRequest} />
-      <MembersPanel members={members} onChangeRole={handleRoleChange} />
+      <div role="tabpanel" id={`manage-panel-${activeTab}`} aria-labelledby={`manage-tab-${activeTab}`}>
+        {activeTab === "settings" ? <SettingsPanel profile={profile} onSubmit={onSettings} /> : null}
+        {activeTab === "members" ? (
+          <MembersPanel
+            members={members}
+            viewerUserId={viewer.viewerUserId ?? ""}
+            viewerRole={(viewer.relation === "founder" || viewer.relation === "admin" || viewer.relation === "moderator" || viewer.relation === "member") ? viewer.relation : null}
+            onChangeRole={onRoleChange}
+            onRemove={onRemoveMember}
+          />
+        ) : null}
+        {activeTab === "requests" ? (
+          <JoinRequestsPanel requests={joinRequests} onAccept={onAccept} onReject={onReject} />
+        ) : null}
+        {activeTab === "invites" ? (
+          <InvitesPanel invites={invites} onCreate={onCreateInvite} onCancel={onCancelInvite} />
+        ) : null}
+        {activeTab === "danger" ? <DangerZone communityName={profile.name} /> : null}
+      </div>
     </section>
+  );
+}
+
+function ManageHero({ profile, slug }: { profile: CommunityProfileDTO; slug: string }) {
+  return (
+    <header className={styles.hero}>
+      <div>
+        <p className={styles.kicker}>Zarządzanie społecznością</p>
+        <h1 id="manage-heading" className={styles.title}>{profile.name}</h1>
+        <p className={styles.subtitle}>
+          /{profile.slug} · {profile.visibility === "public" ? "Publiczna" : "Prywatna"}
+        </p>
+      </div>
+      <Link to={`/communities/${slug}`} className={styles.backButton}>← Wróć do profilu</Link>
+    </header>
   );
 }
