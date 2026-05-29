@@ -51,7 +51,9 @@ function defaults(communityId: string): CommunityFeedSettingsDTO {
     communityId,
     communityAllEnabled: true,
     communityAllPostingPolicy: "all_members",
-    relationalEnabled: false,
+    // Demo fixture: relational ON so all three feeds (Główny/Relacyjny/Kadra)
+    // are visible out of the box. The domain default stays opt-in (false).
+    relationalEnabled: true,
     relationalMonthlyLimit: 3,
     staffOnlyEnabled: true,
     descendantPublishingEnabled: true,

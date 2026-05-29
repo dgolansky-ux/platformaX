@@ -19,10 +19,17 @@ describe("CommunityFeedsShell — MOCK_LOCAL_ONLY feeds screen", () => {
     communityFeedsMockAdapter.__resetForTests();
   });
 
-  test("founder sees Główny + Kadra tabs, not Relacyjny (disabled)", async () => {
+  test("founder sees all three feed tabs (demo has relational enabled)", async () => {
     renderFeeds("product-builders");
     expect(await screen.findByRole("tab", { name: /Główny/ })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Relacyjny/ })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Kadra/ })).toBeInTheDocument();
+  });
+
+  test("relational tab hides when feed settings disable it", async () => {
+    await communityFeedsMockAdapter.updateFeedSettings({ communitySlug: "product-builders", relationalEnabled: false });
+    renderFeeds("product-builders");
+    expect(await screen.findByRole("tab", { name: /Główny/ })).toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: /Relacyjny/ })).not.toBeInTheDocument();
   });
 
