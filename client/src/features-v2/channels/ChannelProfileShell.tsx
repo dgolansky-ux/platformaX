@@ -100,6 +100,7 @@ export function ChannelProfileShell({ slug }: Props) {
 
       <ChannelPostComposer
         channelSlug={channel.slug}
+        channelName={channel.name}
         canPublish={state.data.feed.canPublish}
         onPublished={load}
       />

@@ -21,6 +21,7 @@ import { ProfileWorkplacesSection } from "./ProfileWorkplacesSection";
 import { ProfilePublicHubSection } from "./ProfilePublicHubSection";
 import { ProfileChannelsEntry } from "./ProfileChannelsEntry";
 import { ProfileFriendFeedPreviewSection } from "./ProfileFriendFeedPreviewSection";
+import { ProfilePublishingSections } from "./ProfilePublishingSections";
 import styles from "./PersonalProfilePage.module.css";
 
 type Props = {
@@ -122,6 +123,7 @@ export function PersonalProfilePage({ viewerUserId, profileUsername, onNavigate 
         view={view}
         onManageModules={() => navigateTo("/manage/profil-osobisty", onNavigate)}
       />
+      <ProfilePublishingSections view={view} />
       <ProfileChannelsEntry
         view={view}
         onOpenChannels={() => navigateTo(view.channelsEntry.targetRoute, onNavigate)}

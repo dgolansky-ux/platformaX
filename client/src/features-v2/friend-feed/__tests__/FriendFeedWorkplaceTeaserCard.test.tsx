@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
 import { FriendFeedWorkplaceTeaserCard } from "../../friend-feed/FriendFeedWorkplaceTeaserCard";
 import type { FriendFeedWorkplaceTeaserItemUi } from "../../friend-feed/types";
@@ -26,10 +26,14 @@ describe("FriendFeedWorkplaceTeaserCard", () => {
     render(<FriendFeedWorkplaceTeaserCard item={ITEM} onOpen={onOpen} />);
     expect(screen.getByText(/Krótka zajawka pierwszego wpisu/)).toBeInTheDocument();
     expect(screen.getByText(/Z miejsca pracy/)).toBeInTheDocument();
-    expect(screen.getByText(/Dawid · Coach Dawid/)).toBeInTheDocument();
-    // CTA routes to the full workplace post.
-    fireEvent.click(screen.getByRole("button", { name: /Zobacz wpis/ }));
-    expect(onOpen).toHaveBeenCalledWith("/profile/workplaces/coach-dawid/posts/wpost-1");
+    expect(screen.getByText("Dawid")).toBeInTheDocument();
+    expect(screen.getByText("Coach Dawid")).toBeInTheDocument();
+    // CTA routes to the full workplace post through the shared display kit link.
+    expect(screen.getByRole("link", { name: /Otwórz/ })).toHaveAttribute(
+      "href",
+      "/profile/workplaces/coach-dawid/posts/wpost-1",
+    );
+    expect(onOpen).not.toHaveBeenCalled();
   });
 
   test("teaser carries no contact data fields and is marked as the workplace variant", () => {

@@ -42,7 +42,7 @@ describe("CommunityFeedsShell — MOCK_LOCAL_ONLY feeds screen", () => {
   test("composer publishes a real post to the main feed (no fake save)", async () => {
     renderFeeds("product-builders");
     await screen.findByRole("tab", { name: /Główny/ });
-    const textarea = await screen.findByLabelText("Treść posta");
+    const textarea = await screen.findByPlaceholderText("Co chcesz pokazać społeczności?");
     fireEvent.change(textarea, { target: { value: "Nowy post testowy" } });
     fireEvent.click(screen.getByRole("button", { name: /Opublikuj/ }));
     await waitFor(() => expect(screen.getByText("Nowy post testowy")).toBeInTheDocument());

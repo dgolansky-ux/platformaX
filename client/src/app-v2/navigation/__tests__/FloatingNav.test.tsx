@@ -22,7 +22,7 @@ function navSourceFiles(): string[] {
   return out;
 }
 
-function renderNav(active: "home" | "profil" | "kontakty" | "chat" | "alerts" | "search" = "profil") {
+function renderNav(active: "home" | "profil" | "feed" | "kontakty" | "chat" | "alerts" | "search" = "profil") {
   return render(
     <MemoryRouter>
       <FloatingNav active={active} />
@@ -37,6 +37,7 @@ describe("FloatingNav — V2 floating navigation", () => {
     expect(screen.getByRole("button", { name: /alerty/i })).toBeDefined();
     expect(screen.getByRole("button", { name: /^centrum$/i })).toBeDefined();
     expect(screen.getByRole("button", { name: /^profil$/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /^feed$/i })).toBeDefined();
     expect(screen.getByRole("button", { name: /^chat/i })).toBeDefined();
     expect(screen.getByRole("button", { name: /^kontakty/i })).toBeDefined();
   });
@@ -68,6 +69,12 @@ describe("FloatingNav — V2 floating navigation", () => {
     renderNav();
     const alerts = screen.getByRole("button", { name: /^alerty/i });
     expect((alerts as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  test("Feed is an enabled button after /friends-feed route wiring", () => {
+    renderNav();
+    const feed = screen.getByRole("button", { name: /^feed$/i });
+    expect((feed as HTMLButtonElement).disabled).toBe(false);
   });
 
   test("no href='#' or no-op buttons in the rendered DOM", () => {

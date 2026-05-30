@@ -22,7 +22,7 @@ describe("FriendFeedPage", () => {
   test("renders heading + composer + fixture posts", async () => {
     renderPage("u-viewer");
     expect(await screen.findByRole("heading", { name: /Feed znajomych/ })).toBeInTheDocument();
-    expect(screen.getByLabelText("Treść wpisu")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Co u Ciebie?")).toBeInTheDocument();
     expect(await screen.findByText(/Pierwszy wpis Ady/)).toBeInTheDocument();
     expect(screen.getByText(/Kuba wstał wcześnie/)).toBeInTheDocument();
   });
@@ -35,7 +35,7 @@ describe("FriendFeedPage", () => {
 
   test("publishing a new post adds it to the list", async () => {
     renderPage("u-viewer");
-    const textarea = await screen.findByLabelText("Treść wpisu");
+    const textarea = await screen.findByPlaceholderText("Co u Ciebie?");
     fireEvent.change(textarea, { target: { value: "Świeży wpis testowy" } });
     const btn = screen.getByRole("button", { name: /Opublikuj/ });
     fireEvent.click(btn);
@@ -45,7 +45,7 @@ describe("FriendFeedPage", () => {
   test("react toggles likeCount", async () => {
     renderPage("u-viewer");
     await screen.findByText(/Kuba wstał wcześnie/);
-    const likeButtons = screen.getAllByRole("button", { name: /Polub|Lubię to/ });
+    const likeButtons = screen.getAllByRole("button", { name: /👍/ });
     const firstLike = likeButtons[0];
     const before = firstLike.textContent ?? "";
     fireEvent.click(firstLike);

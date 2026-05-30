@@ -150,6 +150,7 @@ export function WorkplacePage({ viewerUserId, ownerUserId, workplaceSlug }: Prop
       <WorkplaceMicroFeed
         viewerUserId={viewerUserId}
         workplaceId={workplace.id}
+        workplace={workplace}
         viewerState={viewerState}
       />
     </article>

@@ -4,7 +4,7 @@ import { useNotificationsUnreadCount } from "@client/features-v2/notifications-v
 import { useScrollHide } from "./useScrollHide";
 import styles from "./floating-nav.module.css";
 
-export type NavTab = "home" | "profil" | "kontakty" | "chat" | "alerts" | "search";
+export type NavTab = "home" | "profil" | "feed" | "kontakty" | "chat" | "alerts" | "search";
 
 type FloatingNavProps = {
   active: NavTab;
@@ -116,6 +116,7 @@ export function FloatingNav({ active }: FloatingNavProps) {
             </button>
           </div>
 
+          <NavBtn icon="👥" label="Feed" active={active === "feed"} onClick={() => navigate("/friends-feed")} />
           <NavBtn icon="💬" label="Chat" active={active === "chat"} disabledReason="Chat będzie dostępny wkrótce" />
           <NavBtn icon="👥" label="Kontakty" active={active === "kontakty"} disabledReason="Kontakty będą dostępne wkrótce" />
         </div>

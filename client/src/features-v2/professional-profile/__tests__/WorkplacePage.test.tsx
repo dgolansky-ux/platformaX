@@ -23,7 +23,7 @@ describe("WorkplacePage", () => {
     // Owner actions block
     expect(screen.getByRole("heading", { name: /Akcje właściciela/ })).toBeInTheDocument();
     // Micro-feed composer
-    expect(screen.getByLabelText(/Treść wpisu w mikro-feedzie/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Co nowego w pracy?")).toBeInTheDocument();
   });
 
   test("stranger sees workplace but no contact data and no composer", async () => {
@@ -39,7 +39,7 @@ describe("WorkplacePage", () => {
     expect(screen.queryByText("kontakt@example.com")).toBeNull();
     expect(screen.queryByText("+48 600 000 000")).toBeNull();
     expect(screen.queryByRole("heading", { name: /Akcje właściciela/ })).toBeNull();
-    expect(screen.queryByLabelText(/Treść wpisu w mikro-feedzie/)).toBeNull();
+    expect(screen.queryByPlaceholderText("Co nowego w pracy?")).toBeNull();
   });
 
   test("owner can publish to the micro-feed and it appears in the list", async () => {
@@ -50,9 +50,9 @@ describe("WorkplacePage", () => {
         workplaceSlug="coach-dawid"
       />,
     );
-    const textarea = await screen.findByLabelText(/Treść wpisu w mikro-feedzie/);
+    const textarea = await screen.findByPlaceholderText("Co nowego w pracy?");
     fireEvent.change(textarea, { target: { value: "Świeża aktualizacja w mikro-feedzie." } });
-    fireEvent.click(screen.getByRole("button", { name: /Opublikuj/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Opublikuj wpis pracy/ }));
     await waitFor(() =>
       expect(screen.getByText("Świeża aktualizacja w mikro-feedzie.")).toBeInTheDocument(),
     );

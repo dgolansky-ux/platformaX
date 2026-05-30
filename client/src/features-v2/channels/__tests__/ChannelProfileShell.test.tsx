@@ -28,9 +28,9 @@ describe("ChannelProfileShell — channel content feed", () => {
 
   it("shows composer for lead with publish permission and publishes into feed", async () => {
     renderProfile();
-    const textarea = await screen.findByPlaceholderText("Napisz wpis na kanale...");
+    const textarea = await screen.findByPlaceholderText("Opublikuj wpis na kanale…");
     fireEvent.change(textarea, { target: { value: "Nowy wpis kanału" } });
-    fireEvent.click(screen.getByRole("button", { name: "Opublikuj" }));
+    fireEvent.click(screen.getByRole("button", { name: "Opublikuj wpis" }));
     await waitFor(() => expect(screen.getByText("Nowy wpis kanału")).toBeInTheDocument());
   });
 
@@ -44,7 +44,7 @@ describe("ChannelProfileShell — channel content feed", () => {
   it("non-lead channel profile hides composer", async () => {
     renderProfile("zdrowie-trening");
     expect(await screen.findByRole("heading", { name: "Treningi" })).toBeInTheDocument();
-    expect(screen.queryByPlaceholderText("Napisz wpis na kanale...")).toBeNull();
+    expect(screen.queryByPlaceholderText("Opublikuj wpis na kanale…")).toBeNull();
   });
 
   it("opens comments and creates a real local comment", async () => {

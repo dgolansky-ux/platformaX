@@ -122,7 +122,7 @@ export function DesktopSidebar({
         <NavItem icon={<IconHome />} label="Centrum" active={active === "centrum"} onClick={() => navigate("/")} />
         <NavItem icon={<IconUser />} label="Mój profil" active={active === "profil"} onClick={() => navigate("/profile")} />
         <NavItem icon={<IconContacts />} label="Kontakty" active={active === "kontakty"} onClick={() => navigate("/contacts")} />
-        <NavItem icon={<IconFeed />} label="Feed znajomych" active={active === "feed"} disabled />
+        <NavItem icon={<IconFeed />} label="Feed znajomych" active={active === "feed"} onClick={() => navigate("/friends-feed")} />
         <NavItem icon={<IconChat />} label="Wiadomości" active={active === "wiadomosci"} disabled />
         <NavItem icon={<IconSearch />} label="Znajdź ludzi" active={active === "znajdz"} disabled />
 

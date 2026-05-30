@@ -279,6 +279,25 @@
   color: var(--c-text-soft);
 }
 
+.profilePublishingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.profilePublishingColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profilePublishingTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--c-text);
+}
+
 .notFoundState,
 .restrictedState,
 .errorState {

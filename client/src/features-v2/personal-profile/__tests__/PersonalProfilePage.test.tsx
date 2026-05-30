@@ -95,6 +95,22 @@ describe("PersonalProfilePage — unified owner/viewer screen", () => {
     expect(await screen.findByRole("button", { name: /Dodaj miejsce pracy/ })).toBeInTheDocument();
   });
 
+  test("owner profile wires important events and presentation publishing sections", async () => {
+    renderPage("u-viewer", "viewer");
+    expect(await screen.findByRole("heading", { name: /Ważne wydarzenia i prezentacja/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Ważne wydarzenie$/ })).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { name: /^Prezentacja profilu$/ }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("w przygotowaniu").length).toBeGreaterThanOrEqual(2);
+  });
+
+  test("viewer profile sees public empty states, not profile publishing composers", async () => {
+    renderPage("u-viewer", "kuba");
+    expect(await screen.findByText(/Ten profil nie ma jeszcze publicznych ważnych wydarzeń/)).toBeInTheDocument();
+    expect(screen.getByText(/Ten profil nie ma jeszcze publicznej prezentacji/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Zapisz wydarzenie/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Zapisz sekcję/ })).not.toBeInTheDocument();
+  });
+
   test("stranger does not see 'Dodaj miejsce pracy'", async () => {
     renderPage("u-viewer", "kuba");
     await screen.findByRole("heading", { name: /Miejsca pracy/ });
@@ -128,6 +144,7 @@ describe("PersonalProfilePage — unified owner/viewer screen", () => {
     renderPage("u-viewer", "ada");
     await screen.findByRole("heading", { name: /Ada Lovelace/ });
     expect(await screen.findByRole("heading", { name: /Feed znajomych/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Zobacz więcej/ })).toHaveAttribute("href", "/friends-feed");
   });
 
   test("DOM never contains owner email/phone when viewer is stranger", async () => {

@@ -1,55 +1,25 @@
-import { useState } from "react";
-import { channelsMockAdapter } from "./channels-mock-adapter";
-import styles from "./Channels.module.css";
+import { useMemo } from "react";
+import { ChannelComposer } from "../publishing";
+import { channelPublishingTarget, createChannelPublishingAdapter } from "./publishing-adapter";
 
 type Props = {
   channelSlug: string;
+  channelName: string;
   canPublish: boolean;
   onPublished: () => Promise<void>;
 };
 
-export function ChannelPostComposer({ channelSlug, canPublish, onPublished }: Props) {
-  const [body, setBody] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+export function ChannelPostComposer({ channelSlug, channelName, canPublish, onPublished }: Props) {
+  const target = useMemo(() => channelPublishingTarget(channelSlug, channelName, canPublish), [channelSlug, channelName, canPublish]);
+  const adapter = useMemo(() => createChannelPublishingAdapter(target), [target]);
   if (!canPublish) return null;
-
-  async function submit() {
-    const nextBody = body.trim();
-    if (!nextBody) return;
-    setBusy(true);
-    const res = await channelsMockAdapter.createChannelPost({ channelSlug, body: nextBody });
-    setBusy(false);
-    if (!res.ok) {
-      setError(res.error.message);
-      return;
-    }
-    setBody("");
-    setError(null);
-    await onPublished();
-  }
-
   return (
-    <section className={styles.composer} aria-label="Publikowanie wpisu kanału">
-      <textarea
-        className={styles.composerInput}
-        value={body}
-        onChange={(event) => setBody(event.target.value)}
-        placeholder="Napisz wpis na kanale..."
-        rows={4}
-      />
-      <div className={styles.composerActions}>
-        <button
-          type="button"
-          className={styles.primaryBtn}
-          disabled={busy || body.trim().length === 0}
-          onClick={() => void submit()}
-        >
-          {busy ? "Publikowanie..." : "Opublikuj"}
-        </button>
-        {error ? <span className={styles.formError}>{error}</span> : null}
-      </div>
-    </section>
+    <ChannelComposer
+      viewerUserId="u-viewer-demo"
+      adapter={adapter}
+      availableTargets={[target]}
+      channelTarget={target}
+      onPublished={() => void onPublished()}
+    />
   );
 }

@@ -44,4 +44,10 @@ describe("DesktopSidebar — notifications wiring (Slice 14)", () => {
       expect(value).toBeGreaterThan(0);
     });
   });
+
+  test("Feed znajomych entry is enabled after friend-feed route wiring", () => {
+    renderSidebar();
+    const item = screen.getByRole("button", { name: /^Feed znajomych$/i });
+    expect((item as HTMLButtonElement).disabled).toBe(false);
+  });
 });
