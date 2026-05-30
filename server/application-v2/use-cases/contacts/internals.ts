@@ -23,6 +23,7 @@ export function actionsFor(rel: {
     | "pending_received"
     | "accepted"
     | "rejected"
+    | "revoked"
     | "cancelled";
   friendRequestStatus: "none" | "pending_sent" | "pending_received";
 }): readonly ContactProfileAction[] {
@@ -34,7 +35,7 @@ export function actionsFor(rel: {
   else if (rel.friendRequestStatus === "none") out.push("SEND_FRIEND_REQUEST");
 
   if (rel.contactRequestStatus === "pending_received") out.push("RESPOND_TO_CONTACT_REQUEST");
-  else if (["none", "rejected", "cancelled"].includes(rel.contactRequestStatus)) out.push("REQUEST_CONTACT");
+  else if (["none", "rejected", "cancelled", "revoked"].includes(rel.contactRequestStatus)) out.push("REQUEST_CONTACT");
 
   out.push(rel.isAddressBookContact ? "REMOVE_FROM_CONTACTS" : "ADD_TO_CONTACTS");
   out.push(rel.isSpecialist ? "REMOVE_SPECIALIST" : "ADD_AS_SPECIALIST");

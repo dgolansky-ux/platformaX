@@ -1,6 +1,6 @@
 # social
 
-Status: `PARTIAL`
+Status: `BACKEND_PARTIAL`
 Owner: @dgolansky-ux
 Type: OWNER_DOMAIN
 
@@ -28,13 +28,13 @@ Owns the social graph — friends, contacts, and relationship state.
 - Feed engine
 
 ## Public surface
-- `public-api.ts` — re-exports `createSocialContactsService`, port
-  interfaces, in-memory store factories (`createInMemory{Friendship,
-  FriendRequest,AddressBook,Specialist}Repository`), Input types, and
-  the pure policy helpers (`isSelfRelation`, `canRespondToFriendRequest`,
-  `isDuplicatePendingFriendRequest`).
-- `contracts.ts`
-- `events.ts`
+- `public-api.ts`:
+  - `createSocialContactsService` (legacy contacts slice surface)
+  - `createSocialRelationshipService` (Slice 19 friendship + blocking flow)
+  - in-memory repositories for both surfaces
+  - policy + DTO contracts with no PII
+- `contracts.ts` (cross-domain social relationship contract)
+- `events.ts` (typed event payloads for notifications mapping)
 
 ## Internal modules (not importable by other domains)
 - repository, service, policy, router, mapper, db, schema, cache-keys, internal

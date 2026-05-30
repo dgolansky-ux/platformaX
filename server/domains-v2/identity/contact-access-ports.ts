@@ -33,9 +33,11 @@ export type CreateContactRequestInput = {
   toUserId: UserId;
   message: string;
   purpose?: string;
+  requestedFields: readonly ApprovedContactField[];
   status: "pending";
   approvedFields: readonly ApprovedContactField[];
   createdAt: string;
+  respondedAt: string | null;
   updatedAt: string;
 };
 
@@ -63,9 +65,10 @@ export interface ContactRequestsRepository {
   update(
     id: string,
     patch: {
-      status: "accepted" | "rejected" | "cancelled";
+      status: "accepted" | "rejected" | "cancelled" | "revoked";
       approvedFields?: readonly ApprovedContactField[];
       updatedAt: string;
+      respondedAt?: string | null;
     },
   ): Promise<ContactRequest>;
 }

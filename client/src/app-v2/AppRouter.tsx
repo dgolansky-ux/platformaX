@@ -7,6 +7,9 @@ import { CheckEmailRoute } from "./auth/CheckEmailRoute";
 import { OnboardingFlow } from "./onboarding/OnboardingFlow";
 import { ProfilePage } from "./profile/ProfilePage";
 import { ContactsPage } from "./contacts/ContactsPage";
+import { ContactRequestsPage } from "./contacts/ContactRequestsPage";
+import { FriendRequestsPage } from "./friends/FriendRequestsPage";
+import { FriendsPage } from "./friends/FriendsPage";
 import { CommunitiesPage } from "./communities/CommunitiesPage";
 import { CreateCommunityPage } from "./communities/CreateCommunityPage";
 import { CommunityProfilePage } from "./communities/CommunityProfilePage";
@@ -41,6 +44,9 @@ export function AppRouter() {
         <Route path="/profile/:username" element={<PersonalProfileRoute />} />
         <Route path="/friends-feed" element={<FriendFeedPageRoute />} />
         <Route path="/contacts" element={<ContactsPage />} />
+        <Route path="/contacts/requests" element={<ContactRequestsPage />} />
+        <Route path="/friends" element={<FriendsPage />} />
+        <Route path="/friends/requests" element={<FriendRequestsPage />} />
         <Route path="/communities" element={<CommunitiesPage />} />
         <Route path="/communities/new" element={<CreateCommunityPage />} />
         <Route path="/communities/:slug" element={<CommunityProfilePage />} />

@@ -69,6 +69,103 @@ export const NOTIFICATION_EVENT_REGISTRY: readonly NotificationEventRegistryEntr
     reason: "Comment author should be notified about a new reaction on their comment.",
     handlerStatus: "implemented",
   },
+  {
+    eventType: "FriendRequestSent",
+    sourceDomain: "social",
+    createsNotification: true,
+    recipientRule: "recipientUserId",
+    actorRule: "actorUserId",
+    category: "system",
+    reason:
+      "Recipient should be notified about a new friend request from another user.",
+    handlerStatus: "planned",
+  },
+  {
+    eventType: "FriendRequestAccepted",
+    sourceDomain: "social",
+    createsNotification: true,
+    recipientRule: "recipientUserId (requester)",
+    actorRule: "actorUserId",
+    category: "system",
+    reason:
+      "Requester should be notified that their friend request was accepted.",
+    handlerStatus: "planned",
+  },
+  {
+    eventType: "FriendRequestRejected",
+    sourceDomain: "social",
+    createsNotification: false,
+    recipientRule: "requesterUserId",
+    actorRule: "actorUserId",
+    category: "system",
+    reason:
+      "No notification by default to reduce rejection noise in activity center.",
+    handlerStatus: "no_notification_needed",
+  },
+  {
+    eventType: "FriendRemoved",
+    sourceDomain: "social",
+    createsNotification: false,
+    recipientRule: "otherUserId",
+    actorRule: "actorUserId",
+    category: "system",
+    reason:
+      "Friend remove is intentionally silent to avoid punitive notification spam.",
+    handlerStatus: "no_notification_needed",
+  },
+  {
+    eventType: "UserBlocked",
+    sourceDomain: "social",
+    createsNotification: false,
+    recipientRule: "blockedUserId",
+    actorRule: "actorUserId",
+    category: "system",
+    reason:
+      "User blocking is a safety control and should not ping blocked users.",
+    handlerStatus: "no_notification_needed",
+  },
+  {
+    eventType: "ContactAccessRequested",
+    sourceDomain: "identity/contact-access",
+    createsNotification: true,
+    recipientRule: "ownerUserId",
+    actorRule: "actorUserId",
+    category: "professional",
+    reason: "Profile owner should receive a request for contact data access.",
+    handlerStatus: "planned",
+  },
+  {
+    eventType: "ContactAccessApproved",
+    sourceDomain: "identity/contact-access",
+    createsNotification: true,
+    recipientRule: "requesterUserId",
+    actorRule: "actorUserId",
+    category: "professional",
+    reason: "Requester should be notified when selected fields are approved.",
+    handlerStatus: "planned",
+  },
+  {
+    eventType: "ContactAccessRejected",
+    sourceDomain: "identity/contact-access",
+    createsNotification: false,
+    recipientRule: "requesterUserId",
+    actorRule: "actorUserId",
+    category: "professional",
+    reason:
+      "Contact rejection is silent by policy for now to avoid negative nudges.",
+    handlerStatus: "no_notification_needed",
+  },
+  {
+    eventType: "ContactAccessRevoked",
+    sourceDomain: "identity/contact-access",
+    createsNotification: false,
+    recipientRule: "requesterUserId",
+    actorRule: "actorUserId",
+    category: "professional",
+    reason:
+      "Revocation is owner privacy control; explicit notification not required.",
+    handlerStatus: "no_notification_needed",
+  },
 
   // ── Communities ────────────────────────────────────────────────────────
   {

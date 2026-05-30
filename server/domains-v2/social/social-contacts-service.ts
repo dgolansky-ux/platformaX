@@ -1,3 +1,7 @@
+// ALLOW_FILE_SIZE_EXCEPTION — Slice 19 added `blockUser` with pending-request
+// cancellation, friend-circle owner-local labels, and address-book/specialists
+// listing flows to the existing contacts service.
+// Registered in EXCEPTIONS_REGISTER.md (EXC-011).
 /**
  * social / contacts — service: friendships + address-book + specialists.
  *
@@ -7,10 +11,12 @@
  * on their own (the PII gate lives in `identity/contact-access-policy.ts`).
  */
 import type {
+  BlockedUserDTO,
   AddressBookEntry,
   ContactGroupEntry,
   FriendCircle,
   FriendEntry,
+  RelationshipStateDTO,
   SpecialistEntry,
 } from "@shared/contracts/contacts";
 import type { UserId } from "@shared/contracts/branded-ids";
@@ -51,7 +57,9 @@ export type SocialContactsServiceDeps = {
 export type SocialContactsErrorCode =
   | "SELF_RELATION_NOT_ALLOWED"
   | "PENDING_DUPLICATE"
+  | "NOT_REQUESTER"
   | "NOT_RECEIVER"
+  | "BLOCKED_RELATIONSHIP"
   | "REQUEST_NOT_FOUND"
   | "REQUEST_NOT_PENDING";
 
@@ -67,16 +75,46 @@ export type SocialContactsResult<T> =
 export interface SocialContactsService {
   // friendships
   areFriends(a: UserId, b: UserId): Promise<boolean>;
+  isBlocked(blockerUserId: UserId, blockedUserId: UserId): Promise<boolean>;
   listFriends(ownerId: UserId): Promise<FriendEntry[]>;
+  getFriendIdsForViewer(viewerUserId: UserId): Promise<readonly UserId[]>;
+  getRelationshipState(
+    viewerUserId: UserId,
+    otherUserId: UserId,
+  ): Promise<RelationshipStateDTO>;
   sendFriendRequest(
     input: SendFriendRequestInput,
   ): Promise<SocialContactsResult<FriendRequest>>;
+  cancelFriendRequest(input: {
+    requestId: string;
+    requesterUserId: UserId;
+  }): Promise<SocialContactsResult<FriendRequest>>;
+  acceptFriendRequest(input: {
+    requestId: string;
+    recipientUserId: UserId;
+  }): Promise<SocialContactsResult<FriendRequest>>;
+  rejectFriendRequest(input: {
+    requestId: string;
+    recipientUserId: UserId;
+  }): Promise<SocialContactsResult<FriendRequest>>;
   respondToFriendRequest(
     input: RespondToFriendRequestInput,
   ): Promise<SocialContactsResult<FriendRequest>>;
+  listPendingSentRequests(requesterUserId: UserId): Promise<FriendRequest[]>;
+  listPendingReceivedRequests(receiverUserId: UserId): Promise<FriendRequest[]>;
   listIncomingFriendRequests(receiverUserId: UserId): Promise<FriendRequest[]>;
   listOutgoingFriendRequests(requesterUserId: UserId): Promise<FriendRequest[]>;
   removeFriend(a: UserId, b: UserId): Promise<void>;
+  blockUser(input: {
+    blockerUserId: UserId;
+    blockedUserId: UserId;
+    reason?: string;
+  }): Promise<SocialContactsResult<BlockedUserDTO>>;
+  unblockUser(input: {
+    blockerUserId: UserId;
+    blockedUserId: UserId;
+  }): Promise<SocialContactsResult<BlockedUserDTO>>;
+  listBlockedUsers(blockerUserId: UserId): Promise<BlockedUserDTO[]>;
 
   // address book
   listAddressBook(ownerId: UserId): Promise<AddressBookEntry[]>;
@@ -105,12 +143,61 @@ export interface SocialContactsService {
 export function createSocialContactsService(
   deps: SocialContactsServiceDeps,
 ): SocialContactsService {
+  const blocks = new Map<string, BlockedUserDTO>();
+  const key = (a: UserId, b: UserId) => `${a}->${b}`;
+  const isBlockedEither = (a: UserId, b: UserId): boolean =>
+    blocks.has(key(a, b)) || blocks.has(key(b, a));
+  const activeBlockFor = (
+    blockerUserId: UserId,
+    blockedUserId: UserId,
+  ): BlockedUserDTO | null => blocks.get(key(blockerUserId, blockedUserId)) ?? null;
+
   return {
     async areFriends(a, b) {
+      if (isBlockedEither(a, b)) return false;
       return deps.friends.areFriends(a, b);
     },
+    async isBlocked(blockerUserId, blockedUserId) {
+      return activeBlockFor(blockerUserId, blockedUserId) !== null;
+    },
     async listFriends(ownerId) {
-      return deps.friends.listForOwner(ownerId);
+      const raw = await deps.friends.listForOwner(ownerId);
+      return raw.filter(
+        (entry) => !isBlockedEither(entry.ownerId, entry.friendId),
+      );
+    },
+    async getFriendIdsForViewer(viewerUserId) {
+      const friends = await this.listFriends(viewerUserId);
+      return friends.map((f) => f.friendId);
+    },
+    async getRelationshipState(viewerUserId, otherUserId) {
+      if (viewerUserId === otherUserId) {
+        return { viewerUserId, otherUserId, state: "owner" };
+      }
+      if (activeBlockFor(viewerUserId, otherUserId)) {
+        return { viewerUserId, otherUserId, state: "blocked_by_viewer" };
+      }
+      if (activeBlockFor(otherUserId, viewerUserId)) {
+        return { viewerUserId, otherUserId, state: "blocked_by_other" };
+      }
+      if (await deps.friends.areFriends(viewerUserId, otherUserId)) {
+        return { viewerUserId, otherUserId, state: "friends" };
+      }
+      const outgoing = await deps.friendRequests.listByPair(
+        viewerUserId,
+        otherUserId,
+      );
+      if (outgoing.some((r) => r.status === "pending")) {
+        return { viewerUserId, otherUserId, state: "pending_sent" };
+      }
+      const incoming = await deps.friendRequests.listByPair(
+        otherUserId,
+        viewerUserId,
+      );
+      if (incoming.some((r) => r.status === "pending")) {
+        return { viewerUserId, otherUserId, state: "pending_received" };
+      }
+      return { viewerUserId, otherUserId, state: "stranger" };
     },
     async sendFriendRequest(input) {
       if (isSelfRelation(input.requesterUserId, input.receiverUserId)) {
@@ -122,9 +209,23 @@ export function createSocialContactsService(
           },
         };
       }
+      if (isBlockedEither(input.requesterUserId, input.receiverUserId)) {
+        return {
+          ok: false,
+          error: {
+            code: "BLOCKED_RELATIONSHIP",
+            message:
+              "Cannot send friend request while either side has an active block.",
+          },
+        };
+      }
       const existing = await deps.friendRequests.listByPair(
         input.requesterUserId,
         input.receiverUserId,
+      );
+      const reverse = await deps.friendRequests.listByPair(
+        input.receiverUserId,
+        input.requesterUserId,
       );
       if (
         isDuplicatePendingFriendRequest(
@@ -132,6 +233,7 @@ export function createSocialContactsService(
           input.receiverUserId,
           existing,
         )
+        || reverse.some((req) => req.status === "pending")
       ) {
         return {
           ok: false,
@@ -149,6 +251,56 @@ export function createSocialContactsService(
         createdAt: deps.clock.now().toISOString(),
       });
       return { ok: true, value: created };
+    },
+    async cancelFriendRequest(input) {
+      const existing = await deps.friendRequests.getById(input.requestId);
+      if (!existing) {
+        return {
+          ok: false,
+          error: {
+            code: "REQUEST_NOT_FOUND",
+            message: "Friend request not found.",
+          },
+        };
+      }
+      if (existing.requesterUserId !== input.requesterUserId) {
+        return {
+          ok: false,
+          error: {
+            code: "NOT_REQUESTER",
+            message: "Only requester may cancel this request.",
+          },
+        };
+      }
+      if (existing.status !== "pending") {
+        return {
+          ok: false,
+          error: {
+            code: "REQUEST_NOT_PENDING",
+            message: `Cannot cancel request in status ${existing.status}.`,
+          },
+        };
+      }
+      const now = deps.clock.now().toISOString();
+      const updated = await deps.friendRequests.update(input.requestId, {
+        status: "cancelled",
+        respondedAt: now,
+      });
+      return { ok: true, value: updated };
+    },
+    async acceptFriendRequest(input) {
+      return this.respondToFriendRequest({
+        requestId: input.requestId,
+        responderUserId: input.recipientUserId,
+        action: "accepted",
+      });
+    },
+    async rejectFriendRequest(input) {
+      return this.respondToFriendRequest({
+        requestId: input.requestId,
+        responderUserId: input.recipientUserId,
+        action: "rejected",
+      });
     },
     async respondToFriendRequest(input) {
       const existing = await deps.friendRequests.getById(input.requestId);
@@ -201,8 +353,80 @@ export function createSocialContactsService(
       const all = await deps.friendRequests.listOutgoing(requesterUserId);
       return all.filter((r) => r.status === "pending");
     },
+    async listPendingSentRequests(requesterUserId) {
+      return this.listOutgoingFriendRequests(requesterUserId);
+    },
+    async listPendingReceivedRequests(receiverUserId) {
+      return this.listIncomingFriendRequests(receiverUserId);
+    },
     async removeFriend(a, b) {
       await deps.friends.remove(a, b);
+    },
+    async blockUser(input) {
+      if (isSelfRelation(input.blockerUserId, input.blockedUserId)) {
+        return {
+          ok: false,
+          error: {
+            code: "SELF_RELATION_NOT_ALLOWED",
+            message: "Cannot block yourself.",
+          },
+        };
+      }
+      const now = deps.clock.now().toISOString();
+      await deps.friends.remove(input.blockerUserId, input.blockedUserId);
+      const outgoing = await deps.friendRequests.listByPair(
+        input.blockerUserId,
+        input.blockedUserId,
+      );
+      const incoming = await deps.friendRequests.listByPair(
+        input.blockedUserId,
+        input.blockerUserId,
+      );
+      // SCALABILITY_EXCEPTION: bounded by pending friend requests between two specific users (FIXED_CAP, typically 0–2 rows).
+      const pendingPair = [...outgoing, ...incoming].filter(
+        (request) => request.status === "pending",
+      );
+      await Promise.all(
+        pendingPair.map((request) =>
+          deps.friendRequests.update(request.id, {
+            status: "cancelled",
+            respondedAt: now,
+          }),
+        ),
+      );
+      const record: BlockedUserDTO = {
+        id: `blk-${input.blockerUserId}-${input.blockedUserId}`,
+        blockerUserId: input.blockerUserId,
+        blockedUserId: input.blockedUserId,
+        reason: input.reason,
+        createdAt: now,
+        revokedAt: null,
+      };
+      blocks.set(key(input.blockerUserId, input.blockedUserId), record);
+      return { ok: true, value: record };
+    },
+    async unblockUser(input) {
+      const existing = activeBlockFor(input.blockerUserId, input.blockedUserId);
+      if (!existing) {
+        return {
+          ok: false,
+          error: {
+            code: "REQUEST_NOT_FOUND",
+            message: "No active block for that pair.",
+          },
+        };
+      }
+      const updated: BlockedUserDTO = {
+        ...existing,
+        revokedAt: deps.clock.now().toISOString(),
+      };
+      blocks.delete(key(input.blockerUserId, input.blockedUserId));
+      return { ok: true, value: updated };
+    },
+    async listBlockedUsers(blockerUserId) {
+      return [...blocks.values()].filter(
+        (row) => row.blockerUserId === blockerUserId,
+      );
     },
 
     async listAddressBook(ownerId) {

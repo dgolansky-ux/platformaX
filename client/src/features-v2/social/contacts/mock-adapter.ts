@@ -107,9 +107,11 @@ function seedDemoData(store: AdapterStore, viewer: UserId): void {
     toUserId: viewer,
     message: "Cześć! Chciałabym z Tobą współpracować w temacie produktu.",
     purpose: "Współpraca",
+    requestedFields: ["emailContact", "phone"],
     status: "pending",
     approvedFields: [],
     createdAt: now,
+    respondedAt: null,
     updatedAt: now,
   });
   store.friendRequests.set("fr-demo-1", { id: "fr-demo-1", fromUserId: FILIP, createdAt: now });
@@ -177,7 +179,7 @@ type ProfileRel = {
   isMutualFriend: boolean;
   isAddressBookContact: boolean;
   isSpecialist: boolean;
-  contactReqStatus: "none" | "pending" | "accepted" | "rejected" | "cancelled";
+  contactReqStatus: "none" | "pending" | "accepted" | "rejected" | "cancelled" | "revoked";
   contactReqIncoming: boolean;
   friendReqIncoming: boolean;
   friendReqOutgoing: boolean;
@@ -192,7 +194,7 @@ function computeProfileActions(rel: ProfileRel): ContactProfileAction[] {
 
   if (rel.contactReqStatus === "pending" && rel.contactReqIncoming) {
     out.push("RESPOND_TO_CONTACT_REQUEST");
-  } else if (["none", "rejected", "cancelled"].includes(rel.contactReqStatus)) {
+  } else if (["none", "rejected", "cancelled", "revoked"].includes(rel.contactReqStatus)) {
     out.push("REQUEST_CONTACT");
   }
 
@@ -334,9 +336,11 @@ export const contactsMockAdapter: ContactsMockAdapter = {
       toUserId: args.toUserId,
       message: args.message,
       purpose: args.purpose,
+      requestedFields: ["emailContact", "phone", "website"],
       status: "pending",
       approvedFields: [],
       createdAt: now,
+      respondedAt: null,
       updatedAt: now,
     };
     store.contactRequests.set(id, row);

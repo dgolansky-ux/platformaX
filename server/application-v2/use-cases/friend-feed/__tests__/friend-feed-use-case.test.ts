@@ -71,6 +71,44 @@ function makeFriendPosts(graph: Record<string, readonly FriendId[]>) {
 }
 
 describe("friend-feed use-case v2", () => {
+  it("friends_only visibility honors owner/friend/non-friend access", async () => {
+    const graph: Record<string, readonly FriendId[]> = {
+      "u-owner": ["u-friend"],
+      "u-friend": ["u-owner"],
+      "u-pending": [],
+      "u-removed": [],
+      "u-blocked": [],
+    };
+    const friendPosts = makeFriendPosts(graph);
+    const created = await friendPosts.createPost({
+      authorUserId: "u-owner",
+      body: "friends only",
+      visibility: "friends_only",
+    });
+    if (!created.ok) throw new Error("setup failed");
+
+    const uc = createFriendFeedUseCaseV2({
+      friendPosts,
+      social: socialStub(graph),
+      identity: identityStub({
+        "u-owner": { displayName: "Owner", slug: "owner" },
+        "u-friend": { displayName: "Friend", slug: "friend" },
+      }),
+    });
+
+    const ownerPage = await uc.listFriendFeed({ viewerUserId: "u-owner" });
+    const friendPage = await uc.listFriendFeed({ viewerUserId: "u-friend" });
+    const pendingPage = await uc.listFriendFeed({ viewerUserId: "u-pending" });
+    const removedPage = await uc.listFriendFeed({ viewerUserId: "u-removed" });
+    const blockedPage = await uc.listFriendFeed({ viewerUserId: "u-blocked" });
+
+    expect(ownerPage.items.some((i) => i.postId === created.value.id)).toBe(true);
+    expect(friendPage.items.some((i) => i.postId === created.value.id)).toBe(true);
+    expect(pendingPage.items.some((i) => i.postId === created.value.id)).toBe(false);
+    expect(removedPage.items.some((i) => i.postId === created.value.id)).toBe(false);
+    expect(blockedPage.items.some((i) => i.postId === created.value.id)).toBe(false);
+  });
+
   it("listFriendFeed includes own + friends posts, excludes strangers, enriches author", async () => {
     const graph: Record<string, readonly FriendId[]> = {
       "u-viewer": ["u-friend"],

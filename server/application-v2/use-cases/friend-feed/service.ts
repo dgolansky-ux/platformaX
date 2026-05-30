@@ -1,3 +1,6 @@
+// ALLOW_FILE_SIZE_EXCEPTION — Slice 19 added friend-aware visibility checks
+// (getFriendIdsForViewer + friends_only filtering) to the existing
+// friend-feed orchestrator. Registered in EXCEPTIONS_REGISTER.md (EXC-011).
 /**
  * application-v2/use-cases/friend-feed — orchestration.
  *
@@ -117,6 +120,12 @@ export interface FriendFeedUseCaseV2 {
 }
 
 type Deps = FriendFeedUseCaseDeps;
+type SocialWithFriendIds = SocialContactsService & {
+  getFriendIdsForViewer?: (
+    viewerUserId: string,
+  ) => Promise<readonly string[]>;
+  isBlocked?: (blockerUserId: string, blockedUserId: string) => Promise<boolean>;
+};
 
 const FALLBACK_AUTHOR: Omit<FriendPostAuthorSummary, "userId"> = {
   displayName: "Użytkownik",
@@ -164,8 +173,34 @@ async function buildCommentAuthorMap(
 
 async function isFriend(deps: Deps, viewerUserId: string, otherUserId: string): Promise<boolean> {
   if (viewerUserId === otherUserId) return false;
+  const friendIds = await getFriendIdsForViewer(deps, viewerUserId);
+  return friendIds.includes(otherUserId);
+}
+
+async function getFriendIdsForViewer(
+  deps: Deps,
+  viewerUserId: string,
+): Promise<readonly string[]> {
+  const social = deps.social as SocialWithFriendIds;
+  if (typeof social.getFriendIdsForViewer === "function") {
+    return social.getFriendIdsForViewer(viewerUserId);
+  }
   const friends = await deps.social.listFriends(viewerUserId as never);
-  return friends.some((f) => f.friendId === otherUserId);
+  return friends.map((f) => f.friendId as unknown as string);
+}
+
+async function isBlockedEitherWay(
+  deps: Deps,
+  viewerUserId: string,
+  ownerUserId: string,
+): Promise<boolean> {
+  const social = deps.social as SocialWithFriendIds;
+  if (typeof social.isBlocked !== "function") return false;
+  const [viewerBlockedOwner, ownerBlockedViewer] = await Promise.all([
+    social.isBlocked(viewerUserId, ownerUserId),
+    social.isBlocked(ownerUserId, viewerUserId),
+  ]);
+  return viewerBlockedOwner || ownerBlockedViewer;
 }
 
 function toItemView(
@@ -259,8 +294,7 @@ export function createFriendFeedUseCaseV2(deps: FriendFeedUseCaseDeps): FriendFe
         limit: input.limit,
       });
       const authors = await buildAuthorMap(deps, input.viewerUserId, raw.items);
-      const friends = await deps.social.listFriends(input.viewerUserId as never);
-      const friendSet = new Set(friends.map((f) => f.friendId as unknown as string));
+      const friendSet = new Set(await getFriendIdsForViewer(deps, input.viewerUserId));
       const summaryRes = await deps.friendPosts.getInteractionSummary({
         viewerUserId: input.viewerUserId,
         friendPostIds: raw.items.map((p) => p.id),
@@ -289,6 +323,15 @@ export function createFriendFeedUseCaseV2(deps: FriendFeedUseCaseDeps): FriendFe
       const limit = Math.min(input.limit ?? PROFILE_PREVIEW_DEFAULT_LIMIT, PROFILE_PREVIEW_MAX_LIMIT);
       let viewerRelation: "owner" | "friend" | "stranger";
       if (input.viewerUserId === input.profileOwnerId) viewerRelation = "owner";
+      else if (
+        await isBlockedEitherWay(
+          deps,
+          input.viewerUserId,
+          input.profileOwnerId,
+        )
+      ) {
+        viewerRelation = "stranger";
+      }
       else if (await isFriend(deps, input.viewerUserId, input.profileOwnerId)) viewerRelation = "friend";
       else viewerRelation = "stranger";
 
@@ -377,8 +420,8 @@ export function createFriendFeedUseCaseV2(deps: FriendFeedUseCaseDeps): FriendFe
     },
 
     async getFriendFeedComposerState(input) {
-      const friends = await deps.social.listFriends(input.viewerUserId as never);
-      const hasFriends = friends.length > 0;
+      const friendIds = await getFriendIdsForViewer(deps, input.viewerUserId);
+      const hasFriends = friendIds.length > 0;
       return {
         canPublish: true,
         disabledReason: hasFriends ? "none" : "no_friends",

@@ -94,6 +94,7 @@ export function createInMemoryContactRequestsRepository(): ContactRequestsReposi
         ...existing,
         status: patch.status,
         approvedFields,
+        respondedAt: patch.respondedAt ?? existing.respondedAt ?? null,
         updatedAt: patch.updatedAt,
       };
       rows.set(id, next);

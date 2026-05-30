@@ -232,3 +232,83 @@ describe("social-contacts-service / owner-local friend circles", () => {
     if (!res.ok) expect(res.error.code).toBe("SELF_RELATION_NOT_ALLOWED");
   });
 });
+
+describe("social-contacts-service / blocking + relationship state", () => {
+  let svc: SocialContactsService;
+  beforeEach(() => {
+    svc = makeService();
+  });
+
+  it("cancelFriendRequest works only for requester", async () => {
+    const created = await svc.sendFriendRequest({
+      requesterUserId: ALICE,
+      receiverUserId: BOB,
+    });
+    if (!created.ok) throw new Error("setup failed");
+    const denied = await svc.cancelFriendRequest({
+      requestId: created.value.id,
+      requesterUserId: BOB,
+    });
+    expect(denied.ok).toBe(false);
+    const cancelled = await svc.cancelFriendRequest({
+      requestId: created.value.id,
+      requesterUserId: ALICE,
+    });
+    expect(cancelled.ok).toBe(true);
+    expect(await svc.listPendingSentRequests(ALICE)).toHaveLength(0);
+  });
+
+  it("blockUser prevents new friend requests and hides friendship", async () => {
+    const created = await svc.sendFriendRequest({
+      requesterUserId: ALICE,
+      receiverUserId: BOB,
+    });
+    if (!created.ok) throw new Error("setup failed");
+    await svc.respondToFriendRequest({
+      requestId: created.value.id,
+      responderUserId: BOB,
+      action: "accepted",
+    });
+    expect(await svc.areFriends(ALICE, BOB)).toBe(true);
+    const blocked = await svc.blockUser({
+      blockerUserId: ALICE,
+      blockedUserId: BOB,
+      reason: "safety",
+    });
+    expect(blocked.ok).toBe(true);
+    expect(await svc.areFriends(ALICE, BOB)).toBe(false);
+
+    const sendAgain = await svc.sendFriendRequest({
+      requesterUserId: BOB,
+      receiverUserId: ALICE,
+    });
+    expect(sendAgain.ok).toBe(false);
+    if (!sendAgain.ok) {
+      expect(sendAgain.error.code).toBe("BLOCKED_RELATIONSHIP");
+    }
+  });
+
+  it("relationship state reflects pending/friend/blocked flows", async () => {
+    expect((await svc.getRelationshipState(ALICE, BOB)).state).toBe("stranger");
+    const created = await svc.sendFriendRequest({
+      requesterUserId: ALICE,
+      receiverUserId: BOB,
+    });
+    if (!created.ok) throw new Error("setup failed");
+    expect((await svc.getRelationshipState(ALICE, BOB)).state).toBe(
+      "pending_sent",
+    );
+    expect((await svc.getRelationshipState(BOB, ALICE)).state).toBe(
+      "pending_received",
+    );
+    await svc.acceptFriendRequest({
+      requestId: created.value.id,
+      recipientUserId: BOB,
+    });
+    expect((await svc.getRelationshipState(ALICE, BOB)).state).toBe("friends");
+    await svc.blockUser({ blockerUserId: ALICE, blockedUserId: BOB });
+    expect((await svc.getRelationshipState(ALICE, BOB)).state).toBe(
+      "blocked_by_viewer",
+    );
+  });
+});

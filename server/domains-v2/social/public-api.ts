@@ -12,6 +12,10 @@
 export {
   createSocialContactsService,
 } from "./social-contacts-service";
+export {
+  createSocialRelationshipService,
+  createSocialRelationshipService as createSocialRelationshipV2Service,
+} from "./service";
 export type {
   SocialContactsService,
   SocialContactsServiceDeps,
@@ -21,6 +25,10 @@ export type {
   SocialContactsErrorCode,
   SocialContactsResult,
 } from "./social-contacts-service";
+export type {
+  SocialRelationshipService,
+  SocialRelationshipServiceDeps,
+} from "./service";
 export type {
   FriendRequest,
   SendFriendRequestInput,
@@ -36,6 +44,16 @@ export type {
   FriendRequestStatus,
 } from "./social-contacts-dto";
 export type {
+  BlockUserInput,
+  CancelFriendRequestInput,
+  RespondFriendRequestInput,
+  SocialRelationshipError,
+  SocialRelationshipErrorCode,
+  SocialRelationshipResult,
+  UnblockUserInput,
+} from "./dto";
+export type { SocialRelationshipServiceContract } from "./contracts";
+export type {
   FriendshipRepository,
   FriendRequestRepository,
   AddressBookRepository,
@@ -49,6 +67,7 @@ export {
   createInMemorySpecialistRepository,
   createInMemoryContactGroupRepository,
 } from "./social-contacts-store";
+export { createInMemorySocialRelationshipRepository } from "./social-relationship-store";
 export {
   canRespondToFriendRequest,
   isDuplicatePendingFriendRequest,

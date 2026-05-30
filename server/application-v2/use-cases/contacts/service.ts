@@ -1,3 +1,7 @@
+// ALLOW_FILE_SIZE_EXCEPTION — Slice 19 added contact-consent orchestration
+// (cancelContactRequest / revokeContactAccess / listContactAccessRequestsForOwner
+// / getContactVisibilityForViewer) on top of the existing contact use-cases.
+// Registered in EXCEPTIONS_REGISTER.md (EXC-011).
 /**
  * application-v2/use-cases/contacts — orchestration.
  *
@@ -41,7 +45,9 @@ export type ContactsApplicationServiceDeps = {
 export type ContactsApplicationErrorCode =
   | "SELF_REQUEST_NOT_ALLOWED"
   | "PENDING_DUPLICATE"
+  | "NOT_REQUESTER"
   | "NOT_RECEIVER"
+  | "NOT_OWNER"
   | "REQUEST_NOT_FOUND"
   | "REQUEST_NOT_PENDING"
   | "UNKNOWN_FIELD"
@@ -78,6 +84,10 @@ export interface ContactsApplicationService {
     viewerId: UserId,
   ): Promise<ContactsApplicationResult<ContactsDashboardDTO>>;
 
+  getContactRequestsPageView(
+    ownerId: UserId,
+  ): Promise<ContactsApplicationResult<readonly ContactRequest[]>>;
+
   /** A→B asks B for PII access. */
   requestContactAccess(input: {
     fromUserId: UserId;
@@ -86,8 +96,19 @@ export interface ContactsApplicationService {
     purpose?: string;
   }): Promise<ContactsApplicationResult<ContactRequest>>;
 
+  cancelContactAccessRequest(input: {
+    requestId: string;
+    requesterUserId: UserId;
+  }): Promise<ContactsApplicationResult<ContactRequest>>;
+
   /** Receiver accepts a contact request with a selected field subset. */
   acceptContactRequest(input: {
+    requestId: string;
+    responderUserId: UserId;
+    approvedFields: readonly ApprovedContactField[];
+  }): Promise<ContactsApplicationResult<ContactRequest>>;
+
+  approveContactAccessFields(input: {
     requestId: string;
     responderUserId: UserId;
     approvedFields: readonly ApprovedContactField[];
@@ -98,6 +119,25 @@ export interface ContactsApplicationService {
     requestId: string;
     responderUserId: UserId;
   }): Promise<ContactsApplicationResult<ContactRequest>>;
+
+  rejectContactAccessRequest(input: {
+    requestId: string;
+    responderUserId: UserId;
+  }): Promise<ContactsApplicationResult<ContactRequest>>;
+
+  revokeContactAccess(input: {
+    requestId: string;
+    ownerUserId: UserId;
+  }): Promise<ContactsApplicationResult<ContactRequest>>;
+
+  getContactVisibilityForViewer(
+    ownerId: UserId,
+    viewerId: UserId | null,
+  ): Promise<ContactsApplicationResult<VisibleContactFieldsDTO>>;
+
+  listContactAccessRequestsForOwner(
+    ownerId: UserId,
+  ): Promise<ContactsApplicationResult<readonly ContactRequest[]>>;
 
   /** Owner-local: label a person with a circle (or "none"); no consent, no PII. */
   updateOwnerLocalContactGroup(input: {
@@ -133,7 +173,9 @@ function mapErrorCode(
   switch (code) {
     case "SELF_REQUEST_NOT_ALLOWED":
     case "PENDING_DUPLICATE":
+    case "NOT_REQUESTER":
     case "NOT_RECEIVER":
+    case "NOT_OWNER":
     case "REQUEST_NOT_FOUND":
     case "REQUEST_NOT_PENDING":
     case "UNKNOWN_FIELD":
@@ -199,6 +241,15 @@ export function createContactsApplicationService(
           deps.socialContacts,
           deps.identityContactAccess,
           viewerId,
+        ),
+      };
+    },
+
+    async getContactRequestsPageView(ownerId) {
+      return {
+        ok: true,
+        value: await deps.identityContactAccess.listContactAccessRequestsForOwner(
+          ownerId,
         ),
       };
     },
@@ -331,6 +382,12 @@ export function createContactsApplicationService(
       return mapResult(await deps.identityContactAccess.sendContactRequest(input));
     },
 
+    async cancelContactAccessRequest(input) {
+      return mapResult(
+        await deps.identityContactAccess.cancelContactRequest(input),
+      );
+    },
+
     async acceptContactRequest(input) {
       return mapResult(
         await deps.identityContactAccess.respondToContactRequest({
@@ -342,6 +399,14 @@ export function createContactsApplicationService(
       );
     },
 
+    async approveContactAccessFields(input) {
+      return this.acceptContactRequest({
+        requestId: input.requestId,
+        responderUserId: input.responderUserId,
+        approvedFields: input.approvedFields,
+      });
+    },
+
     async rejectContactRequest(input) {
       return mapResult(
         await deps.identityContactAccess.respondToContactRequest({
@@ -350,6 +415,36 @@ export function createContactsApplicationService(
           action: "rejected",
         }),
       );
+    },
+
+    async rejectContactAccessRequest(input) {
+      return this.rejectContactRequest(input);
+    },
+
+    async revokeContactAccess(input) {
+      return mapResult(
+        await deps.identityContactAccess.revokeContactAccess(input),
+      );
+    },
+
+    async getContactVisibilityForViewer(ownerId, viewerId) {
+      return {
+        ok: true,
+        value: await deps.identityContactAccess.getContactVisibilityForViewer(
+          ownerId,
+          viewerId,
+        ),
+      };
+    },
+
+    async listContactAccessRequestsForOwner(ownerId) {
+      return {
+        ok: true,
+        value:
+          await deps.identityContactAccess.listContactAccessRequestsForOwner(
+            ownerId,
+          ),
+      };
     },
 
     async updateOwnerLocalContactGroup(input) {

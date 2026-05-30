@@ -7,3 +7,8 @@
  */
 export { ContactsTab } from "./contacts";
 export type { ContactsTabProps } from "./contacts";
+export {
+  ContactRequestsPage,
+  FriendRequestsPage,
+  FriendsPage,
+} from "./friends";

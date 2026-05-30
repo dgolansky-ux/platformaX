@@ -69,6 +69,7 @@ export type SendContactRequestInput = {
   toUserId: UserId;
   message: string;
   purpose?: string;
+  requestedFields?: readonly ApprovedContactField[];
 };
 
 /** Input for owner replying to a pending request. */
@@ -79,3 +80,13 @@ export type RespondToContactRequestInput = {
   | { action: "accepted"; approvedFields: readonly ApprovedContactField[] }
   | { action: "rejected" }
 );
+
+export type CancelContactRequestInput = {
+  requestId: string;
+  requesterUserId: UserId;
+};
+
+export type RevokeContactAccessInput = {
+  requestId: string;
+  ownerUserId: UserId;
+};

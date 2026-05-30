@@ -15,7 +15,9 @@ import type {
 import { APPROVED_CONTACT_FIELDS } from "@shared/contracts/contacts";
 import type { UserId } from "@shared/contracts/branded-ids";
 import type {
+  CancelContactRequestInput,
   RespondToContactRequestInput,
+  RevokeContactAccessInput,
   SendContactRequestInput,
   UpdateContactFieldsInput,
   UpdateContactPermissionsInput,
@@ -58,7 +60,9 @@ export type ContactAccessServiceDeps = {
 export type ContactAccessErrorCode =
   | "SELF_REQUEST_NOT_ALLOWED"
   | "PENDING_DUPLICATE"
+  | "NOT_REQUESTER"
   | "NOT_RECEIVER"
+  | "NOT_OWNER"
   | "REQUEST_NOT_FOUND"
   | "REQUEST_NOT_PENDING"
   | "UNKNOWN_FIELD";
@@ -87,10 +91,21 @@ export interface ContactAccessService {
   sendContactRequest(
     input: SendContactRequestInput,
   ): Promise<ContactAccessResult<ContactRequest>>;
+  cancelContactRequest(
+    input: CancelContactRequestInput,
+  ): Promise<ContactAccessResult<ContactRequest>>;
   getIncomingContactRequests(receiverId: UserId): Promise<ContactRequest[]>;
   getSentContactRequests(senderId: UserId): Promise<ContactRequest[]>;
+  listContactAccessRequestsForOwner(ownerId: UserId): Promise<ContactRequest[]>;
+  getContactVisibilityForViewer(
+    ownerId: UserId,
+    viewerId: UserId | null,
+  ): Promise<VisibleContactFieldsDTO>;
   respondToContactRequest(
     input: RespondToContactRequestInput,
+  ): Promise<ContactAccessResult<ContactRequest>>;
+  revokeContactAccess(
+    input: RevokeContactAccessInput,
   ): Promise<ContactAccessResult<ContactRequest>>;
 }
 
@@ -201,12 +216,53 @@ export function createContactAccessService(
         toUserId: input.toUserId,
         message: input.message,
         purpose: input.purpose,
+        requestedFields: input.requestedFields ?? APPROVED_CONTACT_FIELDS,
         status: "pending",
         approvedFields: [],
         createdAt: now,
+        respondedAt: null,
         updatedAt: now,
       });
       return { ok: true, value: row };
+    },
+
+    async cancelContactRequest(input) {
+      const existing = await deps.requests.getById(input.requestId);
+      if (!existing) {
+        return {
+          ok: false,
+          error: {
+            code: "REQUEST_NOT_FOUND",
+            message: "Contact request not found.",
+          },
+        };
+      }
+      if (existing.fromUserId !== input.requesterUserId) {
+        return {
+          ok: false,
+          error: {
+            code: "NOT_REQUESTER",
+            message: "Only requester can cancel the request.",
+          },
+        };
+      }
+      if (existing.status !== "pending") {
+        return {
+          ok: false,
+          error: {
+            code: "REQUEST_NOT_PENDING",
+            message: `Cannot cancel request in status ${existing.status}.`,
+          },
+        };
+      }
+      const now = deps.clock.now().toISOString();
+      const updated = await deps.requests.update(input.requestId, {
+        status: "cancelled",
+        approvedFields: existing.approvedFields,
+        updatedAt: now,
+        respondedAt: now,
+      });
+      return { ok: true, value: updated };
     },
 
     async getIncomingContactRequests(receiverId) {
@@ -215,6 +271,14 @@ export function createContactAccessService(
 
     async getSentContactRequests(senderId) {
       return deps.requests.listBySender(senderId);
+    },
+
+    async listContactAccessRequestsForOwner(ownerId) {
+      return deps.requests.listByReceiver(ownerId);
+    },
+
+    async getContactVisibilityForViewer(ownerId, viewerId) {
+      return this.getVisibleContactFieldsForViewer(ownerId, viewerId);
     },
 
     async respondToContactRequest(input) {
@@ -263,6 +327,46 @@ export function createContactAccessService(
         status: input.action,
         approvedFields,
         updatedAt: deps.clock.now().toISOString(),
+        respondedAt: deps.clock.now().toISOString(),
+      });
+      return { ok: true, value: updated };
+    },
+
+    async revokeContactAccess(input) {
+      const existing = await deps.requests.getById(input.requestId);
+      if (!existing) {
+        return {
+          ok: false,
+          error: {
+            code: "REQUEST_NOT_FOUND",
+            message: "Contact request not found.",
+          },
+        };
+      }
+      if (existing.toUserId !== input.ownerUserId) {
+        return {
+          ok: false,
+          error: {
+            code: "NOT_OWNER",
+            message: "Only owner can revoke contact access.",
+          },
+        };
+      }
+      if (existing.status !== "accepted") {
+        return {
+          ok: false,
+          error: {
+            code: "REQUEST_NOT_PENDING",
+            message: `Cannot revoke request in status ${existing.status}.`,
+          },
+        };
+      }
+      const now = deps.clock.now().toISOString();
+      const updated = await deps.requests.update(input.requestId, {
+        status: "revoked",
+        approvedFields: [],
+        updatedAt: now,
+        respondedAt: now,
       });
       return { ok: true, value: updated };
     },

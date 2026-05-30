@@ -115,6 +115,7 @@ export type ContactRequestStatus =
   | "pending"
   | "accepted"
   | "rejected"
+  | "revoked"
   | "cancelled";
 
 /** A contact request as the owner / receiver sees it. */
@@ -124,10 +125,12 @@ export type ContactRequest = {
   toUserId: UserId;
   message: string;
   purpose?: string;
+  requestedFields: readonly ApprovedContactField[];
   status: ContactRequestStatus;
   /** Empty until `respondToContactRequest({ action: 'accepted', ... })`. */
   approvedFields: readonly ApprovedContactField[];
   createdAt: string;
+  respondedAt?: string | null;
   updatedAt: string;
 };
 
@@ -290,6 +293,90 @@ export type ContactsTabData = {
     fromUserId: UserId;
     createdAt: string;
   }[];
+};
+
+/**
+ * Slice 19 DTO aliases used by social/contact orchestration layers.
+ * These are public-safe wrappers over the canonical contact/friendship contracts.
+ */
+export type RelationshipStateDTO = {
+  viewerUserId: UserId;
+  otherUserId: UserId;
+  state:
+    | "owner"
+    | "stranger"
+    | "pending_sent"
+    | "pending_received"
+    | "friends"
+    | "blocked_by_viewer"
+    | "blocked_by_other";
+};
+
+export type FriendDTO = FriendEntry;
+
+export type FriendRequestDTO = {
+  id: string;
+  requesterUserId: UserId;
+  recipientUserId: UserId;
+  status: FriendRequestStatus;
+  createdAt: string;
+  respondedAt?: string | null;
+  updatedAt: string;
+};
+
+export type FriendsListDTO = {
+  ownerUserId: UserId;
+  items: readonly FriendDTO[];
+  nextCursor: string | null;
+};
+
+export type ContactAccessRequestDTO = ContactRequest;
+
+export type ContactVisibilityDTO = {
+  ownerUserId: UserId;
+  viewerUserId: UserId | null;
+  approvedFields: readonly ApprovedContactField[];
+  visibleFields: VisibleContactFieldsDTO["fields"];
+};
+
+export type ContactPanelDTO = {
+  ownerUserId: UserId;
+  viewerUserId: UserId | null;
+  relationship: RelationshipStateDTO["state"];
+  visibility: ContactVisibilityDTO;
+};
+
+export type BlockedUserDTO = {
+  id: string;
+  blockerUserId: UserId;
+  blockedUserId: UserId;
+  reason?: string;
+  createdAt: string;
+  revokedAt?: string | null;
+};
+
+export type SendFriendRequestInput = {
+  requesterUserId: UserId;
+  recipientUserId: UserId;
+};
+
+export type RespondFriendRequestInput = {
+  requestId: string;
+  responderUserId: UserId;
+  action: "accepted" | "rejected";
+};
+
+export type RequestContactAccessInput = {
+  requesterUserId: UserId;
+  ownerUserId: UserId;
+  requestedFields: readonly ApprovedContactField[];
+  message?: string;
+};
+
+export type ApproveContactAccessInput = {
+  requestId: string;
+  ownerUserId: UserId;
+  approvedFields: readonly ApprovedContactField[];
 };
 
 // Error / Result types intentionally live in
