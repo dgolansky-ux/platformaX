@@ -48,16 +48,15 @@ import {
   clampLimit,
   fail,
   toRepoFilter,
+  type NotificationsClock,
   type NotificationsErrorCode,
+  type NotificationsIdGen,
   type NotificationsResult,
 } from "./service-helpers";
 import {
   getSettingsForViewer,
   updateSettingsForViewer,
 } from "./service-settings";
-
-export type NotificationsClock = { now: () => Date };
-export type NotificationsIdGen = { next: () => string };
 
 export interface NotificationsServiceDeps {
   notifications: NotificationRepository;

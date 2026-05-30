@@ -4,7 +4,6 @@
  * Kept separate from `service.ts` so the notifications-side stays focused on
  * the notification lifecycle while the settings foundation owns its own file.
  */
-import type { NotificationsClock } from "./service";
 import type { NotificationSettingsRepository } from "./ports";
 import type {
   NotificationSettingsDTO,
@@ -12,7 +11,7 @@ import type {
 } from "./settings-dto";
 import { toSettingsDTO } from "./mapper";
 import { isNotificationCategory } from "./policy";
-import { fail, type NotificationsResult } from "./service-helpers";
+import { fail, type NotificationsClock, type NotificationsResult } from "./service-helpers";
 
 export async function getSettingsForViewer(
   settings: NotificationSettingsRepository,

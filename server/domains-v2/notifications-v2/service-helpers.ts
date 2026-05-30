@@ -24,6 +24,9 @@ export type NotificationsResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: { code: NotificationsErrorCode; message: string } };
 
+export type NotificationsClock = { now: () => Date };
+export type NotificationsIdGen = { next: () => string };
+
 export function fail<T>(code: NotificationsErrorCode, message: string): NotificationsResult<T> {
   return { ok: false, error: { code, message } };
 }

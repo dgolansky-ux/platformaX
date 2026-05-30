@@ -9,12 +9,14 @@ export { createNotificationsService } from "./service";
 export type {
   NotificationsService,
   NotificationsServiceDeps,
-  NotificationsResult,
-  NotificationsErrorCode,
-  NotificationsClock,
-  NotificationsIdGen,
   MarkAllReadOutcome,
 } from "./service";
+export type {
+  NotificationsClock,
+  NotificationsErrorCode,
+  NotificationsIdGen,
+  NotificationsResult,
+} from "./service-helpers";
 export {
   createInMemoryNotificationRepository,
   createInMemoryNotificationSettingsRepository,
