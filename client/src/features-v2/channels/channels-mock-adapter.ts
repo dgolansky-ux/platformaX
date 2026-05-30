@@ -38,6 +38,21 @@ import type {
   ChannelPostDTO,
   CreateChannelPostFrontendInput,
 } from "@shared/contracts/channel-posts";
+import type {
+  ChannelCommentDTO,
+  ChannelCommentListDTO,
+  ChannelCommentPolicyDTO,
+  ChannelInteractionSettingsDTO,
+  ChannelInteractionsActionResult,
+  ChannelPostInteractionSummaryDTO,
+  ChannelReactionSummaryDTO,
+  ChannelReactionTargetType,
+  CreateChannelCommentFrontendInput,
+  DeactivateChannelCommentFrontendInput,
+  ReactToChannelTargetFrontendInput,
+  UpdateChannelCommentFrontendInput,
+  UpdateChannelInteractionSettingsFrontendInput,
+} from "@shared/contracts/channel-interactions";
 
 const VIEWER_ID = "u-viewer-demo";
 const VIEWER_NAME = "Demo użytkownik";
@@ -46,6 +61,8 @@ const FULL_LEAD_PERMISSIONS: ChannelLeadPermission[] = [
   "publish_channel_content",
   "manage_channel_content",
   "pin_channel_post",
+  "moderate_channel_comments",
+  "manage_channel_interactions",
   "manage_channel_leads",
   "view_channel_stats",
 ];
@@ -97,6 +114,34 @@ type PostState = {
   active: boolean;
 };
 
+type InteractionSettingsState = {
+  channelId: string;
+  commentsEnabled: boolean;
+  reactionsEnabled: boolean;
+  commentPolicy: ChannelCommentPolicyDTO;
+  updatedAt: string;
+};
+
+type CommentState = {
+  id: string;
+  channelPostId: string;
+  authorUserId: string;
+  body: string;
+  status: "active" | "edited" | "deactivated";
+  moderationReason?: string;
+  moderatedByUserId?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ReactionState = {
+  id: string;
+  targetType: ChannelReactionTargetType;
+  targetId: string;
+  userId: string;
+  createdAt: string;
+};
+
 type State = {
   communities: Map<string, CommunityState>; // keyed by slug
   byCommunityId: Map<string, CommunityState>;
@@ -105,6 +150,9 @@ type State = {
   leads: LeadState[];
   follows: FollowState[];
   posts: PostState[];
+  interactionSettings: InteractionSettingsState[];
+  comments: CommentState[];
+  reactions: ReactionState[];
   failure: string | null;
   seq: number;
 };
@@ -228,6 +276,28 @@ function makeInitialState(): State {
     { channelId: "ch-zdr-trening", userId: VIEWER_ID },
   ];
   const posts = seedPosts();
+  const interactionSettings = channels.map((channel) => ({
+    channelId: channel.id,
+    commentsEnabled: true,
+    reactionsEnabled: true,
+    commentPolicy: "followers" as const,
+    updatedAt: "2026-05-29T08:00:00Z",
+  }));
+  const comments: CommentState[] = [
+    {
+      id: "comment-pb-1",
+      channelPostId: "post-pb-ogolny-1",
+      authorUserId: "u-marek-dev",
+      body: "Super, przyda się krótki plan tematów na kolejny tydzień.",
+      status: "active",
+      createdAt: "2026-05-29T09:00:00Z",
+      updatedAt: "2026-05-29T09:00:00Z",
+    },
+  ];
+  const reactions: ReactionState[] = [
+    { id: "reaction-pb-1", targetType: "channel_post", targetId: "post-pb-ogolny-1", userId: VIEWER_ID, createdAt: "2026-05-29T09:05:00Z" },
+    { id: "reaction-pb-2", targetType: "channel_comment", targetId: "comment-pb-1", userId: VIEWER_ID, createdAt: "2026-05-29T09:06:00Z" },
+  ];
 
   return {
     communities: communitiesBySlug,
@@ -237,6 +307,9 @@ function makeInitialState(): State {
     leads,
     follows,
     posts,
+    interactionSettings,
+    comments,
+    reactions,
     failure: null,
     seq: 100,
   };
@@ -319,6 +392,50 @@ function hasPermission(channelId: string, permission: ChannelLeadPermission): bo
   return leadPermissions(channelId).includes(permission);
 }
 
+function interactionSettings(channelId: string): InteractionSettingsState {
+  let settings = state.interactionSettings.find((s) => s.channelId === channelId);
+  if (!settings) {
+    settings = {
+      channelId,
+      commentsEnabled: true,
+      reactionsEnabled: true,
+      commentPolicy: "followers",
+      updatedAt: new Date().toISOString(),
+    };
+    state.interactionSettings.push(settings);
+  }
+  return settings;
+}
+
+function canComment(channel: ChannelState): boolean {
+  const settings = interactionSettings(channel.id);
+  if (!settings.commentsEnabled) return false;
+  if (viewerLeadFor(channel.id)) return true;
+  if (settings.commentPolicy === "followers") return viewerFollows(channel.id);
+  if (settings.commentPolicy === "community_members") {
+    return state.byCommunityId.get(channel.ownerCommunityId)?.viewerRole !== null;
+  }
+  return false;
+}
+
+function interactionPermissionMessage(channel: ChannelState): string | null {
+  const settings = interactionSettings(channel.id);
+  if (!settings.commentsEnabled) return "Komentarze są wyłączone przez prowadzących.";
+  if (canComment(channel)) return null;
+  if (settings.commentPolicy === "followers") return "Komentować mogą obserwujący kanał.";
+  if (settings.commentPolicy === "community_members") return "Komentować mogą członkowie społeczności właściciela.";
+  return "Komentować mogą tylko prowadzący kanał.";
+}
+
+function reactionSummary(targetType: ChannelReactionTargetType, targetId: string): ChannelReactionSummaryDTO {
+  const total = state.reactions.filter((r) => r.targetType === targetType && r.targetId === targetId).length;
+  return { targetType, targetId, counts: { like: total }, total };
+}
+
+function viewerLiked(targetType: ChannelReactionTargetType, targetId: string): boolean {
+  return state.reactions.some((r) => r.targetType === targetType && r.targetId === targetId && r.userId === VIEWER_ID);
+}
+
 function orderedPosts(channelId: string): PostState[] {
   return state.posts
     .filter((p) => p.channelId === channelId && p.active)
@@ -330,6 +447,10 @@ function orderedPosts(channelId: string): PostState[] {
 
 function postToDto(post: PostState): ChannelPostDTO {
   const lead = state.leads.find((l) => l.userId === post.authorUserId);
+  const channel = state.byChannelId.get(post.channelId);
+  const settings = interactionSettings(post.channelId);
+  const reactionCount = reactionSummary("channel_post", post.id).total;
+  const commentCount = state.comments.filter((c) => c.channelPostId === post.id && c.status !== "deactivated").length;
   return {
     id: post.id,
     channelId: post.channelId,
@@ -346,6 +467,17 @@ function postToDto(post: PostState): ChannelPostDTO {
     updatedAt: post.updatedAt,
     viewerCanPin: hasPermission(post.channelId, "pin_channel_post"),
     viewerCanManage: hasPermission(post.channelId, "manage_channel_content") || post.authorUserId === VIEWER_ID,
+    interactions: {
+      commentCount,
+      reactionCount,
+      viewerLiked: viewerLiked("channel_post", post.id),
+      commentsEnabled: settings.commentsEnabled,
+      reactionsEnabled: settings.reactionsEnabled,
+      canComment: channel ? canComment(channel) : false,
+      canReact: settings.reactionsEnabled,
+      canModerateComments: hasPermission(post.channelId, "moderate_channel_comments"),
+      permissionMessage: channel ? interactionPermissionMessage(channel) : null,
+    },
   };
 }
 
@@ -407,6 +539,11 @@ async function getChannelProfile(slug: string): Promise<ChannelsActionResult<Cha
         canPublish: viewerLead?.permissions.includes("publish_channel_content") ?? false,
         canManageContent: viewerLead?.permissions.includes("manage_channel_content") ?? false,
         canPin: viewerLead?.permissions.includes("pin_channel_post") ?? false,
+        interactionSettings: {
+          ...interactionSettings(channel.id),
+          moderationPolicy: "lead_permission_required",
+          viewerCanUpdate: viewerLead?.permissions.includes("manage_channel_interactions") ?? false,
+        },
       },
       viewer: {
         follows: card.viewerFollows,
@@ -418,6 +555,140 @@ async function getChannelProfile(slug: string): Promise<ChannelsActionResult<Cha
       },
     },
   };
+}
+
+function commentToDto(comment: CommentState): ChannelCommentDTO {
+  const lead = state.leads.find((l) => l.userId === comment.authorUserId);
+  const author = lead ? { userId: lead.userId, displayName: lead.displayName, handle: lead.userId, avatarRef: null } : { userId: comment.authorUserId, displayName: comment.authorUserId, handle: comment.authorUserId, avatarRef: null };
+  const post = state.posts.find((p) => p.id === comment.channelPostId);
+  const canModerate = post ? hasPermission(post.channelId, "moderate_channel_comments") : false;
+  return {
+    id: comment.id,
+    channelPostId: comment.channelPostId,
+    author,
+    body: comment.status === "deactivated" ? "" : comment.body,
+    status: comment.status,
+    moderationReason: comment.moderationReason,
+    createdAt: comment.createdAt,
+    updatedAt: comment.updatedAt,
+    viewerCanEdit: comment.authorUserId === VIEWER_ID && comment.status !== "deactivated",
+    viewerCanDeactivate: (comment.authorUserId === VIEWER_ID || canModerate) && comment.status !== "deactivated",
+    viewerCanModerate: canModerate && comment.status !== "deactivated",
+  };
+}
+
+async function listChannelComments(channelSlug: string, postId: string): Promise<ChannelInteractionsActionResult<ChannelCommentListDTO>> {
+  const f = failureCheck<ChannelCommentListDTO>(); if (f) return f;
+  const channel = state.channels.get(channelSlug);
+  if (!channel) return { ok: false, error: { code: "NOT_FOUND", message: "Kanał nie istnieje." } };
+  const post = state.posts.find((p) => p.id === postId && p.channelId === channel.id && p.active);
+  if (!post) return { ok: false, error: { code: "NOT_FOUND", message: "Wpis nie istnieje." } };
+  const items = state.comments.filter((c) => c.channelPostId === postId).sort((a, b) => a.createdAt < b.createdAt ? -1 : 1).map(commentToDto);
+  return {
+    ok: true,
+    value: {
+      items,
+      nextCursor: null,
+      reactions: items.map((comment) => ({
+        commentId: comment.id,
+        reactions: reactionSummary("channel_comment", comment.id),
+        viewer: { targetType: "channel_comment", targetId: comment.id, active: viewerLiked("channel_comment", comment.id) ? ["like"] : [] },
+      })),
+      canComment: canComment(channel),
+      canReact: interactionSettings(channel.id).reactionsEnabled,
+      permissionMessage: interactionPermissionMessage(channel),
+    },
+  };
+}
+
+async function createChannelComment(input: CreateChannelCommentFrontendInput): Promise<ChannelInteractionsActionResult<ChannelCommentDTO>> {
+  const f = failureCheck<ChannelCommentDTO>(); if (f) return f;
+  const channel = state.channels.get(input.channelSlug);
+  if (!channel) return { ok: false, error: { code: "NOT_FOUND", message: "Kanał nie istnieje." } };
+  if (!canComment(channel)) return { ok: false, error: { code: "FORBIDDEN", message: interactionPermissionMessage(channel) ?? "Brak uprawnień." } };
+  const post = state.posts.find((p) => p.id === input.postId && p.channelId === channel.id && p.active);
+  if (!post) return { ok: false, error: { code: "NOT_FOUND", message: "Wpis nie istnieje." } };
+  const body = input.body.trim();
+  if (!body) return { ok: false, error: { code: "VALIDATION", field: "body", message: "Komentarz nie może być pusty." } };
+  const now = new Date().toISOString();
+  const comment: CommentState = {
+    id: nextId("comment"),
+    channelPostId: post.id,
+    authorUserId: VIEWER_ID,
+    body,
+    status: "active",
+    createdAt: now,
+    updatedAt: now,
+  };
+  state.comments.push(comment);
+  return { ok: true, value: commentToDto(comment) };
+}
+
+async function updateChannelComment(input: UpdateChannelCommentFrontendInput): Promise<ChannelInteractionsActionResult<ChannelCommentDTO>> {
+  const f = failureCheck<ChannelCommentDTO>(); if (f) return f;
+  const comment = state.comments.find((c) => c.id === input.commentId && c.channelPostId === input.postId);
+  if (!comment) return { ok: false, error: { code: "NOT_FOUND", message: "Komentarz nie istnieje." } };
+  if (comment.authorUserId !== VIEWER_ID) return { ok: false, error: { code: "FORBIDDEN", message: "Możesz edytować tylko własny komentarz." } };
+  comment.body = input.body.trim();
+  comment.status = "edited";
+  comment.updatedAt = new Date().toISOString();
+  return { ok: true, value: commentToDto(comment) };
+}
+
+async function deactivateChannelComment(input: DeactivateChannelCommentFrontendInput): Promise<ChannelInteractionsActionResult<ChannelCommentDTO>> {
+  const f = failureCheck<ChannelCommentDTO>(); if (f) return f;
+  const channel = state.channels.get(input.channelSlug);
+  const comment = state.comments.find((c) => c.id === input.commentId && c.channelPostId === input.postId);
+  if (!channel || !comment) return { ok: false, error: { code: "NOT_FOUND", message: "Komentarz nie istnieje." } };
+  const canModerate = hasPermission(channel.id, "moderate_channel_comments");
+  if (comment.authorUserId !== VIEWER_ID && !canModerate) return { ok: false, error: { code: "FORBIDDEN", message: "Brak uprawnień do moderacji komentarza." } };
+  comment.body = "";
+  comment.status = "deactivated";
+  comment.moderationReason = canModerate && comment.authorUserId !== VIEWER_ID ? input.moderationReason ?? "moderated" : undefined;
+  comment.moderatedByUserId = canModerate && comment.authorUserId !== VIEWER_ID ? VIEWER_ID : undefined;
+  comment.updatedAt = new Date().toISOString();
+  return { ok: true, value: commentToDto(comment) };
+}
+
+async function reactToChannelTarget(input: ReactToChannelTargetFrontendInput): Promise<ChannelInteractionsActionResult<ChannelPostInteractionSummaryDTO | ChannelReactionSummaryDTO>> {
+  const f = failureCheck<ChannelPostInteractionSummaryDTO | ChannelReactionSummaryDTO>(); if (f) return f;
+  const channel = state.channels.get(input.channelSlug);
+  if (!channel) return { ok: false, error: { code: "NOT_FOUND", message: "Kanał nie istnieje." } };
+  if (!interactionSettings(channel.id).reactionsEnabled) return { ok: false, error: { code: "FORBIDDEN", message: "Reakcje są wyłączone." } };
+  const existing = state.reactions.findIndex((r) => r.targetType === input.targetType && r.targetId === input.targetId && r.userId === VIEWER_ID);
+  if (input.mode === "remove" || (input.mode === "toggle" && existing !== -1)) {
+    if (existing !== -1) state.reactions.splice(existing, 1);
+  } else if (existing === -1) {
+    state.reactions.push({ id: nextId("reaction"), targetType: input.targetType, targetId: input.targetId, userId: VIEWER_ID, createdAt: new Date().toISOString() });
+  }
+  if (input.targetType === "channel_post") {
+    return { ok: true, value: postInteractionSummary(input.targetId) };
+  }
+  return { ok: true, value: reactionSummary(input.targetType, input.targetId) };
+}
+
+function postInteractionSummary(postId: string): ChannelPostInteractionSummaryDTO {
+  return {
+    channelPostId: postId,
+    commentCount: state.comments.filter((c) => c.channelPostId === postId && c.status !== "deactivated").length,
+    reactions: reactionSummary("channel_post", postId),
+    viewer: { targetType: "channel_post", targetId: postId, active: viewerLiked("channel_post", postId) ? ["like"] : [] },
+  };
+}
+
+async function updateInteractionSettings(input: UpdateChannelInteractionSettingsFrontendInput): Promise<ChannelInteractionsActionResult<ChannelInteractionSettingsDTO>> {
+  const f = failureCheck<ChannelInteractionSettingsDTO>(); if (f) return f;
+  const channel = state.channels.get(input.channelSlug);
+  if (!channel) return { ok: false, error: { code: "NOT_FOUND", message: "Kanał nie istnieje." } };
+  if (!hasPermission(channel.id, "manage_channel_interactions")) {
+    return { ok: false, error: { code: "FORBIDDEN", message: "Brak uprawnień do ustawień interakcji." } };
+  }
+  const settings = interactionSettings(channel.id);
+  settings.commentsEnabled = input.commentsEnabled;
+  settings.reactionsEnabled = input.reactionsEnabled;
+  settings.commentPolicy = input.commentPolicy;
+  settings.updatedAt = new Date().toISOString();
+  return { ok: true, value: { ...settings, moderationPolicy: "lead_permission_required", viewerCanUpdate: true } };
 }
 
 async function createChannelPost(input: CreateChannelPostFrontendInput): Promise<ChannelsActionResult<ChannelPostDTO>> {
@@ -615,6 +886,12 @@ export type ChannelsMockAdapter = {
   followChannel(input: FollowChannelFrontendInput): Promise<ChannelsActionResult<ChannelCardDTO>>;
   unfollowChannel(input: FollowChannelFrontendInput): Promise<ChannelsActionResult<ChannelCardDTO>>;
   communityMembers(communitySlug: string): Promise<ChannelsActionResult<ReadonlyArray<{ userId: string; displayName: string }>>>;
+  listChannelComments(channelSlug: string, postId: string): Promise<ChannelInteractionsActionResult<ChannelCommentListDTO>>;
+  createChannelComment(input: CreateChannelCommentFrontendInput): Promise<ChannelInteractionsActionResult<ChannelCommentDTO>>;
+  updateChannelComment(input: UpdateChannelCommentFrontendInput): Promise<ChannelInteractionsActionResult<ChannelCommentDTO>>;
+  deactivateChannelComment(input: DeactivateChannelCommentFrontendInput): Promise<ChannelInteractionsActionResult<ChannelCommentDTO>>;
+  reactToChannelTarget(input: ReactToChannelTargetFrontendInput): Promise<ChannelInteractionsActionResult<ChannelPostInteractionSummaryDTO | ChannelReactionSummaryDTO>>;
+  updateInteractionSettings(input: UpdateChannelInteractionSettingsFrontendInput): Promise<ChannelInteractionsActionResult<ChannelInteractionSettingsDTO>>;
   __setFailureForTests(message: string | null): void;
   __resetForTests(): void;
 };
@@ -632,6 +909,12 @@ export const channelsMockAdapter: ChannelsMockAdapter = {
   followChannel: (input) => setFollow(input, true),
   unfollowChannel: (input) => setFollow(input, false),
   communityMembers: async (slug) => communityMembersFor(slug),
+  listChannelComments,
+  createChannelComment,
+  updateChannelComment,
+  deactivateChannelComment,
+  reactToChannelTarget,
+  updateInteractionSettings,
   __setFailureForTests(message) { state.failure = message; },
   __resetForTests() { state = makeInitialState(); },
 };

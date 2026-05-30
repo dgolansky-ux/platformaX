@@ -3,7 +3,8 @@
  * public channel/lead/follow shape.
  */
 import type { ChannelLeadDTO, ChannelPublicDTO } from "./dto";
-import type { ChannelLeadRecord, ChannelRecord } from "./ports";
+import type { ChannelInteractionSettingsDTO } from "./interaction-settings";
+import type { ChannelInteractionSettingsRecord, ChannelLeadRecord, ChannelRecord } from "./ports";
 
 export function toChannelPublicDTO(r: ChannelRecord, followerCount: number, leadCount: number): ChannelPublicDTO {
   return {
@@ -29,5 +30,16 @@ export function toChannelLeadDTO(r: ChannelLeadRecord): ChannelLeadDTO {
     status: r.status,
     assignedByUserId: r.assignedByUserId,
     assignedAt: r.assignedAt,
+  };
+}
+
+export function toChannelInteractionSettingsDTO(r: ChannelInteractionSettingsRecord): ChannelInteractionSettingsDTO {
+  return {
+    channelId: r.channelId,
+    commentsEnabled: r.commentsEnabled,
+    reactionsEnabled: r.reactionsEnabled,
+    commentPolicy: r.commentPolicy,
+    moderationPolicy: r.moderationPolicy,
+    updatedAt: r.updatedAt,
   };
 }

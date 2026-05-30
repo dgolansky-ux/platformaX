@@ -9,6 +9,8 @@ export type ChannelLeadPermission =
   | "publish_channel_content"
   | "manage_channel_content"
   | "pin_channel_post"
+  | "moderate_channel_comments"
+  | "manage_channel_interactions"
   | "manage_channel_leads"
   | "view_channel_stats";
 
@@ -17,6 +19,8 @@ export const CHANNEL_LEAD_PERMISSIONS: readonly ChannelLeadPermission[] = [
   "publish_channel_content",
   "manage_channel_content",
   "pin_channel_post",
+  "moderate_channel_comments",
+  "manage_channel_interactions",
   "manage_channel_leads",
   "view_channel_stats",
 ];

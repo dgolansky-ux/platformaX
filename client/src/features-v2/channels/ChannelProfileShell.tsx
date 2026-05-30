@@ -11,6 +11,7 @@ import { channelsMockAdapter } from "./channels-mock-adapter";
 import { ChannelLeadsPanel } from "./ChannelLeadsPanel";
 import { ChannelPostComposer } from "./ChannelPostComposer";
 import { ChannelFeedList } from "./ChannelFeedList";
+import { ChannelInteractionSettingsPanel } from "./ChannelInteractionSettingsPanel";
 import styles from "./Channels.module.css";
 
 type Props = { slug: string };
@@ -104,6 +105,12 @@ export function ChannelProfileShell({ slug }: Props) {
       />
 
       <ChannelFeedList
+        channelSlug={channel.slug}
+        feed={state.data.feed}
+        onChanged={load}
+      />
+
+      <ChannelInteractionSettingsPanel
         channelSlug={channel.slug}
         feed={state.data.feed}
         onChanged={load}

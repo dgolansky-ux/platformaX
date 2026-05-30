@@ -281,7 +281,6 @@
 .pinnedBadge { padding: 4px 8px; border-radius: 999px; color: var(--c-accent); background: var(--c-accent-soft); font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
 .postAction { margin-top: 12px; border: 1px solid var(--c-border); background: #fff; color: var(--c-text); border-radius: 9px; padding: 6px 10px; font: inherit; font-size: 0.78rem; font-weight: 800; cursor: pointer; }
 .restrictedState { padding: 18px; border: 1px dashed var(--c-border); border-radius: 14px; color: var(--c-text-soft); background: #fff; text-align: center; }
-
 @media (max-width: 720px) {
   .hero, .profileHero { flex-direction: column; align-items: stretch; }
   .formRow { grid-template-columns: 1fr; }

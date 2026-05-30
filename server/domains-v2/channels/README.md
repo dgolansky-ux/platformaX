@@ -15,9 +15,12 @@ and is orchestrated by `application-v2/use-cases/channel-content`. DB + transpor
 pending.
 
 Slice 8 adds lead permissions for content: `publish_channel_content`,
-`manage_channel_content`, `pin_channel_post`, plus future-ready
-`view_channel_stats`. Community founder/admin authority does not bypass these
-channel lead permissions for publishing.
+`manage_channel_content`, `pin_channel_post`. Slice 9 adds interaction
+permissions/settings: `moderate_channel_comments`,
+`manage_channel_interactions`, `commentsEnabled`, `reactionsEnabled`, and
+`commentPolicy` (`followers` / `community_members` / `leads_only`). Community
+founder/admin authority does not bypass these channel lead permissions for
+publishing or interaction moderation.
 
 ## Purpose
 Owns channel definitions, channel memberships, and channel settings.
@@ -26,11 +29,13 @@ Owns channel definitions, channel memberships, and channel settings.
 - Channel definitions
 - Channel memberships
 - Channel settings
+- Channel interaction settings and lead permissions
 
 ## Does NOT own
 - Messages
 - Chat history
 - Community roles
+- Channel post comments/reactions/counts (owned by `content-v2`)
 
 ## Public surface
 - `public-api.ts`

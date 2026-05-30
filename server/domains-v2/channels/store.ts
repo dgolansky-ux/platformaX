@@ -17,6 +17,8 @@ import type {
   ChannelVisibility,
 } from "./dto";
 import type {
+  ChannelInteractionSettingsRecord,
+  ChannelInteractionSettingsRepository,
   ChannelLeadRecord,
   ChannelLeadRepository,
   ChannelRecord,
@@ -148,6 +150,19 @@ export function createInMemoryFollowRepository(): FollowRepository {
     },
     async listActiveForUser(userId) {
       return [...rows.values()].filter((r) => r.followerUserId === userId && r.status === "active");
+    },
+  };
+}
+
+export function createInMemoryChannelInteractionSettingsRepository(): ChannelInteractionSettingsRepository {
+  const rows = new Map<string, ChannelInteractionSettingsRecord>();
+  return {
+    async get(channelId) {
+      return rows.get(channelId) ?? null;
+    },
+    async upsert(record) {
+      rows.set(record.channelId, record);
+      return record;
     },
   };
 }

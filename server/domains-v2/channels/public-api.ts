@@ -15,11 +15,13 @@ export {
   createInMemoryChannelRepository,
   createInMemoryChannelLeadRepository,
   createInMemoryFollowRepository,
+  createInMemoryChannelInteractionSettingsRepository,
 } from "./store";
 export type {
   ChannelRepository,
   ChannelLeadRepository,
   FollowRepository,
+  ChannelInteractionSettingsRepository,
 } from "./ports";
 export type {
   ChannelPublicDTO,
@@ -34,6 +36,12 @@ export type {
   ChannelVisibility,
   ChannelStatus,
 } from "./dto";
+export type {
+  ChannelInteractionSettingsDTO,
+  ChannelCommentPolicyDTO,
+  ChannelModerationPolicyDTO,
+  UpdateChannelInteractionSettingsInput,
+} from "./interaction-settings";
 export {
   CHANNEL_LEAD_PERMISSIONS,
   MAX_ACTIVE_LEADS,
@@ -58,3 +66,10 @@ export {
   canPinChannelPost,
   canViewChannelFeed,
 } from "./policy";
+export {
+  canUpdateChannelInteractionSettings,
+  canCommentOnChannelPost,
+  canReactToChannelPost,
+  canModerateChannelComment,
+  canViewChannelInteractions,
+} from "./interaction-policy";

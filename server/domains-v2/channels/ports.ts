@@ -13,6 +13,7 @@ import type {
   ChannelVisibility,
   FollowStatus,
 } from "./dto";
+import type { ChannelCommentPolicyDTO, ChannelModerationPolicyDTO } from "./interaction-settings";
 
 export type ChannelRecord = {
   id: string;
@@ -42,6 +43,15 @@ export type FollowRecord = {
   followerUserId: string;
   status: FollowStatus;
   createdAt: string;
+};
+
+export type ChannelInteractionSettingsRecord = {
+  channelId: string;
+  commentsEnabled: boolean;
+  reactionsEnabled: boolean;
+  commentPolicy: ChannelCommentPolicyDTO;
+  moderationPolicy: ChannelModerationPolicyDTO;
+  updatedAt: string;
 };
 
 export interface ChannelRepository {
@@ -74,4 +84,9 @@ export interface FollowRepository {
   get(channelId: string, followerUserId: string): Promise<FollowRecord | null>;
   countActive(channelId: string): Promise<number>;
   listActiveForUser(userId: string): Promise<FollowRecord[]>;
+}
+
+export interface ChannelInteractionSettingsRepository {
+  get(channelId: string): Promise<ChannelInteractionSettingsRecord | null>;
+  upsert(record: ChannelInteractionSettingsRecord): Promise<ChannelInteractionSettingsRecord>;
 }

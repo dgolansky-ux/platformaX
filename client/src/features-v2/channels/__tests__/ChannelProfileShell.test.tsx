@@ -22,6 +22,8 @@ describe("ChannelProfileShell — channel content feed", () => {
     expect(await screen.findByRole("heading", { name: "Ogólny" })).toBeInTheDocument();
     expect(screen.getByText(/Startujemy z krótkimi aktualizacjami/)).toBeInTheDocument();
     expect(screen.getByText("Przypięte")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /Lubię to/ })[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /Komentarze/ })[0]).toBeInTheDocument();
   });
 
   it("shows composer for lead with publish permission and publishes into feed", async () => {
@@ -43,5 +45,28 @@ describe("ChannelProfileShell — channel content feed", () => {
     renderProfile("zdrowie-trening");
     expect(await screen.findByRole("heading", { name: "Treningi" })).toBeInTheDocument();
     expect(screen.queryByPlaceholderText("Napisz wpis na kanale...")).toBeNull();
+  });
+
+  it("opens comments and creates a real local comment", async () => {
+    renderProfile();
+    const toggle = (await screen.findAllByRole("button", { name: /Komentarze/ }))[0];
+    fireEvent.click(toggle);
+    const textarea = await screen.findByPlaceholderText("Napisz krótki komentarz…");
+    fireEvent.change(textarea, { target: { value: "Komentarz testowy" } });
+    fireEvent.click(screen.getByRole("button", { name: "Dodaj komentarz" }));
+    await waitFor(() => expect(screen.getByText("Komentarz testowy")).toBeInTheDocument());
+  });
+
+  it("settings panel updates interaction settings and disables composer/reactions", async () => {
+    renderProfile();
+    expect(await screen.findByRole("heading", { name: "Ogólny" })).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("Komentarze włączone"));
+    fireEvent.click(screen.getByLabelText("Reakcje włączone"));
+    fireEvent.click(screen.getByRole("button", { name: "Zapisz ustawienia" }));
+    await waitFor(() => expect(screen.getByText("Zapisano ustawienia interakcji.")).toBeInTheDocument());
+    const toggle = screen.getAllByRole("button", { name: /Komentarze/ })[0];
+    fireEvent.click(toggle);
+    expect(await screen.findByText("Komentarze są wyłączone przez prowadzących.")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /Lubię to/ })[0]).toBeDisabled();
   });
 });

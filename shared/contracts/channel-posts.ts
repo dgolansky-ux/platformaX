@@ -19,6 +19,17 @@ export type ChannelPostDTO = {
   updatedAt: string;
   viewerCanPin: boolean;
   viewerCanManage: boolean;
+  interactions: {
+    commentCount: number;
+    reactionCount: number;
+    viewerLiked: boolean;
+    commentsEnabled: boolean;
+    reactionsEnabled: boolean;
+    canComment: boolean;
+    canReact: boolean;
+    canModerateComments: boolean;
+    permissionMessage: string | null;
+  };
 };
 
 export type ChannelFeedDTO = {
@@ -29,6 +40,15 @@ export type ChannelFeedDTO = {
   canPublish: boolean;
   canManageContent: boolean;
   canPin: boolean;
+  interactionSettings: {
+    channelId: string;
+    commentsEnabled: boolean;
+    reactionsEnabled: boolean;
+    commentPolicy: "followers" | "community_members" | "leads_only";
+    moderationPolicy: "leads_can_moderate" | "lead_permission_required";
+    updatedAt: string;
+    viewerCanUpdate: boolean;
+  };
 };
 
 export type CreateChannelPostFrontendInput = {

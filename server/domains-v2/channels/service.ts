@@ -9,20 +9,30 @@ import type {
   UpdateChannelLeadPermissionsInput,
   UpdateChannelProfileInput,
 } from "./dto";
-import { MAX_ACTIVE_LEADS, MIN_ACTIVE_LEADS } from "./contracts";
+import type {
+  ChannelInteractionSettingsDTO,
+  UpdateChannelInteractionSettingsInput,
+} from "./interaction-settings";
 import { toChannelLeadDTO, toChannelPublicDTO } from "./mapper";
 import { channelSummary, listSummariesByRefs, pageToPublic } from "./service-read";
+import {
+  assignChannelLead as assignLead,
+  revokeChannelLead as revokeLead,
+  updateChannelLeadPermissions as updateLeadPermissions,
+} from "./service-leads";
+import {
+  getInteractionSettings as getChannelInteractionSettings,
+  updateInteractionSettings as updateChannelInteractionSettings,
+} from "./service-interactions";
 import type {
   ChannelLeadRepository,
   ChannelRepository,
+  ChannelInteractionSettingsRepository,
   FollowRepository,
 } from "./ports";
 import {
-  canAddMoreLeads,
-  canRemoveLead,
   hasCommunityOwner,
   isValidChannelSlug,
-  isValidLeadRole,
   normalizeLeadPermissions,
 } from "./policy";
 
@@ -32,6 +42,7 @@ export type ChannelsServiceDeps = {
   channels: ChannelRepository;
   leads: ChannelLeadRepository;
   follows: FollowRepository;
+  interactionSettings?: ChannelInteractionSettingsRepository;
   clock: ChannelsClock;
   ids: ChannelsIdGenerator;
 };
@@ -45,7 +56,8 @@ export type ChannelsErrorCode =
   | "LEAD_LIMIT_REACHED"
   | "CANNOT_REMOVE_LAST_LEAD"
   | "LEAD_NOT_FOUND"
-  | "MISSING_INITIAL_LEAD";
+  | "MISSING_INITIAL_LEAD"
+  | "SETTINGS_REPOSITORY_MISSING";
 
 export type ChannelsResult<T> =
   | { ok: true; value: T }
@@ -70,6 +82,8 @@ export interface ChannelsService {
   listFollowedByUser(userId: string): Promise<ChannelPublicDTO[]>;
   listLedByUser(userId: string): Promise<ChannelPublicDTO[]>;
   isUserActiveLead(channelId: string, userId: string): Promise<boolean>;
+  getInteractionSettings(channelId: string): Promise<ChannelsResult<ChannelInteractionSettingsDTO>>;
+  updateInteractionSettings(input: UpdateChannelInteractionSettingsInput): Promise<ChannelsResult<ChannelInteractionSettingsDTO>>;
 }
 
 type Deps = ChannelsServiceDeps;
@@ -151,48 +165,6 @@ async function archiveChannel(deps: Deps, channelId: string): Promise<ChannelsRe
   return s ? { ok: true, value: s } : fail("NOT_FOUND", "Channel not found.");
 }
 
-async function assignChannelLead(deps: Deps, input: AssignChannelLeadInput): Promise<ChannelsResult<ChannelLeadDTO>> {
-  if (!(await deps.channels.getById(input.channelId))) return fail("NOT_FOUND", "Channel not found.");
-  if (!isValidLeadRole(input.role)) return fail("INVALID_LEAD_ROLE", "Unknown lead role.");
-  const existing = await deps.leads.findActive(input.channelId, input.targetUserId);
-  if (!existing) {
-    const count = await deps.leads.countActiveForChannel(input.channelId);
-    if (!canAddMoreLeads(count)) {
-      return fail("LEAD_LIMIT_REACHED", `Channel reached the maximum of ${MAX_ACTIVE_LEADS} active leads.`);
-    }
-  }
-  const now = deps.clock.now().toISOString();
-  const { record } = await deps.leads.upsert({
-    channelId: input.channelId,
-    userId: input.targetUserId,
-    role: input.role,
-    permissions: normalizeLeadPermissions(input.permissions),
-    status: "active",
-    assignedByUserId: input.assignedByUserId,
-    assignedAt: now,
-  });
-  return { ok: true, value: toChannelLeadDTO(record) };
-}
-
-async function revokeChannelLead(deps: Deps, input: RevokeChannelLeadInput): Promise<ChannelsResult<{ revoked: boolean }>> {
-  if (!(await deps.channels.getById(input.channelId))) return fail("NOT_FOUND", "Channel not found.");
-  const target = await deps.leads.findActive(input.channelId, input.targetUserId);
-  if (!target) return fail("LEAD_NOT_FOUND", "User is not an active lead of this channel.");
-  const count = await deps.leads.countActiveForChannel(input.channelId);
-  if (!canRemoveLead(count)) {
-    return fail("CANNOT_REMOVE_LAST_LEAD", `Channel must have at least ${MIN_ACTIVE_LEADS} active lead.`);
-  }
-  const ok = await deps.leads.revoke(input.channelId, input.targetUserId, deps.clock.now().toISOString());
-  return { ok: true, value: { revoked: ok } };
-}
-
-async function updateChannelLeadPermissions(deps: Deps, input: UpdateChannelLeadPermissionsInput): Promise<ChannelsResult<ChannelLeadDTO>> {
-  if (!(await deps.channels.getById(input.channelId))) return fail("NOT_FOUND", "Channel not found.");
-  const updated = await deps.leads.updatePermissions(input.channelId, input.targetUserId, normalizeLeadPermissions(input.permissions));
-  if (!updated) return fail("LEAD_NOT_FOUND", "User is not an active lead of this channel.");
-  return { ok: true, value: toChannelLeadDTO(updated) };
-}
-
 async function listChannelLeads(deps: Deps, channelId: string): Promise<ChannelsResult<ChannelLeadDTO[]>> {
   if (!(await deps.channels.getById(channelId))) return fail("NOT_FOUND", "Channel not found.");
   const leads = await deps.leads.listActiveForChannel(channelId); // stable order: assignedAt asc + userId tie-breaker
@@ -204,9 +176,9 @@ export function createChannelsService(deps: Deps): ChannelsService {
     createChannelForCommunity: (input) => createChannelForCommunity(deps, input),
     updateChannelProfile: (input) => updateChannelProfile(deps, input),
     archiveChannel: (id) => archiveChannel(deps, id),
-    assignChannelLead: (input) => assignChannelLead(deps, input),
-    revokeChannelLead: (input) => revokeChannelLead(deps, input),
-    updateChannelLeadPermissions: (input) => updateChannelLeadPermissions(deps, input),
+    assignChannelLead: (input) => assignLead(deps, input),
+    revokeChannelLead: (input) => revokeLead(deps, input),
+    updateChannelLeadPermissions: (input) => updateLeadPermissions(deps, input),
     listChannelLeads: (id) => listChannelLeads(deps, id),
     followChannel: (channelId, followerUserId) => setFollow(deps, channelId, followerUserId, true),
     unfollowChannel: (channelId, followerUserId) => setFollow(deps, channelId, followerUserId, false),
@@ -235,5 +207,7 @@ export function createChannelsService(deps: Deps): ChannelsService {
       const lead = await deps.leads.findActive(channelId, userId);
       return lead !== null;
     },
+    getInteractionSettings: (id) => getChannelInteractionSettings(deps, id),
+    updateInteractionSettings: (input) => updateChannelInteractionSettings(deps, input),
   };
 }

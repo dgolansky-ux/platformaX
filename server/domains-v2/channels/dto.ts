@@ -92,3 +92,4 @@ export type UpdateChannelProfileInput = {
   description?: string;
   visibility?: ChannelVisibility;
 };
+

@@ -1,5 +1,6 @@
 import type { ChannelPostDTO } from "@shared/contracts/channel-posts";
 import { channelsMockAdapter } from "./channels-mock-adapter";
+import { ChannelPostActionBar } from "./ChannelPostInteractions";
 import styles from "./Channels.module.css";
 
 type Props = {
@@ -37,6 +38,7 @@ export function ChannelPostCard({ channelSlug, post, onChanged }: Props) {
           {post.pinned ? "Odepnij" : "Przypnij"}
         </button>
       ) : null}
+      <ChannelPostActionBar channelSlug={channelSlug} post={post} onChanged={onChanged} />
     </article>
   );
 }

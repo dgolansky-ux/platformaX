@@ -24,6 +24,16 @@ and one active pinned post per channel. It does not own channel leads,
 permissions or follow state; those remain in `channels` and are enforced by
 `application-v2/use-cases/channel-content`.
 
+### channel-comments / channel-reactions (Channels Slice 9, BACKEND_PARTIAL)
+
+`channel-comments/` owns flat comments under channel posts: create, author edit,
+soft deactivate, moderator deactivate metadata, cursor listing and batch active
+counts. `channel-reactions/` owns `like` reactions on channel posts/comments:
+idempotent set, remove, toggle, batch counts and viewer reaction state. These
+submodules do not read channel visibility, follow state, lead permissions or
+community membership; `application-v2/use-cases/channel-interactions` enforces
+that through `channels` and `communities-v2` public contracts.
+
 ## Implemented (BACKEND_PARTIAL)
 
 In-memory runtime foundation for posts + friend feed read model:
@@ -49,7 +59,7 @@ port when a DB adapter lands.
 
 ## NOT implemented (intentionally out of scope here)
 
-- channel comments / channel reactions runtime, topics taxonomy
+- DB adapter for channel comments / channel reactions, topics taxonomy
 - global / discovery feed, ranking, recommendation
 - synchronous write fanout to followers
 - media payloads (only `mediaRefs` references pass through DTOs)

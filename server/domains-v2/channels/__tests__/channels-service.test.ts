@@ -1,10 +1,15 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   canManageChannelContent,
+  canCommentOnChannelPost,
+  canModerateChannelComment,
   canPinChannelPost,
   canPublishChannelContent,
+  canReactToChannelPost,
+  canUpdateChannelInteractionSettings,
   canViewChannelFeed,
   createChannelsService,
+  createInMemoryChannelInteractionSettingsRepository,
   createInMemoryChannelLeadRepository,
   createInMemoryChannelRepository,
   createInMemoryFollowRepository,
@@ -21,6 +26,7 @@ function makeService(): ChannelsService {
     channels: createInMemoryChannelRepository(),
     leads: createInMemoryChannelLeadRepository(),
     follows: createInMemoryFollowRepository(),
+    interactionSettings: createInMemoryChannelInteractionSettingsRepository(),
     clock: { now: () => new Date("2026-05-29T00:00:00Z") },
     ids: { next: () => `ch-${++seq}` },
   });
@@ -169,6 +175,44 @@ describe("channels service", () => {
     expect(canPublishChannelContent(["manage_channel_profile"])).toBe(false);
     expect(canManageChannelContent(["manage_channel_content"])).toBe(true);
     expect(canPinChannelPost(["pin_channel_post"])).toBe(true);
+    expect(canUpdateChannelInteractionSettings(["manage_channel_interactions"])).toBe(true);
+    expect(canModerateChannelComment(["moderate_channel_comments"])).toBe(true);
+    expect(canModerateChannelComment(["manage_channel_profile"])).toBe(false);
+  });
+
+  it("lead with manage permission can update interaction settings", async () => {
+    const c = await svc.createChannelForCommunity(base);
+    if (!c.ok) throw new Error("setup");
+    const updated = await svc.updateInteractionSettings({
+      channelId: c.value.id,
+      commentsEnabled: false,
+      reactionsEnabled: false,
+      commentPolicy: "leads_only",
+    });
+    expect(updated.ok).toBe(true);
+    if (!updated.ok) return;
+    expect(updated.value.commentsEnabled).toBe(false);
+    expect(updated.value.reactionsEnabled).toBe(false);
+    expect(updated.value.commentPolicy).toBe("leads_only");
+  });
+
+  it("interaction policies gate comments and reactions", () => {
+    const baseSettings = {
+      channelId: "ch",
+      commentsEnabled: true,
+      reactionsEnabled: true,
+      commentPolicy: "followers" as const,
+      moderationPolicy: "lead_permission_required" as const,
+      updatedAt: "2026-05-29T00:00:00Z",
+    };
+    expect(canCommentOnChannelPost({ settings: baseSettings, viewerFollows: true, viewerIsLead: false, viewerIsCommunityMember: false })).toBe(true);
+    expect(canCommentOnChannelPost({ settings: { ...baseSettings, commentsEnabled: false }, viewerFollows: true, viewerIsLead: false, viewerIsCommunityMember: false })).toBe(false);
+    expect(canCommentOnChannelPost({ settings: { ...baseSettings, commentPolicy: "community_members" }, viewerFollows: false, viewerIsLead: false, viewerIsCommunityMember: true })).toBe(true);
+    expect(canCommentOnChannelPost({ settings: { ...baseSettings, commentPolicy: "community_members" }, viewerFollows: true, viewerIsLead: false, viewerIsCommunityMember: false })).toBe(false);
+    expect(canCommentOnChannelPost({ settings: { ...baseSettings, commentPolicy: "leads_only" }, viewerFollows: true, viewerIsLead: false, viewerIsCommunityMember: true })).toBe(false);
+    expect(canCommentOnChannelPost({ settings: { ...baseSettings, commentPolicy: "leads_only" }, viewerFollows: false, viewerIsLead: true, viewerIsCommunityMember: false })).toBe(true);
+    expect(canReactToChannelPost({ settings: baseSettings })).toBe(true);
+    expect(canReactToChannelPost({ settings: { ...baseSettings, reactionsEnabled: false } })).toBe(false);
   });
 
   it("private channel feed visibility is gated by channel state", async () => {

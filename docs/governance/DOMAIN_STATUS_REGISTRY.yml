@@ -120,7 +120,9 @@ domains:
       NO global feed, NO ranking, NO write fanout. Channels Slice 8 adds
       channel-posts for channel feed + one pinned post per channel; lead
       permissions stay in channels. Channel comments/reactions/topics and DB
-      adapter remain out of scope.
+      adapter remain out of scope. Channels Slice 9 adds channel-comments and
+      channel-reactions submodules with in-memory services, batch counts and
+      viewer reaction state; DB adapter remains pending.
 
   - name: communities-v2
     type: OWNER_DOMAIN
@@ -175,8 +177,10 @@ domains:
       In-memory runtime: channel owned by community; follows separate from
       membership; community authority enforced by application use-case (no
       cross-domain internals). Slice 8 adds lead permissions for channel content
-      publishing/managing/pinning; post storage remains in content-v2. Public
-      DTO no PII. DB + transport pending.
+      publishing/managing/pinning; Slice 9 adds interaction settings and lead
+      permissions for comment moderation / interaction management. Post,
+      comment and reaction storage remains in content-v2. Public DTO no PII.
+      DB + transport pending.
       domain-status.md updated.
 
   - name: chat
