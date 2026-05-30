@@ -7,7 +7,8 @@ const DOMAINS_DIR = join(ROOT, "server/domains-v2");
 const KNOWN_DOMAINS = [
   "identity", "social", "communities-v2", "content-v2",
   "channels", "chat", "events", "modules", "public-hub",
-  "notifications", "media", "search", "moderation", "audit", "system",
+  "notifications", "notifications-v2",
+  "media", "search", "moderation", "audit", "system",
 ];
 
 const REQUIRED_FILES = [

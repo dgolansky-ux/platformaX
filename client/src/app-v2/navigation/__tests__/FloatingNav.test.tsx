@@ -56,14 +56,18 @@ describe("FloatingNav — V2 floating navigation", () => {
     expect(screen.getByText(/wyszukiwarka osób/i)).toBeDefined();
   });
 
-  test("disabled-policy CTAs (Alerty, Chat, Kontakty) are real buttons with explanation", () => {
+  test("disabled-policy CTAs (Chat, Kontakty) are real buttons with explanation", () => {
     renderNav();
-    const alerts = screen.getByRole("button", { name: /alerty — wkrótce/i });
-    expect((alerts as HTMLButtonElement).disabled).toBe(true);
     const chat = screen.getByRole("button", { name: /chat — wkrótce/i });
     expect((chat as HTMLButtonElement).disabled).toBe(true);
     const kontakty = screen.getByRole("button", { name: /kontakty — wkrótce/i });
     expect((kontakty as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  test("Alerty is an enabled button that routes to /notifications (Slice 14)", () => {
+    renderNav();
+    const alerts = screen.getByRole("button", { name: /^alerty/i });
+    expect((alerts as HTMLButtonElement).disabled).toBe(false);
   });
 
   test("no href='#' or no-op buttons in the rendered DOM", () => {

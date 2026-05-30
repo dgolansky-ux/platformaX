@@ -25,6 +25,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
   { name: "modules", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "public-hub", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "notifications", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
+  { name: "notifications-v2", status: "UI_SHELL_ONLY", hasDomainLogic: false },
   // media exposes the typed upload-intent adapter; storage backend is
   // env-required, so live uploads remain not started.
   { name: "media", status: "PARTIAL", hasDomainLogic: true },

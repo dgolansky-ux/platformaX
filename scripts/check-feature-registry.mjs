@@ -7,7 +7,8 @@ const FEATURES_DIR = join(ROOT, "client/src/features-v2");
 const KNOWN_FEATURES = [
   "identity", "social", "communities-v2", "content-v2",
   "channels", "chat", "events", "modules", "public-hub",
-  "notifications", "media", "search", "moderation", "audit", "system",
+  "notifications", "notifications-v2",
+  "media", "search", "moderation", "audit", "system",
   "shared-ui", "friend-feed", "professional-profile",
 ];
 

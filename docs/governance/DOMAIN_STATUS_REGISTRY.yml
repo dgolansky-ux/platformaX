@@ -310,6 +310,56 @@ domains:
       Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
       domain-status.md updated.
 
+  - name: notifications-v2
+    type: OPERATIONAL_DOMAIN
+    status: PARTIAL
+    conflict: false
+    evidence:
+      - server/domains-v2/notifications-v2/README.md
+      - server/domains-v2/notifications-v2/public-api.ts
+      - server/domains-v2/notifications-v2/contracts.ts
+      - server/domains-v2/notifications-v2/dto.ts
+      - server/domains-v2/notifications-v2/commands.ts
+      - server/domains-v2/notifications-v2/settings-dto.ts
+      - server/domains-v2/notifications-v2/constants.ts
+      - server/domains-v2/notifications-v2/policy.ts
+      - server/domains-v2/notifications-v2/ports.ts
+      - server/domains-v2/notifications-v2/store.ts
+      - server/domains-v2/notifications-v2/mapper.ts
+      - server/domains-v2/notifications-v2/service.ts
+      - server/domains-v2/notifications-v2/service-helpers.ts
+      - server/domains-v2/notifications-v2/service-settings.ts
+      - server/domains-v2/notifications-v2/event-registry.ts
+      - server/domains-v2/notifications-v2/events.ts
+      - server/domains-v2/notifications-v2/index.ts
+      - server/domains-v2/notifications-v2/__tests__/domain-contract.test.ts
+      - server/domains-v2/notifications-v2/__tests__/notifications-v2-service.test.ts
+      - server/domains-v2/notifications-v2/__tests__/notifications-v2-settings.test.ts
+      - server/domains-v2/notifications-v2/__tests__/notifications-v2-event-registry.test.ts
+      - server/application-v2/use-cases/notifications/service.ts
+      - server/application-v2/use-cases/notifications/public-api.ts
+      - server/application-v2/use-cases/notifications/__tests__/notifications-event-handlers.test.ts
+      - client/src/features-v2/notifications-v2/NotificationsPage.tsx
+      - client/src/features-v2/notifications-v2/mock-adapter.ts
+      - client/src/features-v2/notifications-v2/useNotificationsUnreadCount.ts
+      - client/src/features-v2/notifications-v2/__tests__/NotificationsPage.test.tsx
+      - client/src/app-v2/notifications/NotificationsPage.tsx
+      - docs/review/notifications-v2/NOTIFICATION_EVENT_REGISTRY.md
+      - docs/review/notifications-v2/NOTIFICATIONS_SLICE_14_REPORT.md
+    notes: >
+      Slice 14 — Notifications V2 + Activity Center + Event Registry foundation.
+      BACKEND_PARTIAL: in-memory notifications service (create, list, mark
+      read, mark all read, archive, unread count), settings foundation
+      (per-category in-app gate), event registry decision table covering
+      friend feed / communities / channels / modules / professional, and the
+      application-v2 orchestrator wiring the 3 friend-feed source events that
+      exist today. Other registry entries stay blocked_by_missing_source_event
+      until source domains emit. Frontend Activity Center ships as
+      UI_SHELL_ONLY + MOCK_LOCAL_ONLY with filters, mark-read, mark-all,
+      archive, settings panel, and a real unread badge in the sidebar.
+      NO email / push / mobile native delivery. NO AI ranking. NO global
+      activity feed. DB adapter pending; outbox/worker runtime pending.
+
   - name: search
     type: OPERATIONAL_DOMAIN
     status: SCAFFOLD_ONLY

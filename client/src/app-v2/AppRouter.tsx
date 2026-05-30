@@ -23,6 +23,7 @@ import { PersonalProfileManageRoute } from "./manage/PersonalProfileManageRoute"
 import { ProfessionalSectionRoute } from "./manage/ProfessionalSectionRoute";
 import { WorkplaceCreateRoute } from "./profile/workplaces/WorkplaceCreateRoute";
 import { WorkplacePageRoute } from "./profile/workplaces/WorkplacePageRoute";
+import { NotificationsPage } from "./notifications/NotificationsPage";
 
 export function AppRouter() {
   return (
@@ -52,6 +53,7 @@ export function AppRouter() {
         <Route path="/manage/sekcja-zawodowa" element={<ProfessionalSectionRoute />} />
         <Route path="/manage/profile/workplaces/new" element={<WorkplaceCreateRoute />} />
         <Route path="/profile/workplaces/:slug" element={<WorkplacePageRoute />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

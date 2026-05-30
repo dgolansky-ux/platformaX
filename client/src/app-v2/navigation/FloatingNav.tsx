@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useNotificationsUnreadCount } from "@client/features-v2/notifications-v2";
 import { useScrollHide } from "./useScrollHide";
 import styles from "./floating-nav.module.css";
 
@@ -57,6 +58,7 @@ export function FloatingNav({ active }: FloatingNavProps) {
   const [mounted, setMounted] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const reduced = prefersReducedMotion();
+  const unread = useNotificationsUnreadCount("u-viewer");
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 200);
@@ -82,7 +84,13 @@ export function FloatingNav({ active }: FloatingNavProps) {
       >
         <div className={styles.inner}>
           <NavBtn icon="🔍" label="Szukaj" active={active === "search"} onClick={() => setSearchOpen(true)} />
-          <NavBtn icon="🔔" label="Alerty" active={active === "alerts"} disabledReason="Powiadomienia będą dostępne wkrótce" />
+          <NavBtn
+            icon="🔔"
+            label="Alerty"
+            active={active === "alerts"}
+            badge={unread.total}
+            onClick={() => navigate("/notifications")}
+          />
 
           <div className={styles.island}>
             <button

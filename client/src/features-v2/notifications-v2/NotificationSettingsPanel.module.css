@@ -1,0 +1,77 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.subtitle {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.rowMain {
+  display: flex;
+  flex-direction: column;
+}
+
+.rowName {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.rowDesc {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.toggle {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.toggleOn {
+  background: #1e4fd8;
+  color: #ffffff;
+}
+
+.toggleOff {
+  background: #ffffff;
+  color: #64748b;
+  border: 1px solid #e5e7eb;
+}
