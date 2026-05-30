@@ -1,0 +1,73 @@
+.commentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0 0;
+  border-top: 1px dashed var(--c-border-soft);
+}
+
+.commentList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.commentRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--c-surface-muted);
+}
+
+.commentAuthor {
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.commentBody {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--c-text);
+}
+
+.commentDeleted {
+  color: var(--c-text-soft);
+  font-style: italic;
+}
+
+.commentComposer {
+  display: flex;
+  gap: 8px;
+}
+
+.commentInput {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: var(--c-surface);
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--c-text);
+}
+
+.commentButton {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 700;
+  background: var(--c-primary);
+  color: #ffffff;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.commentButton[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

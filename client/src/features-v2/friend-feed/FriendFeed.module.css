@@ -1,0 +1,274 @@
+.root {
+  --c-surface: #ffffff;
+  --c-surface-muted: #f8fafc;
+  --c-border-soft: #eef2f7;
+  --c-border: #e5e7eb;
+  --c-text: #111827;
+  --c-text-soft: #64748b;
+  --c-primary: #1e4fd8;
+  --c-primary-soft: #eef2ff;
+  --c-success: #047857;
+  --c-warning: #b45309;
+  --c-danger: #b91c1c;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+  margin-inline: auto;
+  padding: 24px 18px 64px;
+  color: var(--c-text);
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 22px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: 18px;
+  background: var(--c-surface);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.headerKicker {
+  margin: 0;
+  color: var(--c-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.headerSubtitle {
+  margin: 4px 0 0;
+  color: var(--c-text-soft);
+  font-size: 0.92rem;
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: 16px;
+  background: var(--c-surface);
+}
+
+.composerHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.composerStatus {
+  color: var(--c-text-soft);
+  font-size: 0.85rem;
+}
+
+.composerTextarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--c-text);
+  background: var(--c-surface);
+}
+
+.composerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.visibilitySelect {
+  padding: 8px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: var(--c-surface);
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--c-text);
+}
+
+.primaryButton {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-weight: 800;
+  font-size: 0.88rem;
+  background: var(--c-primary);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.primaryButton[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.composerError {
+  margin: 0;
+  color: var(--c-danger);
+  font-size: 0.85rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: 16px;
+  background: var(--c-surface);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cardAuthor {
+  display: flex;
+  flex-direction: column;
+}
+
+.cardAuthorName {
+  margin: 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.cardAuthorMeta {
+  margin: 0;
+  color: var(--c-text-soft);
+  font-size: 0.78rem;
+}
+
+.privacyChip {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.privacyChipPrivate {
+  background: #fef3c7;
+  color: var(--c-warning);
+}
+
+.privacyChipPublic {
+  background: #ecfdf5;
+  color: var(--c-success);
+}
+
+.cardBody {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.actionBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--c-border-soft);
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--c-border-soft);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.actionButtonActive {
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  border-color: transparent;
+}
+
+.actionButton[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.actionSpacer {
+  flex: 1;
+}
+
+.emptyState,
+.permissionState {
+  padding: 24px;
+  border: 1px dashed var(--c-border);
+  border-radius: 16px;
+  background: var(--c-surface);
+  color: var(--c-text-soft);
+  text-align: center;
+}
+
+.loading {
+  padding: 18px;
+  color: var(--c-text-soft);
+  text-align: center;
+}
+
+.errorBanner {
+  padding: 14px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: var(--c-danger);
+  font-size: 0.88rem;
+}

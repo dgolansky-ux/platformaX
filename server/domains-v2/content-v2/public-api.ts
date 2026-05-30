@@ -1,4 +1,7 @@
 /**
+ * QUALITY_STRUCTURE_EXCEPTION: Aggregated content-v2 facade for legacy slices
+ * plus Slice-11 friend-posts; kept stable for cross-domain imports.
+ *
  * content-v2 — public API surface (BACKEND_PARTIAL / READ_MODEL_SKELETON).
  * Other domains/use-cases import ONLY from here.
  */
@@ -122,4 +125,76 @@ export type {
   ViewerStateValue as ReactionViewerStateValue,
 } from "./reactions/contracts";
 export { isValidReactionType, isValidTargetType } from "./reactions/policy";
+
+// ── friend-posts (Slice 11) ────────────────────────────────────────────────
+export { createFriendPostsService } from "./friend-posts/service";
+export type {
+  FriendPostsService,
+  FriendPostsServiceDeps,
+  FriendPostsResult,
+  FriendPostsErrorCode,
+  FriendPostsClock,
+  FriendPostsIdGen,
+  FriendFeedRawPageDTO,
+} from "./friend-posts/service";
+export {
+  createInMemoryFriendPostRepository,
+  createInMemoryFriendPostCommentRepository,
+  createInMemoryFriendPostReactionRepository,
+} from "./friend-posts/store";
+export type {
+  FriendPostRepository,
+  FriendPostCommentRepository,
+  FriendPostReactionRepository,
+} from "./friend-posts/store";
+export type { FriendshipResolver } from "./friend-posts/contracts";
+export {
+  createNoopFriendFeedEventPublisher,
+} from "./friend-posts/events";
+export type {
+  FriendFeedEventPublisher,
+  FriendFeedDomainEvent,
+  FriendFeedPostCreatedEvent,
+  FriendFeedCommentCreatedEvent,
+  FriendFeedReactionAddedEvent,
+} from "./friend-posts/events";
+export type {
+  FriendPostDTO,
+  FriendPostPublicDTO,
+  FriendPostVisibility,
+  FriendPostStatus,
+  FriendPostAuthorSummary,
+  FriendFeedItemDTO as FriendFeedItemEnrichedDTO,
+  FriendFeedPageDTO,
+  FriendPostCommentDTO,
+  FriendPostCommentPublicDTO,
+  FriendPostReactionSummaryDTO,
+  FriendPostViewerStateDTO,
+  PersonalProfileFriendFeedPreviewDTO,
+  CreateFriendPostCommand,
+  UpdateFriendPostInput,
+  DeactivateFriendPostInput,
+  ListFriendFeedCommand,
+  GetProfileFriendFeedPreviewCommand,
+  CreateFriendPostCommentInput,
+  DeleteFriendPostCommentInput,
+  ListFriendPostCommentsQuery,
+} from "./friend-posts/dto";
+export {
+  FRIEND_POST_BODY_MAX,
+  FRIEND_POST_COMMENT_BODY_MAX,
+  FRIEND_POST_MEDIA_REFS_MAX,
+  FRIEND_FEED_DEFAULT_LIMIT,
+  FRIEND_FEED_MAX_LIMIT,
+  PROFILE_PREVIEW_DEFAULT_LIMIT,
+  PROFILE_PREVIEW_MAX_LIMIT,
+} from "./friend-posts/dto";
+export {
+  canViewFriendPost,
+  isFriendPostVisibility,
+} from "./friend-posts/policy";
+export {
+  toFriendPostPublic,
+  toFriendPostCommentPublic,
+} from "./friend-posts/projections";
 
