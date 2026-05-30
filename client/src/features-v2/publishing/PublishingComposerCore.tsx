@@ -37,7 +37,6 @@ interface Props {
   composerTitle: string;
   composerSubtitle?: string;
   submitLabel?: string;
-  mediaRuntimeReady?: boolean;
   onTargetChange?(next: PublishingTargetDefinitionUi): void;
   onPublishSuccess?(): void;
 }
@@ -46,7 +45,7 @@ export function PublishingComposerCore(props: Props) {
   const { viewerUserId, adapter, availableTargets, initialTarget, contentType, bodyPlaceholder } = props;
   const { showTitleField = false, showDateField = false } = props;
   const { variantClassName, composerTitle, composerSubtitle, submitLabel } = props;
-  const { mediaRuntimeReady = false, onTargetChange, onPublishSuccess } = props;
+  const { onTargetChange, onPublishSuccess } = props;
 
   const [target, setTarget] = useState<PublishingTargetDefinitionUi>(initialTarget);
   const [body, setBody] = useState("");
@@ -136,7 +135,7 @@ export function PublishingComposerCore(props: Props) {
 
       <PublishingVisibilitySelector target={target} value={visibility} onChange={setVisibility} disabled={publishState.isSubmitting} />
 
-      <PublishingMediaPicker target={target} mediaRefs={mediaRefs} onChange={setMediaRefs} mediaRuntimeReady={mediaRuntimeReady} />
+      <PublishingMediaPicker viewerUserId={viewerUserId} target={target} mediaRefs={mediaRefs} onChange={setMediaRefs} />
 
       <PublishingPreview preview={previewState.preview} />
 

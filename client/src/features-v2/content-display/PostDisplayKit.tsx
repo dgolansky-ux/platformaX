@@ -18,6 +18,7 @@ import type {
   PostDisplayVisibility,
 } from "./types";
 import { badgeClass, formatRelative, initials, privacyClass, privacyLabel } from "./PostDisplayHelpers";
+import { BrokenMediaFallback } from "../media";
 import styles from "./ContentDisplay.module.css";
 
 interface RootProps {
@@ -89,8 +90,22 @@ export const PostMediaGrid = memo(function PostMediaGrid({ mediaRefs }: MediaGri
   return (
     <div className={styles.mediaGrid}>
       {mediaRefs.slice(0, 4).map((m) => (
-        <div key={m.refId} className={styles.mediaCell} role="img" aria-label={m.altText ?? m.mediaType}>
-          {m.mediaType}
+        <div
+          key={m.refId}
+          className={styles.mediaCell}
+          role="img"
+          aria-label={m.altText ?? m.mediaType}
+        >
+          {m.mediaType === "image" && m.previewUrl ? (
+            <img
+              src={m.previewUrl}
+              alt={m.altText ?? ""}
+              loading="lazy"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <BrokenMediaFallback label={m.altText ?? m.mediaType} />
+          )}
         </div>
       ))}
     </div>

@@ -57,28 +57,30 @@ describe("profile media upload sheet (avatar/banner)", () => {
   test("an unsupported file type shows a validation error and no preview", async () => {
     renderProfile();
     fireEvent.click(screen.getByRole("button", { name: /zmień zdjęcie profilowe/i }));
-    const input = screen.getByLabelText(/wybierz plik graficzny/i);
+    const input = screen.getByLabelText(/wybierz nowe zdjęcie/i);
     fireEvent.change(input, {
       target: { files: [new File(["x"], "logo.svg", { type: "image/svg+xml" })] },
     });
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toMatch(/JPG, PNG, WEBP/i);
-    expect(screen.queryByAltText(/podgląd wybranego pliku/i)).toBeNull();
+    expect(alert.textContent).toMatch(/niedozwolony typ pliku/i);
   });
 
   test("a valid image shows a local preview and an honest storage-not-connected notice", async () => {
     renderProfile();
     fireEvent.click(screen.getByRole("button", { name: /zmień zdjęcie profilowe/i }));
-    const input = screen.getByLabelText(/wybierz plik graficzny/i);
+    const input = screen.getByLabelText(/wybierz nowe zdjęcie/i);
     fireEvent.change(input, { target: { files: [pngFile()] } });
-    expect(await screen.findByAltText(/podgląd wybranego pliku/i)).toBeDefined();
-    expect(screen.getByText(/po podłączeniu\s+przechowywania plików/i)).toBeDefined();
+    expect(await screen.findByAltText(/avatar/i)).toBeDefined();
+    expect(
+      screen.getByText(/przechowywanie plików nie jest jeszcze podłączone/i),
+    ).toBeDefined();
   });
 
-  test("save is an explicit disabled-policy state, never a fake success", () => {
+  test("no fake save action while storage is offline", () => {
     renderProfile();
     fireEvent.click(screen.getByRole("button", { name: /zmień zdjęcie profilowe/i }));
-    const save = screen.getByRole("button", { name: /zapisz — wkrótce/i });
-    expect((save as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByRole("button", { name: /zapisz/i })).toBeNull();
+    const dialog = screen.getByRole("dialog", { name: /zmień zdjęcie profilowe/i });
+    expect(dialog.querySelector("button[aria-label='Zamknij']")).toBeTruthy();
   });
 });

@@ -47,6 +47,13 @@ export interface PostDisplayMediaRef {
   refId: string;
   mediaType: "image" | "video" | "document" | "link";
   altText?: string;
+  /**
+   * Best-available preview URL for this media slot, resolved upstream from the
+   * media domain (variant thumbnail/medium/original, in that preference). When
+   * `null` the display kit renders a graceful broken-media fallback rather
+   * than inventing a URL.
+   */
+  previewUrl?: string | null;
 }
 
 export interface PostDisplayInteractionSummary {

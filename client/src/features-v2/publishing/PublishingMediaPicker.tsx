@@ -1,39 +1,90 @@
 /**
- * features-v2/publishing — PublishingMediaPicker.
+ * features-v2/publishing — PublishingMediaPicker (thin shell over the shared
+ * `MediaPicker` from `features-v2/media`).
  *
- * Media is referenced by ID — never base64 / dataURL. When the live media
- * runtime is not wired, the picker shows a truthful "media w przygotowaniu"
- * state instead of pretending to upload.
+ * The composer never speaks to the media adapter directly — it forwards the
+ * target's purpose + ownerRef into the shared picker, which validates locally,
+ * creates upload intents and emits `MediaRefDTO[]`. The composer maps those
+ * refs into its `PublishingMediaRefUi` shape (assetId + mediaType).
+ *
+ * Honest blocked state is rendered by the shared picker when storage is offline
+ * (STORAGE_ADAPTER_ENV_REQUIRED).
  */
-import type { PublishingMediaRefUi, PublishingTargetDefinitionUi } from "./types";
-import styles from "./Publishing.module.css";
+import { useCallback, useMemo, useState } from "react";
+import { MediaPicker, type MediaRefDTO } from "../media";
+import {
+  buildDraftOwnerId,
+  getPublishingMediaSurface,
+} from "./publishingMediaMap";
+import type {
+  PublishingMediaRefUi,
+  PublishingMediaTypeUi,
+  PublishingTargetDefinitionUi,
+} from "./types";
 
 interface Props {
+  viewerUserId: string;
   target: PublishingTargetDefinitionUi;
   mediaRefs: readonly PublishingMediaRefUi[];
   onChange(next: readonly PublishingMediaRefUi[]): void;
-  mediaRuntimeReady?: boolean;
 }
 
-export function PublishingMediaPicker({ target, mediaRefs, onChange, mediaRuntimeReady }: Props) {
-  const disabled = !mediaRuntimeReady;
+function mediaTypeFromAllowed(
+  allowed: readonly PublishingMediaTypeUi[],
+): PublishingMediaTypeUi {
+  if (allowed.includes("image")) return "image";
+  if (allowed.includes("video")) return "video";
+  return allowed[0] ?? "image";
+}
+
+export function PublishingMediaPicker({
+  viewerUserId,
+  target,
+  mediaRefs,
+  onChange,
+}: Props) {
+  const surface = useMemo(
+    () => getPublishingMediaSurface(target.targetType),
+    [target.targetType],
+  );
+  const ownerRef = useMemo(
+    () => ({
+      ownerType: surface.ownerType,
+      ownerId: buildDraftOwnerId(viewerUserId, target.targetType, target.targetId),
+    }),
+    [surface.ownerType, viewerUserId, target.targetType, target.targetId],
+  );
+  const defaultMediaType = useMemo(
+    () => mediaTypeFromAllowed(target.allowedMediaTypes),
+    [target.allowedMediaTypes],
+  );
+
+  const [picker, setPicker] = useState<readonly MediaRefDTO[]>(() =>
+    mediaRefs.map((r) => ({ assetId: r.refId })),
+  );
+
+  const handlePickerChange = useCallback(
+    (next: readonly MediaRefDTO[]) => {
+      setPicker(next);
+      onChange(
+        next.map((ref) => ({
+          refId: ref.assetId,
+          mediaType: defaultMediaType,
+        })),
+      );
+    },
+    [onChange, defaultMediaType],
+  );
+
   return (
-    <div className={`${styles.mediaPicker} ${disabled ? styles.mediaPickerDisabled : ""}`}>
-      <span aria-hidden="true">📎</span>
-      <span>
-        {disabled
-          ? "Media w przygotowaniu — można już publikować tekst."
-          : `Dodaj media (do ${target.maxMediaCount}, typy: ${target.allowedMediaTypes.join(", ")})`}
-      </span>
-      {!disabled && mediaRefs.length > 0 && (
-        <button
-          type="button"
-          onClick={() => onChange([])}
-          aria-label="Usuń wszystkie media"
-        >
-          Usuń ({mediaRefs.length})
-        </button>
-      )}
-    </div>
+    <MediaPicker
+      actorUserId={viewerUserId}
+      ownerRef={ownerRef}
+      purpose={surface.purpose}
+      value={picker}
+      onChange={handlePickerChange}
+      label={`Dodaj media (max ${target.maxMediaCount})`}
+      compact
+    />
   );
 }
