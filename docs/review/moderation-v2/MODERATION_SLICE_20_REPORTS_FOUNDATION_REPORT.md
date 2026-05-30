@@ -1,7 +1,7 @@
 # MODERATION_SLICE_20_REPORTS_FOUNDATION_REPORT
 
-Status: `BACKEND_PARTIAL`
-Slice: 20 (Reports & moderation foundation)
+Status: `BACKEND_PARTIAL` (foundation) + `BACKEND_DONE_FOR_SUPPORTED_TARGETS` (P2)
+Slice: 20 (Reports & moderation foundation) + P2 follow-up (moderator-actor surfaces)
 Date: 2026-05-30
 Owner: @dgolansky-ux
 
@@ -144,25 +144,38 @@ Owner: @dgolansky-ux
   uprawnień dla żadnego targetu).
 - Unauthorized viewer (rola "user") widzi tylko banner odmowy.
 
-## 7. Jakie targety mają action implemented
+## 7. Jakie targety mają action implemented (P2)
 
-- Żaden target nie ma jeszcze prawdziwego cross-domain mutation z poziomu
-  moderatora — `applyAction` w application-v2 zapisuje moderation record +
-  action lifecycle, ale **source-domain hide/deactivate jest
-  ACTION_PARTIAL**: w istniejących domenach (`content-v2/friend-posts`,
-  `content-v2/community-feeds`, `content-v2/channel-*`,
-  `content-v2/workplace-posts`, `media`) ścieżki `deactivate_content`
-  wymagają autora jako aktora — moderator-actor surface nie został jeszcze
-  dodany do public-api tych domen.
+P2 (Slice 20 follow-up) dodaje moderator-actor surfaces w content-v2 public-api
+oraz `ModerationActionDispatcher` w application-v2/use-cases/moderation:
+
+| Target | Surface | Działanie |
+|---|---|---|
+| friend_feed_post | `friendPosts.moderatorDeactivatePost` | IMPLEMENTED — idempotent |
+| friend_feed_comment | `friendPosts.moderatorDeactivateComment` | IMPLEMENTED — idempotent |
+| workplace_post | `workplacePosts.moderatorDeactivatePost` | IMPLEMENTED — idempotent |
+| channel_post | `channelPosts.moderatorDeactivate` | IMPLEMENTED — idempotent |
+
+Wszystkie cztery omijają guard autora (`actorUserId === authorUserId`) i
+przyjmują `{ moderatorUserId, reasonNote? }`. Polityka uprawnień przechodzi
+w domenie moderacji (`canTakeAction`) — content-v2 surfaces ufają warstwie
+wyżej w stosie.
+
+`createContentModerationDispatcher({ friendPosts?, workplacePosts?,
+channelPosts? })` zwraca `ModerationActionDispatcher`, który wpinasz w
+`createModerationUseCase({ moderation, actionDispatcher })`. Wszystko
+opcjonalne — bez dispatchera Slice 20 zachowuje BACKEND_PARTIAL na
+wszystkich targetach (dawne zachowanie).
 
 ## 8. Jakie targety są ACTION_PARTIAL
 
-Wszystkie 15 — w Slice 20. Domain service blokuje nieobsługiwane akcje per
-target (np. `hide_content` na `profile` zwraca
-`ACTION_NOT_SUPPORTED_BY_TARGET`), ale obsługiwane akcje
-(`hide_content / deactivate_content / restrict_visibility`) zapisują
-moderation record bez mutowania source-domain. Prawdziwa integracja w
-kolejnej iteracji (`Moderate as moderator` flow w content-v2 public-api).
+Pozostałe 11 z 15 — domain service blokuje nieobsługiwane akcje per target
+(np. `hide_content` na `profile` zwraca `ACTION_NOT_SUPPORTED_BY_TARGET`),
+a dispatcher zwraca `applied: false` z `note: "not yet wired to a
+moderator-actor surface"` dla targetów bez source-domain handlera.
+Następna iteracja: `community_*`, `media_asset`, `important_event`,
+`profile_presentation_item`, `module_item`, `profile`, `community`,
+`channel`, `workplace`.
 
 ## 9. Jak działa privacy / PII
 
@@ -204,7 +217,14 @@ kolejnej iteracji (`Moderate as moderator` flow w content-v2 public-api).
 - `server/domains-v2/moderation/__tests__/domain-contract.test.ts` — 4
   testy (public-api runtime surface, registries presence, reason/target
   definitions completeness).
-- Pełny test run: **1292 / 1292 PASS** (zwiększenie z 1278 z Slice 19).
+- P2: `server/application-v2/use-cases/moderation/__tests__/dispatcher.test.ts`
+  — 5 testów (unwired target, non-content action, friend_feed_post dispatch,
+  friend_feed_comment dispatch, source-domain error propagation).
+- P2: `server/application-v2/use-cases/moderation/__tests__/service-with-dispatcher.test.ts`
+  — 3 testy (dispatcher invoked on deactivate, dispatcher failure
+  propagation, dispatcher invoked on non-content action).
+- Pełny test run: **1300 / 1300 PASS** (zwiększenie z 1278 z Slice 19 i 1292
+  ze Slice 20 baseline; +8 P2).
 
 ## 13. Guard evidence
 

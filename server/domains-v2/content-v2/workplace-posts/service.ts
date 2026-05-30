@@ -56,6 +56,10 @@ export type WorkplacePostsResult<T> =
 export interface WorkplacePostsService {
   createPost(input: CreateWorkplacePostCommand): Promise<WorkplacePostsResult<WorkplacePostPublicDTO>>;
   deactivatePost(input: DeactivateWorkplacePostCommand): Promise<WorkplacePostsResult<WorkplacePostPublicDTO>>;
+  /** Slice 20 — moderator-actor deactivate. Idempotent. */
+  moderatorDeactivatePost(
+    input: { postId: string; moderatorUserId: string; reasonNote?: string | null },
+  ): Promise<WorkplacePostsResult<WorkplacePostPublicDTO>>;
   getPostForViewer(
     postId: string,
     viewerUserId: string,
@@ -146,6 +150,28 @@ async function deactivatePost(deps: Deps, input: DeactivateWorkplacePostCommand)
   return { ok: true, value: toWorkplacePostPublic(updated) };
 }
 
+async function moderatorDeactivatePost(
+  deps: Deps,
+  input: { postId: string; moderatorUserId: string; reasonNote?: string | null },
+): Promise<WorkplacePostsResult<WorkplacePostPublicDTO>> {
+  const existing = await deps.posts.getById(input.postId);
+  if (!existing) return fail("NOT_FOUND", "Post not found.");
+  if (existing.status === "deactivated") {
+    return { ok: true, value: toWorkplacePostPublic(existing) };
+  }
+  const now = deps.clock.now().toISOString();
+  const updated: WorkplacePostRecord = {
+    ...existing,
+    status: "deactivated",
+    updatedAt: now,
+    deletedAt: now,
+  };
+  await deps.posts.update(updated);
+  void input.moderatorUserId;
+  void input.reasonNote;
+  return { ok: true, value: toWorkplacePostPublic(updated) };
+}
+
 async function getPostForViewer(
   deps: Deps,
   postId: string,
@@ -185,6 +211,7 @@ export function createWorkplacePostsService(deps: WorkplacePostsServiceDeps): Wo
   return {
     createPost: (input) => createPost(deps, input),
     deactivatePost: (input) => deactivatePost(deps, input),
+    moderatorDeactivatePost: (input) => moderatorDeactivatePost(deps, input),
     getPostForViewer: (id, viewerId) => getPostForViewer(deps, id, viewerId),
     listForWorkplace: (query, viewerId) => listForWorkplace(deps, query, viewerId),
   };

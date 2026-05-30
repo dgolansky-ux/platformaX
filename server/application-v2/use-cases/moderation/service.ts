@@ -1,23 +1,27 @@
 /**
- * application-v2/use-cases/moderation — orchestration (Slice 20 foundation).
+ * application-v2/use-cases/moderation — orchestration (Slice 20 + P2).
  *
  * Composes:
  *  - `domains-v2/moderation` (report persistence + action recording)
- *  - source-domain public-apis (planned, per target capability)
+ *  - source-domain public-apis via the per-target action dispatcher
+ *    (`ModerationActionDispatcher`) — wires friend_feed_post,
+ *    friend_feed_comment, workplace_post, channel_post out of the box.
  *
  * Constraints:
  *  - imports only `public-api.ts` from cross-domains; no internals.
  *  - owns NO entities and NO persistence.
  *  - never returns reporter/moderator/owner PII beyond what the policy permits.
  *  - hide / deactivate / restrict actions delegate to the source domain's
- *    public-api when supported (`ACTION_PARTIAL` otherwise — the moderation
- *    record still updates, the source domain stays untouched).
+ *    public-api when wired; targets without a dispatcher entry keep the
+ *    moderation record + the action recording but the source content stays
+ *    untouched (truthful ACTION_PARTIAL).
  */
 import type {
   CreateModerationReportInput,
   ListModerationReportsInput,
   ModerateReportActionInput,
   ModerationActionDTO,
+  ModerationActionType,
   ModerationActor,
   ModerationReportListDTO,
   ModerationReportPublicStatusDTO,
@@ -36,6 +40,27 @@ export interface ModerationUseCaseDeps {
   /** Optional target preview providers, one per source domain. Missing
    *  providers downgrade the preview to `partial`/`planned` truthfully. */
   targetPreviewResolver?: ModerationTargetPreviewResolver;
+  /** Optional per-target dispatcher for content-state mutations. When
+   *  unwired the moderation record + action persist, but the source
+   *  domain stays untouched (truthful ACTION_PARTIAL). */
+  actionDispatcher?: ModerationActionDispatcher;
+}
+
+export interface ModerationDispatchContext {
+  targetType: ModerationTargetType;
+  targetId: string;
+  actionType: ModerationActionType;
+  moderatorUserId: string;
+  reasonNote: string | null;
+}
+
+export type ModerationDispatchOutcome =
+  | { ok: true; applied: true; note?: string }
+  | { ok: true; applied: false; note: string }
+  | { ok: false; code: string; message: string };
+
+export interface ModerationActionDispatcher {
+  dispatch(ctx: ModerationDispatchContext): Promise<ModerationDispatchOutcome>;
 }
 
 export interface ModerationTargetPreviewResolver {
@@ -135,14 +160,32 @@ export function createModerationUseCase(
     },
 
     async applyAction(actor, input) {
-      // Slice 20 wires the moderation record + action lifecycle. Source-domain
-      // hide/deactivate/restore is ACTION_PARTIAL: the source-domain public-api
-      // does not yet expose a moderator-actor surface for any content type
-      // (existing deactivate flows are author-only). The moderation service
-      // already validates `canHide` / `canDeactivate` / `canRestore` from the
-      // target registry, so unsupported transitions are blocked at the
-      // domain boundary.
-      return moderation.applyReviewAction(actor, input);
+      // Slice 20 + P2: the moderation domain validates capability + records
+      // the action; the optional dispatcher applies the source-domain
+      // content-state change when wired. Targets without a dispatcher entry
+      // keep the moderation record but the source content stays untouched
+      // (truthful ACTION_PARTIAL — reflected in the dispatcher outcome).
+      const inner = await moderation.applyReviewAction(actor, input);
+      if (!inner.ok) return inner;
+      if (deps.actionDispatcher && actor.userId) {
+        const outcome = await deps.actionDispatcher.dispatch({
+          targetType: inner.value.report.targetType,
+          targetId: inner.value.report.targetId,
+          actionType: input.actionType,
+          moderatorUserId: actor.userId,
+          reasonNote: input.reasonNote ?? null,
+        });
+        if (!outcome.ok) {
+          return {
+            ok: false,
+            error: {
+              code: "ACTION_NOT_SUPPORTED_BY_TARGET",
+              message: `Moderation record updated but source-domain dispatcher reported: ${outcome.message}.`,
+            },
+          };
+        }
+      }
+      return inner;
     },
 
     async listMyReports(actor) {

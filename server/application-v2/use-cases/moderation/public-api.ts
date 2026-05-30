@@ -9,7 +9,16 @@ export {
   createModerationUseCase,
 } from "./service";
 export type {
+  ModerationActionDispatcher,
+  ModerationDispatchContext,
+  ModerationDispatchOutcome,
+  ModerationTargetPreviewResolver,
   ModerationUseCase,
   ModerationUseCaseDeps,
-  ModerationTargetPreviewResolver,
 } from "./service";
+export {
+  createContentModerationDispatcher,
+} from "./dispatcher";
+export type {
+  ContentDispatcherDeps,
+} from "./dispatcher";

@@ -34,6 +34,10 @@ export interface ChannelPostService {
   create(input: CreateChannelPostInput): Promise<ChannelPostResult<{ post: ChannelPostDTO }>>;
   update(input: UpdateChannelPostInput): Promise<ChannelPostResult<{ post: ChannelPostDTO }>>;
   deactivate(input: DeactivateChannelPostInput): Promise<ChannelPostResult<ChannelPostDeactivatedValue>>;
+  /** Slice 20 — moderator-actor deactivate. Bypasses author/manage check; idempotent. */
+  moderatorDeactivate(
+    input: { postId: string; moderatorUserId: string; reasonNote?: string | null },
+  ): Promise<ChannelPostResult<ChannelPostDeactivatedValue>>;
   pin(input: PinChannelPostInput): Promise<ChannelPostResult<{ post: ChannelPostDTO }>>;
   unpin(input: PinChannelPostInput): Promise<ChannelPostResult<{ post: ChannelPostDTO }>>;
   listFeed(input: ListChannelPostsInput): Promise<ChannelFeedPage>; // stable order: pinned, createdAt desc, id
@@ -49,6 +53,31 @@ function validBody(body: string): ChannelPostResult<string> {
   if (!normalized) return fail("EMPTY_BODY", "Channel post body must not be empty.");
   if (isChannelPostBodyTooLong(normalized)) return fail("BODY_TOO_LONG", "Channel post body is too long.");
   return { ok: true, value: normalized };
+}
+
+async function moderatorDeactivate(
+  deps: ChannelPostServiceDeps,
+  input: { postId: string; moderatorUserId: string; reasonNote?: string | null },
+): Promise<ChannelPostResult<ChannelPostDeactivatedValue>> {
+  const cur = await deps.posts.getById(input.postId);
+  if (!cur) return fail("NOT_FOUND", "Channel post not found.");
+  if (cur.status === "deactivated") {
+    return { ok: true, value: { postId: input.postId, deactivated: true } };
+  }
+  const ts = deps.clock.now().toISOString();
+  await deps.posts.update({
+    ...cur,
+    body: "",
+    status: "deactivated",
+    pinned: false,
+    pinnedAt: undefined,
+    pinnedByUserId: undefined,
+    updatedAt: ts,
+    deletedAt: ts,
+  });
+  void input.moderatorUserId;
+  void input.reasonNote;
+  return { ok: true, value: { postId: input.postId, deactivated: true } };
 }
 
 async function listFeed(deps: ChannelPostServiceDeps, input: ListChannelPostsInput): Promise<ChannelFeedPage> {
@@ -117,6 +146,7 @@ export function createChannelPostService(deps: ChannelPostServiceDeps): ChannelP
       });
       return { ok: true, value: { postId: input.postId, deactivated: true } };
     },
+    moderatorDeactivate: (input) => moderatorDeactivate(deps, input),
     async pin(input) {
       const cur = await deps.posts.getById(input.postId);
       if (!cur) return fail("NOT_FOUND", "Channel post not found.");

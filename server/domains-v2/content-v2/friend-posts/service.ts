@@ -83,6 +83,19 @@ export interface FriendPostsService {
   createPost(input: CreateFriendPostCommand): Promise<FriendPostsResult<FriendPostPublicDTO>>;
   updatePost(input: UpdateFriendPostInput): Promise<FriendPostsResult<FriendPostPublicDTO>>;
   deactivatePost(input: DeactivateFriendPostInput): Promise<FriendPostsResult<FriendPostPublicDTO>>;
+  /**
+   * Slice 20 — moderator-actor deactivate. Bypasses the author-only guard so a
+   * `moderator` / `admin` role (validated upstream by the moderation domain
+   * policy) can apply the action recorded against a report. Idempotent on
+   * already-deactivated posts.
+   */
+  moderatorDeactivatePost(
+    input: { friendPostId: string; moderatorUserId: string; reasonNote?: string | null },
+  ): Promise<FriendPostsResult<FriendPostPublicDTO>>;
+  /** Same as `moderatorDeactivatePost` but for a comment. */
+  moderatorDeactivateComment(
+    input: { commentId: string; moderatorUserId: string; reasonNote?: string | null },
+  ): Promise<FriendPostsResult<FriendPostCommentDTO>>;
   getPostForViewer(
     postId: string,
     viewerUserId: string,
@@ -213,6 +226,51 @@ async function deactivatePost(deps: Deps, input: DeactivateFriendPostInput): Pro
   return { ok: true, value: toFriendPostPublic(updated) };
 }
 
+async function moderatorDeactivatePost(
+  deps: Deps,
+  input: { friendPostId: string; moderatorUserId: string; reasonNote?: string | null },
+): Promise<FriendPostsResult<FriendPostPublicDTO>> {
+  const existing = await deps.posts.getById(input.friendPostId);
+  if (!existing) return fail("NOT_FOUND", "Friend post not found.");
+  if (existing.status === "deactivated") {
+    return { ok: true, value: toFriendPostPublic(existing) };
+  }
+  const now = deps.clock.now().toISOString();
+  const updated: FriendPostDTO = {
+    ...existing,
+    status: "deactivated",
+    updatedAt: now,
+    deletedAt: now,
+  };
+  await deps.posts.update(updated);
+  void input.moderatorUserId;
+  void input.reasonNote;
+  return { ok: true, value: toFriendPostPublic(updated) };
+}
+
+async function moderatorDeactivateComment(
+  deps: Deps,
+  input: { commentId: string; moderatorUserId: string; reasonNote?: string | null },
+): Promise<FriendPostsResult<FriendPostCommentDTO>> {
+  const existing = await deps.comments.getById(input.commentId);
+  if (!existing) return fail("NOT_FOUND", "Comment not found.");
+  if (existing.status === "deactivated") {
+    return { ok: true, value: existing };
+  }
+  const now = deps.clock.now().toISOString();
+  const updated: FriendPostCommentDTO = {
+    ...existing,
+    body: "",
+    status: "deactivated",
+    updatedAt: now,
+    deletedAt: now,
+  };
+  await deps.comments.update(updated);
+  void input.moderatorUserId;
+  void input.reasonNote;
+  return { ok: true, value: updated };
+}
+
 async function getPostForViewer(
   deps: Deps,
   postId: string,
@@ -309,6 +367,8 @@ export function createFriendPostsService(deps: FriendPostsServiceDeps): FriendPo
     createPost: (input) => createPost(deps, input),
     updatePost: (input) => updatePost(deps, input),
     deactivatePost: (input) => deactivatePost(deps, input),
+    moderatorDeactivatePost: (input) => moderatorDeactivatePost(deps, input),
+    moderatorDeactivateComment: (input) => moderatorDeactivateComment(deps, input),
     getPostForViewer: (id, viewerId) => getPostForViewer(deps, id, viewerId),
     listFriendFeedRaw: (input) => listFriendFeedRaw(deps, input), // SCALABILITY_HOT_PATH_EXCEPTION: delegate preserves stable order.
     listAuthorFeedRaw: (authorId, limit) => listAuthorFeedRaw(deps, authorId, limit), // SCALABILITY_HOT_PATH_EXCEPTION: delegate preserves stable order.
