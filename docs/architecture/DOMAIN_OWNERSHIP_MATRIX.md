@@ -35,7 +35,7 @@
 |---|---|---|---|---|---|
 | notifications | notification delivery, templates, preferences | content creation, profiles | identity, communities-v2 (events) | public-api, contracts, events | SCAFFOLD_ONLY |
 | search | search indexing, query engine, relevance | source data | all domains (events/public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
-| moderation | moderation rules, reports, actions, queues | content creation | content-v2, communities-v2 (events) | public-api, contracts, events | SCAFFOLD_ONLY |
+| moderation | moderation rules, reports, actions, queues | content creation | content-v2, communities-v2 (events) | public-api, contracts, events | PARTIAL |
 | audit | audit log, trail, events | business logic | all domains (events) | public-api, contracts, events | SCAFFOLD_ONLY |
 | system | health, config, feature flags, maintenance | domain data | internal metrics | public-api, contracts, events | SCAFFOLD_ONLY |
 

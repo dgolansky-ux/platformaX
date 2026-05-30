@@ -34,7 +34,7 @@ Source of truth for all V2 domains, their types, ownership, and status.
 | public-hub | COMPOSITION_DOMAIN | composition/read view of public profiles and communities | source-of-truth data | public-api, contracts, events | PARTIAL | README, public-api, contracts, service, mapper, events, dto, policy, index, tests |
 | notifications | OPERATIONAL_DOMAIN | notification delivery, templates, preferences | content creation, profiles | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 | search | OPERATIONAL_DOMAIN | search indexing, query engine, relevance | source data | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
-| moderation | OPERATIONAL_DOMAIN | moderation rules, reports, actions, queues | content creation | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
+| moderation | OPERATIONAL_DOMAIN | moderation rules, reports, actions, queues | content creation | public-api, contracts, events | PARTIAL | README, public-api, contracts, events, dto, policy, service, repository, mapper, moderation-store, index, tests (service + domain-contract) |
 | audit | OPERATIONAL_DOMAIN | audit log, trail, events | business logic | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 | system | OPERATIONAL_DOMAIN | health, config, feature flags, maintenance | domain data | public-api, contracts, events | SCAFFOLD_ONLY | README, public-api, contracts, events, dto, policy, index, test |
 

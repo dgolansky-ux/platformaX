@@ -167,6 +167,41 @@ export const NOTIFICATION_EVENT_REGISTRY: readonly NotificationEventRegistryEntr
     handlerStatus: "no_notification_needed",
   },
 
+  // ── Moderation (Slice 20) ──────────────────────────────────────────────
+  {
+    eventType: "ModerationReportCreated",
+    sourceDomain: "moderation",
+    createsNotification: false,
+    recipientRule: "—",
+    actorRule: "reporterUserId",
+    category: null,
+    reason:
+      "Public users do not receive a per-report notification; moderator queue is the surface that reflects new reports. Future internal admin notification is planned.",
+    handlerStatus: "no_notification_needed",
+  },
+  {
+    eventType: "ModerationReportReviewed",
+    sourceDomain: "moderation",
+    createsNotification: false,
+    recipientRule: "—",
+    actorRule: "actorModeratorUserId",
+    category: null,
+    reason:
+      "Status changes between pending/under_review/dismissed are internal — no public notification by policy in Slice 20.",
+    handlerStatus: "no_notification_needed",
+  },
+  {
+    eventType: "ModerationActionTaken",
+    sourceDomain: "moderation",
+    createsNotification: true,
+    recipientRule: "targetOwnerUserId",
+    actorRule: "actorModeratorUserId",
+    category: "system",
+    reason:
+      "When content is hidden / deactivated / restricted, the content owner may need to know — wiring deferred to a later slice with explicit policy. Skipped for the reporter to avoid retaliation cues.",
+    handlerStatus: "planned",
+  },
+
   // ── Communities ────────────────────────────────────────────────────────
   {
     eventType: "CommunityInviteCreated",

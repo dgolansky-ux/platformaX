@@ -10,6 +10,11 @@ import { FriendFeedComments } from "./FriendFeedComments";
 import { useFriendFeedPostCardState } from "./useFriendFeedPostCardState";
 import { FriendFeedPostCard as DisplayFriendFeedPostCard } from "../content-display";
 import { friendFeedItemToPostDisplay } from "./post-display-mappers";
+import {
+  ReportButton,
+  moderationMockAdapter,
+  type UiModerationViewer,
+} from "../moderation";
 import styles from "./FriendFeed.module.css";
 
 type Props = {
@@ -26,6 +31,11 @@ export function FriendFeedPostCard({ viewerUserId, item }: Props) {
     commentCount: state.commentCount,
     viewerLiked: state.viewerLiked,
   });
+  const moderationViewer: UiModerationViewer = {
+    userId: viewerUserId,
+    role: "user",
+  };
+  const isOwner = viewerUserId === item.author.userId;
 
   return (
     <li className={styles.card}>
@@ -33,6 +43,16 @@ export function FriendFeedPostCard({ viewerUserId, item }: Props) {
         vm={vm}
         onReact={() => void card.reactToPost()}
         onComment={card.toggleComments}
+        moreMenuSlot={
+          <ReportButton
+            viewer={moderationViewer}
+            adapter={moderationMockAdapter}
+            targetType="friend_feed_post"
+            targetId={item.postId}
+            targetOwnerUserId={item.author.userId}
+            disabledForSelf={isOwner}
+          />
+        }
       />
 
       {state.actionError ? <p className={styles.errorBanner} role="alert">{state.actionError}</p> : null}

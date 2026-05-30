@@ -380,7 +380,7 @@ domains:
 
   - name: moderation
     type: OPERATIONAL_DOMAIN
-    status: SCAFFOLD_ONLY
+    status: PARTIAL
     conflict: false
     evidence:
       - server/domains-v2/moderation/README.md
@@ -389,12 +389,25 @@ domains:
       - server/domains-v2/moderation/dto.ts
       - server/domains-v2/moderation/policy.ts
       - server/domains-v2/moderation/events.ts
+      - server/domains-v2/moderation/service.ts
+      - server/domains-v2/moderation/repository.ts
+      - server/domains-v2/moderation/mapper.ts
+      - server/domains-v2/moderation/moderation-store.ts
       - server/domains-v2/moderation/index.ts
       - server/domains-v2/moderation/__tests__/domain-contract.test.ts
+      - server/domains-v2/moderation/__tests__/service.test.ts
+      - server/application-v2/use-cases/moderation/service.ts
+      - server/application-v2/use-cases/moderation/public-api.ts
     notes: >
-      Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
-      Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
-      domain-status.md updated.
+      Slice 20 (Reports & moderation foundation) ships the runtime: in-memory
+      report + action repository, full service (createReport / listForReview /
+      getReviewDetails / applyReviewAction / listMyReports) gated by
+      `canCreateReport` / `canReviewReports` / `canTakeAction`, target +
+      reason registries, three domain events (Created / Reviewed /
+      ActionTaken). Source-domain hide/deactivate is ACTION_PARTIAL — the
+      target registry enforces capability but cross-domain content state
+      mutation is not wired yet (existing source deactivate flows are
+      author-only). DB adapter pending.
 
   - name: audit
     type: OPERATIONAL_DOMAIN

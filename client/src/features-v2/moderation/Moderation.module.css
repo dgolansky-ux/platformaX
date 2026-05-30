@@ -1,0 +1,343 @@
+/*
+ * features-v2/moderation — local style module. Uses design tokens V2.
+ *
+ * QUALITY_STRUCTURE_EXCEPTION — Slice 20 co-locates the report-dialog styles
+ * + the moderator-queue styles + the per-status / per-severity chip palette.
+ * Splitting per-component now would either duplicate the chip palette across
+ * files or break the cascade (CSS modules cannot import each other).
+ * Registered in EXCEPTIONS_REGISTER.md (EXC-012).
+ */
+
+.reportButton {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--mod-border, #cbd5e1);
+  color: var(--mod-fg, #475569);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.reportButton:hover {
+  background: var(--mod-button-bg-hover, #f1f5f9);
+}
+
+.reportMenuItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 8px 12px;
+  color: var(--mod-fg, #475569);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.reportMenuItem:hover {
+  background: var(--mod-menu-hover, #f8fafc);
+}
+
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.dialog {
+  background: #fff;
+  width: min(480px, calc(100% - 32px));
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dialogTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.dialogClose {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  font-size: 18px;
+  cursor: pointer;
+  color: #475569;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.reasonList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 6px 6px;
+}
+
+.reasonItem {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.reasonItem:hover {
+  background: #f8fafc;
+}
+
+.reasonRadio {
+  margin-top: 2px;
+}
+
+.reasonText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reasonLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+}
+
+.reasonDescription {
+  font-size: 12px;
+  color: #475569;
+}
+
+.textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font: inherit;
+  resize: vertical;
+  min-height: 72px;
+}
+
+.requiredHint {
+  font-size: 11px;
+  color: #b91c1c;
+}
+
+.submitRow {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.cancelBtn,
+.submitBtn {
+  appearance: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+.submitBtn {
+  background: #0f172a;
+  border: 0;
+  color: #fff;
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.statusBanner {
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #1e293b;
+}
+
+.statusSuccess {
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.statusError {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.queueTable {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.queueRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.queueRowMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #334155;
+}
+
+.queueRowActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.statusChip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statusChip[data-status="pending"] {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.statusChip[data-status="under_review"] {
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+.statusChip[data-status="dismissed"] {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.statusChip[data-status="action_taken"] {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.severityChip[data-severity="low"] {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.severityChip[data-severity="medium"] {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.severityChip[data-severity="high"] {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.queueShell {
+  padding: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.queueFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.queueFilters select {
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #fff;
+  font: inherit;
+}
+
+.detailPanel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.actionBar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.actionBar button {
+  appearance: none;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #1f2937;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.actionBar button:hover {
+  background: #e2e8f0;
+}
+
+.previewBox {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #475569;
+}

@@ -23,9 +23,15 @@ interface Props {
   onReact?(): void;
   onComment?(): void;
   onShare?(): void;
+  /**
+   * Slice 20 — opaque slot the variant renders next to the action bar.
+   * Wiring sites pass a `<ReportButton />` (or any other subtle CTA) from
+   * `features-v2/moderation`. Display Kit stays moderation-agnostic.
+   */
+  moreMenuSlot?: React.ReactNode;
 }
 
-function StandardCard({ vm, variantClassName, ariaLabel, onReact, onComment, onShare }: Props & { variantClassName: string; ariaLabel: string }) {
+function StandardCard({ vm, variantClassName, ariaLabel, onReact, onComment, onShare, moreMenuSlot }: Props & { variantClassName: string; ariaLabel: string }) {
   return (
     <PostDisplayRoot variantClassName={variantClassName} ariaLabel={ariaLabel}>
       <PostDisplayHeader
@@ -46,6 +52,11 @@ function StandardCard({ vm, variantClassName, ariaLabel, onReact, onComment, onS
         onComment={onComment}
         onShare={onShare}
       />
+      {moreMenuSlot ? (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "6px" }}>
+          {moreMenuSlot}
+        </div>
+      ) : null}
     </PostDisplayRoot>
   );
 }

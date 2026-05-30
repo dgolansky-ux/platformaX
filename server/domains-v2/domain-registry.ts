@@ -46,7 +46,7 @@ export const DOMAIN_REGISTRY: DomainEntry[] = [
   { name: "notifications", type: "OPERATIONAL_DOMAIN", status: "SCAFFOLD_ONLY", owns: "notification delivery, templates, preferences", doesNotOwn: "content creation, profiles" },
   { name: "notifications-v2", type: "OPERATIONAL_DOMAIN", status: "PARTIAL", owns: "in-app notifications, settings foundation, event registry, activity center read-model", doesNotOwn: "email delivery, push delivery, mobile-native delivery, source content" },
   { name: "search", type: "OPERATIONAL_DOMAIN", status: "SCAFFOLD_ONLY", owns: "search indexing, query engine, relevance", doesNotOwn: "source data" },
-  { name: "moderation", type: "OPERATIONAL_DOMAIN", status: "SCAFFOLD_ONLY", owns: "moderation rules, reports, actions, queues", doesNotOwn: "content creation" },
+  { name: "moderation", type: "OPERATIONAL_DOMAIN", status: "PARTIAL", owns: "moderation rules, reports, actions, queues", doesNotOwn: "content creation" },
   { name: "audit", type: "OPERATIONAL_DOMAIN", status: "SCAFFOLD_ONLY", owns: "audit log, trail, events", doesNotOwn: "business logic" },
   { name: "system", type: "OPERATIONAL_DOMAIN", status: "SCAFFOLD_ONLY", owns: "health, config, feature flags, maintenance", doesNotOwn: "domain data" },
 ];

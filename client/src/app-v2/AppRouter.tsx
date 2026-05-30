@@ -29,6 +29,7 @@ import { WorkplacePageRoute } from "./profile/workplaces/WorkplacePageRoute";
 import { NotificationsPage } from "./notifications/NotificationsPage";
 import { PersonalProfileRoute } from "./profile/PersonalProfileRoute";
 import { FriendFeedPageRoute } from "./friend-feed/FriendFeedPageRoute";
+import ModerationAdminPage from "./admin/ModerationAdminPage";
 
 export function AppRouter() {
   return (
@@ -64,6 +65,7 @@ export function AppRouter() {
         <Route path="/manage/profile/workplaces/new" element={<WorkplaceCreateRoute />} />
         <Route path="/profile/workplaces/:slug" element={<WorkplacePageRoute />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/admin/moderation" element={<ModerationAdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
