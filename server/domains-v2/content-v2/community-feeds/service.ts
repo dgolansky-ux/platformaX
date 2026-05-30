@@ -49,6 +49,13 @@ export interface CommunityFeedService {
    * interactions against the item's community + feedType. Returns null when
    * the item does not exist or has been deactivated. */
   getFeedItem(id: string): Promise<CommunityFeedItemDTO | null>;
+  /**
+   * Slice 20 P3 — moderator-actor delete. Marks the community post as deleted
+   * AND cascades to its feed items. Idempotent on already-deleted posts.
+   */
+  moderatorDeletePost(
+    input: { postId: string; moderatorUserId: string; reasonNote?: string | null },
+  ): Promise<CommunityFeedResult<{ postId: string; deletedItemCount: number }>>;
 }
 
 type Deps = CommunityFeedServiceDeps;
@@ -134,6 +141,25 @@ async function getFeedItem(deps: Deps, id: string): Promise<CommunityFeedItemDTO
   return toItemDTO(record);
 }
 
+async function moderatorDeletePost(
+  deps: Deps,
+  input: { postId: string; moderatorUserId: string; reasonNote?: string | null },
+): Promise<CommunityFeedResult<{ postId: string; deletedItemCount: number }>> {
+  const existing = await deps.posts.getByIdAnyStatus(input.postId);
+  if (!existing) {
+    return { ok: false, error: { code: "POST_NOT_FOUND", message: "Community post not found." } };
+  }
+  if (existing.status === "deleted") {
+    return { ok: true, value: { postId: input.postId, deletedItemCount: 0 } };
+  }
+  const now = deps.clock.now().toISOString();
+  await deps.posts.markDeleted(input.postId, now);
+  const deletedItemCount = await deps.items.markItemsForPostDeleted(input.postId);
+  void input.moderatorUserId;
+  void input.reasonNote;
+  return { ok: true, value: { postId: input.postId, deletedItemCount } };
+}
+
 export function createCommunityFeedService(deps: Deps): CommunityFeedService {
   return {
     createCommunityPost: (input) => createCommunityPost(deps, input),
@@ -142,5 +168,6 @@ export function createCommunityFeedService(deps: Deps): CommunityFeedService {
     countRelationalForAuthorMonth: (query) =>
       deps.items.countRelationalForAuthorMonth(query.communityId, query.authorUserId, query.monthKey),
     getFeedItem: (id) => getFeedItem(deps, id),
+    moderatorDeletePost: (input) => moderatorDeletePost(deps, input),
   };
 }

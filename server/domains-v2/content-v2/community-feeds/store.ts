@@ -23,6 +23,20 @@ export function createInMemoryCommunityPostRepository(): CommunityPostRepository
       const r = rows.get(id);
       return r && r.status === "published" ? r : null;
     },
+    async getByIdAnyStatus(id) {
+      return rows.get(id) ?? null;
+    },
+    async markDeleted(id, updatedAt) {
+      const existing = rows.get(id);
+      if (!existing) return null;
+      const next: CommunityPostRecord = {
+        ...existing,
+        status: "deleted",
+        updatedAt,
+      };
+      rows.set(id, next);
+      return next;
+    },
   };
 }
 
@@ -43,6 +57,16 @@ export function createInMemoryCommunityFeedItemRepository(): CommunityFeedItemRe
     },
     async getById(id: string) {
       return rows.get(id) ?? null;
+    },
+    async markItemsForPostDeleted(postId: string) {
+      let count = 0;
+      for (const [id, row] of rows) {
+        if (row.postId === postId && row.status === "active") {
+          rows.set(id, { ...row, status: "deleted" });
+          count++;
+        }
+      }
+      return count;
     },
     async list(communityId: string, feedType: CommunityFeedType, cursor: string | null, limit: number) {
       const all = [...rows.values()]

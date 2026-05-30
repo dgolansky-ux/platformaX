@@ -37,6 +37,9 @@ export type CommunityFeedItemRecord = {
 export interface CommunityPostRepository {
   create(record: CommunityPostRecord): Promise<CommunityPostRecord>;
   getById(id: string): Promise<CommunityPostRecord | null>;
+  /** Returns the raw record even when deleted; for moderator + admin reads. */
+  getByIdAnyStatus(id: string): Promise<CommunityPostRecord | null>;
+  markDeleted(id: string, updatedAt: string): Promise<CommunityPostRecord | null>;
 }
 
 export interface CommunityFeedItemRepository {
@@ -44,6 +47,8 @@ export interface CommunityFeedItemRepository {
   add(record: CommunityFeedItemRecord): Promise<CommunityFeedItemRecord | null>;
   /** Lookup a single feed item by id (active or deleted). */
   getById(id: string): Promise<CommunityFeedItemRecord | null>;
+  /** Mark all feed items derived from a post as deleted. */
+  markItemsForPostDeleted(postId: string): Promise<number>;
   /**
    * Read model for one community feed: active items for (communityId, feedType),
    * newest-first with a stable id tie-breaker, bounded by `limit`, after `cursor`.

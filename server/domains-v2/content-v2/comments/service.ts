@@ -40,9 +40,30 @@ export interface CommentService {
   createComment(input: CreateCommentInput): Promise<CommentResult<CommentCreatedValue>>;
   updateOwnComment(input: UpdateCommentInput): Promise<CommentResult<CommentUpdatedValue>>;
   deleteOwnComment(input: DeleteCommentInput): Promise<CommentResult<CommentDeletedValue>>;
+  /** Slice 20 P3 — moderator-actor soft-delete. Idempotent. */
+  moderatorDeleteComment(
+    input: { commentId: string; moderatorUserId: string; reasonNote?: string | null },
+  ): Promise<CommentResult<CommentDeletedValue>>;
   listComments(query: ListCommentsQuery): Promise<CommentListValue>;
   countActive(query: CountCommentsQuery): Promise<number>;
   countActiveBatch(feedItemIds: readonly string[]): Promise<Map<string, number>>;
+}
+
+async function moderatorDeleteComment(
+  deps: CommentServiceDeps,
+  input: { commentId: string; moderatorUserId: string; reasonNote?: string | null },
+): Promise<CommentResult<CommentDeletedValue>> {
+  const existing = await deps.repo.getById(input.commentId);
+  if (!existing) return fail("COMMENT_NOT_FOUND", "Komentarz nie istnieje.");
+  if (existing.status === "deleted") {
+    return { ok: true, value: { comment: toCommentDTO(existing) } };
+  }
+  const now = deps.clock.now().toISOString();
+  const deleted = await deps.repo.softDelete(input.commentId, now);
+  if (!deleted) return fail("COMMENT_NOT_FOUND", "Komentarz nie istnieje.");
+  void input.moderatorUserId;
+  void input.reasonNote;
+  return { ok: true, value: { comment: toCommentDTO(deleted) } };
 }
 
 function fail<T>(code: CommentErrorCode, message: string): CommentResult<T> {
@@ -121,6 +142,7 @@ export function createCommentService(deps: CommentServiceDeps): CommentService {
     createComment: (input) => createComment(deps, input),
     updateOwnComment: (input) => updateOwnComment(deps, input),
     deleteOwnComment: (input) => deleteOwnComment(deps, input),
+    moderatorDeleteComment: (input) => moderatorDeleteComment(deps, input),
     listComments: (query) => listComments(deps, query),
     countActive: (query) => deps.repo.countActive(query.feedItemId),
     countActiveBatch: (ids) => deps.repo.countActiveBatch(ids),

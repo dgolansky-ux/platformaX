@@ -14,14 +14,18 @@
  *  - channel_post            → content-v2 channel-posts `moderatorDeactivate`
  */
 import type {
+  CommentService,
+  CommunityFeedService,
   FriendPostsService,
-} from "@server/domains-v2/content-v2/public-api";
-import type {
   WorkplacePostsService,
 } from "@server/domains-v2/content-v2/public-api";
 import type {
   ChannelPostService,
 } from "@server/domains-v2/content-v2/channel-posts/public-api";
+import type {
+  ChannelCommentService,
+} from "@server/domains-v2/content-v2/channel-comments/public-api";
+import type { MediaService } from "@server/domains-v2/media/public-api";
 import type {
   ModerationActionDispatcher,
   ModerationDispatchContext,
@@ -32,6 +36,11 @@ export interface ContentDispatcherDeps {
   friendPosts?: FriendPostsService;
   workplacePosts?: WorkplacePostsService;
   channelPosts?: ChannelPostService;
+  channelComments?: ChannelCommentService;
+  /** Generic content-v2 comments service (community + other feed-item comments). */
+  comments?: CommentService;
+  communityFeeds?: CommunityFeedService;
+  media?: MediaService;
 }
 
 function notApplied(note: string): ModerationDispatchOutcome {
@@ -104,6 +113,54 @@ export function createContentModerationDispatcher(
             moderatorUserId: ctx.moderatorUserId,
             reasonNote: ctx.reasonNote,
           });
+          if (!res.ok) return fail(res.error.code, res.error.message);
+          return { ok: true, applied: true };
+        }
+        case "channel_comment": {
+          if (!deps.channelComments) {
+            return notApplied("channel-comments service not wired in this environment.");
+          }
+          const res = await deps.channelComments.moderatorDeactivate({
+            commentId: ctx.targetId,
+            moderatorUserId: ctx.moderatorUserId,
+            reasonNote: ctx.reasonNote,
+          });
+          if (!res.ok) return fail(res.error.code, res.error.message);
+          return { ok: true, applied: true };
+        }
+        case "community_post": {
+          if (!deps.communityFeeds) {
+            return notApplied("community-feeds service not wired in this environment.");
+          }
+          const res = await deps.communityFeeds.moderatorDeletePost({
+            postId: ctx.targetId,
+            moderatorUserId: ctx.moderatorUserId,
+            reasonNote: ctx.reasonNote,
+          });
+          if (!res.ok) return fail(res.error.code, res.error.message);
+          return { ok: true, applied: true };
+        }
+        case "community_comment": {
+          if (!deps.comments) {
+            return notApplied("content-v2/comments service not wired in this environment.");
+          }
+          const res = await deps.comments.moderatorDeleteComment({
+            commentId: ctx.targetId,
+            moderatorUserId: ctx.moderatorUserId,
+            reasonNote: ctx.reasonNote,
+          });
+          if (!res.ok) return fail(res.error.code, res.error.message);
+          return { ok: true, applied: true };
+        }
+        case "media_asset": {
+          if (!deps.media) {
+            return notApplied("media service not wired in this environment.");
+          }
+          const res = await deps.media.moderatorDeleteMediaAssetSoft(
+            ctx.moderatorUserId,
+            ctx.targetId,
+            ctx.reasonNote,
+          );
           if (!res.ok) return fail(res.error.code, res.error.message);
           return { ok: true, applied: true };
         }

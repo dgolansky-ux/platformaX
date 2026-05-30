@@ -34,10 +34,36 @@ export interface ChannelCommentService {
   create(input: CreateChannelCommentInput): Promise<ChannelCommentResult<ChannelCommentCreatedValue>>;
   update(input: UpdateChannelCommentInput): Promise<ChannelCommentResult<ChannelCommentUpdatedValue>>;
   deactivate(input: DeactivateChannelCommentInput): Promise<ChannelCommentResult<ChannelCommentDeactivatedValue>>;
+  /** Slice 20 P3 — moderator-actor deactivate. Idempotent. */
+  moderatorDeactivate(
+    input: { commentId: string; moderatorUserId: string; reasonNote?: string | null },
+  ): Promise<ChannelCommentResult<ChannelCommentDeactivatedValue>>;
   getById(commentId: string): Promise<import("./dto").ChannelCommentDTO | null>;
   list(input: ListChannelCommentsQuery): Promise<ChannelCommentListValue>;
   countActive(channelPostId: string): Promise<number>;
   countActiveBatch(channelPostIds: readonly string[]): Promise<Map<string, number>>;
+}
+
+async function moderatorDeactivateComment(
+  deps: ChannelCommentServiceDeps,
+  input: { commentId: string; moderatorUserId: string; reasonNote?: string | null },
+): Promise<ChannelCommentResult<ChannelCommentDeactivatedValue>> {
+  const cur = await deps.comments.getById(input.commentId);
+  if (!cur) return { ok: false, error: { code: "COMMENT_NOT_FOUND", message: "Komentarz nie istnieje." } };
+  if (cur.status === "deactivated") {
+    return { ok: true, value: { comment: toChannelCommentDTO(cur) } };
+  }
+  const now = deps.clock.now().toISOString();
+  const updated = await deps.comments.update({
+    ...cur,
+    body: "",
+    status: "deactivated",
+    moderationReason: input.reasonNote ?? "moderated",
+    moderatedByUserId: input.moderatorUserId,
+    updatedAt: now,
+    deletedAt: now,
+  });
+  return { ok: true, value: { comment: toChannelCommentDTO(updated) } };
 }
 
 const DEFAULT_LIMIT = 20;
@@ -116,6 +142,7 @@ export function createChannelCommentService(deps: ChannelCommentServiceDeps): Ch
       });
       return { ok: true, value: { comment: toChannelCommentDTO(updated) } };
     },
+    moderatorDeactivate: (input) => moderatorDeactivateComment(deps, input),
     async getById(commentId) {
       const comment = await deps.comments.getById(commentId);
       return comment ? toChannelCommentDTO(comment) : null;

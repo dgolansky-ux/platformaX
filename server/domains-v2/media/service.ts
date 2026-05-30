@@ -87,6 +87,7 @@ export interface MediaService {
 
   getPublicMediaUrl(ref: MediaRefDTO): Promise<MediaResult<MediaAssetDTO>>;
 
+  // SCALABILITY_HOT_PATH_EXCEPTION: scoped to a single owner (owner-type + owner-id); list bounded by per-owner asset count, order delegated to repo.
   listAssetsForOwner(
     ownerRef: MediaOwnerRefDTO,
   ): Promise<MediaResult<readonly MediaAssetDTO[]>>;
@@ -94,6 +95,18 @@ export interface MediaService {
   deleteMediaAssetSoft(
     actorUserId: string,
     assetId: string,
+  ): Promise<MediaResult<MediaAssetDTO>>;
+
+  /**
+   * Slice 20 P3 — moderator-actor soft-delete. Bypasses the owner guard so a
+   * moderator/admin (validated upstream by the moderation domain) can take
+   * down a reported media asset. Idempotent on already-deleted assets;
+   * emits `media.asset.deleted` event with the moderator as actor.
+   */
+  moderatorDeleteMediaAssetSoft(
+    moderatorUserId: string,
+    assetId: string,
+    reasonNote?: string | null,
   ): Promise<MediaResult<MediaAssetDTO>>;
 
   /**
@@ -421,6 +434,33 @@ export function createMediaService(deps: MediaServiceDeps): MediaService {
           at: now,
         }),
       );
+      return { ok: true, value: toMediaAssetDTO(updated) };
+    },
+
+    async moderatorDeleteMediaAssetSoft(moderatorUserId, assetId, reasonNote) {
+      if (!moderatorUserId) {
+        return { ok: false, error: fail("FORBIDDEN", "Wymagany aktor moderatora") };
+      }
+      const record = await ctx.repo.findById(assetId);
+      if (!record) return { ok: false, error: fail("NOT_FOUND", "Zasób nie istnieje") };
+      const variants = await ctx.repo.findVariantsForAsset(assetId);
+      if (record.status === "deleted") {
+        return { ok: true, value: toMediaAssetDTO(record, variants) };
+      }
+      const now = ctx.clock();
+      const updated = await ctx.repo.softDelete(assetId, now);
+      if (!updated) return { ok: false, error: fail("NOT_FOUND", "Zasób nie istnieje") };
+      ctx.publish(
+        wrapMediaEvent({
+          type: "media.asset.deleted",
+          assetId,
+          ownerId: record.ownerId,
+          ownerType: record.ownerType,
+          at: now,
+        }),
+      );
+      void reasonNote;
+      void moderatorUserId;
       return { ok: true, value: toMediaAssetDTO(updated) };
     },
 
