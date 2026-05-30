@@ -10,6 +10,8 @@ const KNOWN_FEATURES = [
   "notifications", "notifications-v2",
   "media", "search", "moderation", "audit", "system",
   "shared-ui", "friend-feed", "professional-profile", "personal-profile",
+  // Slice 17 — unified publishing system + post display kit.
+  "publishing", "content-display",
 ];
 
 const SHARED_UI = "shared-ui";

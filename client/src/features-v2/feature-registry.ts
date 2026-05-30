@@ -37,6 +37,9 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
   { name: "friend-feed", status: "UI_SHELL_ONLY", hasDomainLogic: false },
   { name: "professional-profile", status: "UI_SHELL_ONLY", hasDomainLogic: false },
   { name: "personal-profile", status: "UI_SHELL_ONLY", hasDomainLogic: false },
+  // Slice 17 — unified publishing system + post display kit.
+  { name: "publishing", status: "PARTIAL", hasDomainLogic: false },
+  { name: "content-display", status: "PARTIAL", hasDomainLogic: false },
 ];
 
 export const KNOWN_FEATURE_NAMES = FEATURE_REGISTRY.map((f) => f.name);

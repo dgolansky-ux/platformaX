@@ -1,0 +1,223 @@
+/* features-v2/content-display — Post Display Kit styles. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #c7d2fe;
+  color: #4f46e5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.authorBlock { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+
+.authorName {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.authorMeta { margin: 0; font-size: 12px; color: #64748b; }
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #1e293b;
+  white-space: pre-wrap;
+}
+
+.bodyTeaser {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #475569;
+  font-style: italic;
+}
+
+.metaRow { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 12px; color: #64748b; }
+
+.actionBar { display: flex; align-items: center; gap: 16px; padding-top: 4px; }
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.actionButton:hover { background: #f1f5f9; color: #0f172a; }
+
+.actionButton[aria-pressed="true"] { color: #4f46e5; font-weight: 600; }
+
+.actionLink {
+  margin-left: auto;
+  font-size: 13px;
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.actionLink:hover { text-decoration: underline; }
+
+.privacyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.privacyPublic { background: #dcfce7; color: #166534; }
+.privacyPrivate { background: #fee2e2; color: #991b1b; }
+.privacyStaff { background: #fce7f3; color: #9d174d; }
+.privacyChannel { background: #cffafe; color: #0e7490; }
+.privacyWorkplace { background: #ccfbf1; color: #115e59; }
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.mediaCell {
+  aspect-ratio: 16/10;
+  background: linear-gradient(135deg, #e0e7ff, #fef3c7);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.badgeRow { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.badgeNeutral { background: #f1f5f9; color: #475569; }
+.badgeInfo { background: #dbeafe; color: #1e40af; }
+.badgeWarning { background: #fef3c7; color: #92400e; }
+.badgeSuccess { background: #dcfce7; color: #166534; }
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.skeletonRow {
+  height: 12px;
+  background: linear-gradient(90deg, #e2e8f0, #f1f5f9, #e2e8f0);
+  border-radius: 6px;
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.skeletonHeader { height: 36px; width: 60%; }
+.skeletonBody { height: 14px; width: 100%; }
+.skeletonBodyShort { height: 14px; width: 70%; }
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.emptyState, .errorState {
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px dashed #cbd5e1;
+  color: #475569;
+}
+
+.errorState {
+  background: #fff1f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+/* Variant accents (top border) — visually distinct, structurally identical. */
+.variantFriend { border-top: 3px solid #4f46e5; }
+.variantCommunity { border-top: 3px solid #f97316; }
+.variantStaff { border-top: 3px solid #db2777; }
+.variantRelational { border-top: 3px solid #ea580c; }
+.variantChannel { border-top: 3px solid #0ea5e9; }
+.variantWorkplace { border-top: 3px solid #0d9488; }
+.variantWorkplaceTeaser {
+  border-top: 3px solid #14b8a6;
+  background: linear-gradient(180deg, #f0fdfa, #ffffff 40%);
+}
+.variantImportantEvent {
+  border: 1px solid #fed7aa;
+  background: linear-gradient(135deg, #fff7ed, #fefce8);
+  border-radius: 16px;
+}
+.variantPresentation {
+  border: 1px solid #ddd6fe;
+  background: linear-gradient(135deg, #f5f3ff, #ffffff);
+  border-radius: 16px;
+}
+.variantCompact { padding: 10px 12px; }
+
+.eventDateBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fb923c;
+  color: #ffffff;
+}

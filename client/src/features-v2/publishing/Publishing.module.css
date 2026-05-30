@@ -1,0 +1,208 @@
+/* features-v2/publishing — shared composer styles. */
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e3e6ec;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.composerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.composerTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.composerSubtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.targetRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.targetLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.targetSelect, .visibilitySelect {
+  flex: 1 1 220px;
+  min-width: 180px;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.targetSelect:focus, .visibilitySelect:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 1px;
+}
+
+.titleInput, .dateInput, .bodyInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.titleInput:focus, .dateInput:focus, .bodyInput:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.bodyInput {
+  min-height: 96px;
+  line-height: 1.45;
+}
+
+.mediaPicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 13px;
+}
+
+.mediaPickerDisabled {
+  opacity: 0.6;
+}
+
+.submitBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.submitMeta {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.submitButton {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 9999px;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.submitButton:hover {
+  background: #4338ca;
+}
+
+.submitButton:disabled {
+  background: #cbd5e1;
+  color: #f8fafc;
+  cursor: not-allowed;
+}
+
+.preview {
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.previewLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin: 0 0 6px;
+}
+
+.previewBody {
+  font-size: 14px;
+  color: #0f172a;
+  margin: 0 0 6px;
+  white-space: pre-wrap;
+}
+
+.previewMeta {
+  font-size: 12px;
+  color: #475569;
+}
+
+.warningList, .errorList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+}
+
+.warningList { color: #b45309; }
+.errorList   { color: #b91c1c; }
+
+.partialBadge, .blockedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.partialBadge {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.blockedBadge {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.successBadge {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.composerVariantFriend  { border-top: 3px solid #4f46e5; }
+.composerVariantChannel { border-top: 3px solid #0ea5e9; }
+.composerVariantWorkplace { border-top: 3px solid #0d9488; }
+.composerVariantCommunity { border-top: 3px solid #f97316; }
+.composerVariantCommunityStaff { border-top: 3px solid #db2777; }
+.composerVariantCommunityRelational { border-top: 3px solid #ea580c; }
+.composerVariantImportantEvent { border-top: 3px solid #b45309; }
+.composerVariantPresentation { border-top: 3px solid #7c3aed; }
