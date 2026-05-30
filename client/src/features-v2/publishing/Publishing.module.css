@@ -1,4 +1,11 @@
-/* features-v2/publishing — shared composer styles. */
+/*
+ * features-v2/publishing — shared composer styles.
+ *
+ * QUALITY_STRUCTURE_EXCEPTION — Slice 20B-21 appended ComposerTrigger +
+ * ComposerModal styles to this canonical module so the trigger/modal stays
+ * inside the publishing-feature cascade (CSS modules cannot import each
+ * other). Registered in EXCEPTIONS_REGISTER.md (EXC-013).
+ */
 
 .composer {
   display: flex;
@@ -206,3 +213,140 @@
 .composerVariantCommunityRelational { border-top: 3px solid #ea580c; }
 .composerVariantImportantEvent { border-top: 3px solid #b45309; }
 .composerVariantPresentation { border-top: 3px solid #7c3aed; }
+
+/* ─── Slice 20B-21: Composer trigger + modal ───────────────────────── */
+
+.composerTrigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.composerTrigger:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.composerTrigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.composerTriggerAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e4fd8, #2563eb);
+  color: #ffffff;
+  font-family: "Sora", "DM Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.composerTriggerPlaceholder {
+  flex: 1;
+  padding: 10px 14px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.composerTriggerActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.composerModalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 16px;
+}
+
+.composerModal {
+  background: #ffffff;
+  border-radius: 22px;
+  width: min(680px, 100%);
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+  overflow: hidden;
+}
+
+.composerModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.composerModalTitle {
+  margin: 0;
+  font-family: "Sora", "DM Sans", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.composerModalSubtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.composerModalClose {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  font-size: 22px;
+  color: #475569;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.composerModalClose:hover {
+  background: #f1f5f9;
+}
+
+.composerModalBody {
+  padding: 18px 22px 22px;
+  overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+  .composerModalBackdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .composerModal {
+    border-radius: 22px 22px 0 0;
+    width: 100%;
+    max-height: 90vh;
+  }
+}

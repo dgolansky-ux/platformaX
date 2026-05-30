@@ -3,6 +3,8 @@
  * Other features import only from here.
  */
 export { PublishingComposerCore } from "./PublishingComposerCore";
+export { ComposerTrigger } from "./ComposerTrigger";
+export { ComposerModal } from "./ComposerModal";
 export { PublishingTargetSelector } from "./PublishingTargetSelector";
 export { PublishingVisibilitySelector } from "./PublishingVisibilitySelector";
 export { PublishingMediaPicker } from "./PublishingMediaPicker";

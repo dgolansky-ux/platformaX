@@ -121,14 +121,7 @@ export function DesktopSidebar({
       <nav className={styles.nav}>
         <NavItem icon={<IconHome />} label="Centrum" active={active === "centrum"} onClick={() => navigate("/")} />
         <NavItem icon={<IconUser />} label="Mój profil" active={active === "profil"} onClick={() => navigate("/profile")} />
-        <NavItem icon={<IconContacts />} label="Kontakty" active={active === "kontakty"} onClick={() => navigate("/contacts")} />
         <NavItem icon={<IconFeed />} label="Feed znajomych" active={active === "feed"} onClick={() => navigate("/friends-feed")} />
-        <NavItem icon={<IconChat />} label="Wiadomości" active={active === "wiadomosci"} disabled />
-        <NavItem icon={<IconSearch />} label="Znajdź ludzi" active={active === "znajdz"} disabled />
-
-        <div className={styles.sectionDivider}>
-          <span className={styles.sectionLabel}>SPOŁECZNOŚĆ</span>
-        </div>
         <NavItem icon={<IconCommunity />} label="Społeczności" active={active === "spolecznosci"} onClick={() => navigate("/communities")} />
         <NavItem icon={<IconChannel />} label="Kanały" active={active === "kanaly"} onClick={() => navigate("/channels")} />
         <NavItem
@@ -138,11 +131,19 @@ export function DesktopSidebar({
           badge={unread.total}
           onClick={() => navigate("/notifications")}
         />
+        <NavItem icon={<IconContacts />} label="Kontakty" active={active === "kontakty"} onClick={() => navigate("/contacts")} />
+        <NavItem icon={<IconSearch />} label="Znajdź ludzi" active={active === "znajdz"} disabled />
+        <NavItem icon={<IconChat />} label="Wiadomości" active={active === "wiadomosci"} disabled />
 
         <div className={styles.sectionDivider}>
-          <span className={styles.sectionLabel}>USŁUGI</span>
+          <span className={styles.sectionLabel}>TWOJE KONTO</span>
         </div>
-        <NavItem icon={<IconSettings />} label="Zarządzaj" active={active === "zarzadzaj"} onClick={() => navigate("/manage")} />
+        <NavItem
+          icon={<IconSettings />}
+          label="Zarządzaj"
+          active={active === "zarzadzaj"}
+          onClick={() => navigate("/manage")}
+        />
       </nav>
     </aside>
   );
