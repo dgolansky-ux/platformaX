@@ -41,30 +41,18 @@ export interface FriendFeedComposerStateUi {
   supportedVisibilities: readonly FriendFeedVisibility[];
 }
 
-export interface CreateFriendPostInputUi {
-  viewerUserId: string;
-  body: string;
-  visibility: FriendFeedVisibility;
-}
-
-export interface ToggleReactionInputUi {
-  viewerUserId: string;
-  postId: string;
-}
-
 export interface FriendPostCommentUi {
   id: string;
   postId: string;
   author: FriendFeedAuthorUi;
   body: string;
-  status: "active" | "deleted";
+  status: "active" | "edited" | "deactivated";
   createdAt: string;
-}
-
-export interface CreateCommentInputUi {
-  viewerUserId: string;
-  postId: string;
-  body: string;
+  updatedAt: string;
+  viewerCanEdit: boolean;
+  viewerCanDelete: boolean;
+  likeCount: number;
+  viewerLiked: boolean;
 }
 
 export interface PersonalProfileFriendFeedPreviewUi {

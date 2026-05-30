@@ -29,6 +29,17 @@
   font-size: 0.82rem;
 }
 
+.commentMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.commentBadge {
+  color: var(--c-text-soft);
+  font-size: 0.72rem;
+}
+
 .commentBody {
   margin: 0;
   font-size: 0.85rem;
@@ -70,4 +81,40 @@
 .commentButton[disabled] {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.commentActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.commentActionButton {
+  border: 0;
+  background: transparent;
+  color: var(--c-text-soft);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+}
+
+.commentActionButton[aria-pressed="true"] {
+  color: var(--c-primary);
+}
+
+.commentState,
+.commentError {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--c-surface-muted);
+  color: var(--c-text-soft);
+  font-size: 0.85rem;
+}
+
+.commentError {
+  background: #fef2f2;
+  color: var(--c-danger);
 }

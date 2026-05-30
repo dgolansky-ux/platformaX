@@ -6,6 +6,7 @@
  * limit — no unbounded list, no global feed).
  */
 import type {
+  FriendFeedReactionTargetType,
   FriendPostCommentDTO,
   FriendPostDTO,
   FriendPostStatus,
@@ -39,12 +40,16 @@ export interface FriendPostCommentRepository {
     limit: number,
   ): Promise<FriendPostCommentDTO[]>;
   countForPost(friendPostId: string): Promise<number>;
+  countForPosts(friendPostIds: readonly string[]): Promise<Map<string, number>>;
 }
 
 export interface FriendPostReactionRepository {
-  toggleLike(friendPostId: string, userId: string): Promise<{ liked: boolean }>;
-  hasViewerLiked(friendPostId: string, userId: string): Promise<boolean>;
-  countLikes(friendPostId: string): Promise<number>;
+  setLike(targetType: FriendFeedReactionTargetType, targetId: string, userId: string): Promise<{ created: boolean }>;
+  removeLike(targetType: FriendFeedReactionTargetType, targetId: string, userId: string): Promise<{ removed: boolean }>;
+  toggleLike(targetType: FriendFeedReactionTargetType, targetId: string, userId: string): Promise<{ liked: boolean }>;
+  hasViewerLiked(targetType: FriendFeedReactionTargetType, targetId: string, userId: string): Promise<boolean>;
+  countLikes(targetType: FriendFeedReactionTargetType, targetId: string): Promise<number>;
+  countLikesBatch(targets: readonly { targetType: FriendFeedReactionTargetType; targetId: string }[]): Promise<Map<string, number>>;
 }
 
 function postsSort(a: FriendPostDTO, b: FriendPostDTO): number {
@@ -110,25 +115,46 @@ export function createInMemoryFriendPostCommentRepository(): FriendPostCommentRe
     },
     async countForPost(friendPostId) {
       return [...rows.values()].filter(
-        (c) => c.friendPostId === friendPostId && c.status === "active",
+        (c) => c.friendPostId === friendPostId && c.status !== "deactivated",
       ).length;
+    },
+    async countForPosts(friendPostIds) {
+      // READ_MODEL_SKELETON: DB adapter will replace this with GROUP BY post_id.
+      const out = new Map<string, number>();
+      for (const id of friendPostIds) out.set(id, 0);
+      for (const c of rows.values()) {
+        if (c.status === "deactivated") continue;
+        if (out.has(c.friendPostId)) out.set(c.friendPostId, (out.get(c.friendPostId) ?? 0) + 1);
+      }
+      return out;
     },
   };
 }
 
 export function createInMemoryFriendPostReactionRepository(): FriendPostReactionRepository {
   const rows = new Map<string, Set<string>>();
-  const ensureSet = (postId: string) => {
-    let set = rows.get(postId);
+  const key = (targetType: FriendFeedReactionTargetType, targetId: string) => `${targetType}:${targetId}`;
+  const ensureSet = (targetType: FriendFeedReactionTargetType, targetId: string) => {
+    const k = key(targetType, targetId);
+    let set = rows.get(k);
     if (!set) {
       set = new Set();
-      rows.set(postId, set);
+      rows.set(k, set);
     }
     return set;
   };
   return {
-    async toggleLike(friendPostId, userId) {
-      const set = ensureSet(friendPostId);
+    async setLike(targetType, targetId, userId) {
+      const set = ensureSet(targetType, targetId);
+      const created = !set.has(userId);
+      set.add(userId);
+      return { created };
+    },
+    async removeLike(targetType, targetId, userId) {
+      return { removed: rows.get(key(targetType, targetId))?.delete(userId) ?? false };
+    },
+    async toggleLike(targetType, targetId, userId) {
+      const set = ensureSet(targetType, targetId);
       if (set.has(userId)) {
         set.delete(userId);
         return { liked: false };
@@ -136,11 +162,19 @@ export function createInMemoryFriendPostReactionRepository(): FriendPostReaction
       set.add(userId);
       return { liked: true };
     },
-    async hasViewerLiked(friendPostId, userId) {
-      return rows.get(friendPostId)?.has(userId) ?? false;
+    async hasViewerLiked(targetType, targetId, userId) {
+      return rows.get(key(targetType, targetId))?.has(userId) ?? false;
     },
-    async countLikes(friendPostId) {
-      return rows.get(friendPostId)?.size ?? 0;
+    async countLikes(targetType, targetId) {
+      return rows.get(key(targetType, targetId))?.size ?? 0;
+    },
+    async countLikesBatch(targets) {
+      // READ_MODEL_SKELETON: DB adapter will replace this with GROUP BY target.
+      const out = new Map<string, number>();
+      for (const target of targets) {
+        out.set(key(target.targetType, target.targetId), rows.get(key(target.targetType, target.targetId))?.size ?? 0);
+      }
+      return out;
     },
   };
 }

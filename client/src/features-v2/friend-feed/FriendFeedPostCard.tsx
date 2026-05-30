@@ -5,10 +5,10 @@
  * Comments and the inline comment composer are rendered when the user expands.
  * No `@server/*` imports.
  */
-import { useCallback, useEffect, useState } from "react";
-import type { FriendFeedItemUi, FriendPostCommentUi } from "./types";
-import { friendFeedMockAdapter } from "./mock-adapter";
+import type { FriendFeedItemUi } from "./types";
 import { FriendFeedComments } from "./FriendFeedComments";
+import { FriendFeedPostActionBar } from "./FriendFeedPostActions";
+import { useFriendFeedPostCardState } from "./useFriendFeedPostCardState";
 import styles from "./FriendFeed.module.css";
 
 type Props = {
@@ -43,59 +43,8 @@ const PRIVACY_LABEL: Record<FriendFeedItemUi["visibility"], string> = {
 };
 
 export function FriendFeedPostCard({ viewerUserId, item }: Props) {
-  const [likeCount, setLikeCount] = useState(item.likeCount);
-  const [viewerLiked, setViewerLiked] = useState(item.viewerLiked);
-  const [commentCount, setCommentCount] = useState(item.commentCount);
-  const [commentsOpen, setCommentsOpen] = useState(false);
-  const [comments, setComments] = useState<readonly FriendPostCommentUi[]>([]);
-  const [commentDraft, setCommentDraft] = useState("");
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  const loadComments = useCallback(async () => {
-    const res = await friendFeedMockAdapter.listComments(viewerUserId, item.postId);
-    if (!res.ok) {
-      setActionError(res.error.message);
-      return;
-    }
-    setComments(res.value);
-    setCommentCount(res.value.filter((c) => c.status === "active").length);
-  }, [viewerUserId, item.postId]);
-
-  useEffect(() => {
-    if (commentsOpen) void loadComments();
-  }, [commentsOpen, loadComments]);
-
-  async function handleReact() {
-    if (!item.viewerCanReact || busy) return;
-    setBusy(true);
-    const res = await friendFeedMockAdapter.toggleReaction({ viewerUserId, postId: item.postId });
-    setBusy(false);
-    if (!res.ok) {
-      setActionError(res.error.message);
-      return;
-    }
-    setLikeCount(res.value.likeCount);
-    setViewerLiked(res.value.viewerLiked);
-  }
-
-  async function handleSubmitComment() {
-    if (!commentDraft.trim() || busy) return;
-    setActionError(null);
-    setBusy(true);
-    const res = await friendFeedMockAdapter.createComment({
-      viewerUserId,
-      postId: item.postId,
-      body: commentDraft,
-    });
-    setBusy(false);
-    if (!res.ok) {
-      setActionError(res.error.message);
-      return;
-    }
-    setCommentDraft("");
-    await loadComments();
-  }
+  const card = useFriendFeedPostCardState(viewerUserId, item);
+  const { state } = card;
 
   const privacyClass = item.visibility === "private"
     ? `${styles.privacyChip} ${styles.privacyChipPrivate}`
@@ -120,37 +69,32 @@ export function FriendFeedPostCard({ viewerUserId, item }: Props) {
 
       <p className={styles.cardBody}>{item.body}</p>
 
-      <div className={styles.actionBar}>
-        <button
-          type="button"
-          className={viewerLiked ? `${styles.actionButton} ${styles.actionButtonActive}` : styles.actionButton}
-          onClick={handleReact}
-          disabled={!item.viewerCanReact || busy}
-          aria-pressed={viewerLiked}
-        >
-          {viewerLiked ? "Lubię to" : "Polub"} · {likeCount}
-        </button>
-        <button
-          type="button"
-          className={styles.actionButton}
-          onClick={() => setCommentsOpen((open) => !open)}
-          aria-expanded={commentsOpen}
-        >
-          Komentarze · {commentCount}
-        </button>
-        <span className={styles.actionSpacer} />
-      </div>
+      <FriendFeedPostActionBar
+        viewerLiked={state.viewerLiked}
+        likeCount={state.likeCount}
+        commentCount={state.commentCount}
+        commentsOpen={state.commentsOpen}
+        viewerCanReact={item.viewerCanReact}
+        busy={state.busy}
+        onReact={() => void card.reactToPost()}
+        onToggleComments={card.toggleComments}
+      />
 
-      {actionError ? <p className={styles.errorBanner} role="alert">{actionError}</p> : null}
+      {state.actionError ? <p className={styles.errorBanner} role="alert">{state.actionError}</p> : null}
 
-      {commentsOpen ? (
+      {state.commentsOpen ? (
         <FriendFeedComments
-          comments={comments}
-          commentDraft={commentDraft}
-          busy={busy}
+          comments={state.comments}
+          commentDraft={state.commentDraft}
+          busy={state.busy}
           viewerCanComment={item.viewerCanComment}
-          onDraftChange={setCommentDraft}
-          onSubmitComment={() => void handleSubmitComment()}
+          loading={state.commentsLoading}
+          error={null}
+          onDraftChange={card.setCommentDraft}
+          onSubmitComment={() => void card.submitComment()}
+          onToggleCommentReaction={(commentId) => void card.reactToComment(commentId)}
+          onStartEdit={card.startEdit}
+          onDeleteComment={(commentId) => void card.deleteComment(commentId)}
         />
       ) : null}
     </li>

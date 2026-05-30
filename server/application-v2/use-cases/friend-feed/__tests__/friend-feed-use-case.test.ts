@@ -205,4 +205,79 @@ describe("friend-feed use-case v2", () => {
     expect(authorKeys).not.toContain("email");
     expect(authorKeys).not.toContain("phone");
   });
+
+  it("friend can create/list comments with public author summary", async () => {
+    const graph: Record<string, readonly FriendId[]> = {
+      "u-viewer": ["u-friend"],
+      "u-friend": ["u-viewer"],
+    };
+    const friendPosts = makeFriendPosts(graph);
+    const created = await friendPosts.createPost({ authorUserId: "u-friend", body: "post" });
+    if (!created.ok) throw new Error("setup");
+    const uc = createFriendFeedUseCaseV2({
+      friendPosts,
+      social: socialStub(graph),
+      identity: identityStub({
+        "u-viewer": { displayName: "Viewer", slug: "viewer" },
+        "u-friend": { displayName: "Friend", slug: "friend" },
+      }),
+    });
+    const comments = await uc.createFriendPostComment({
+      viewerUserId: "u-viewer",
+      friendPostId: created.value.id,
+      body: "nice",
+    });
+    expect(comments.ok).toBe(true);
+    if (!comments.ok) return;
+    expect(comments.value.items[0].author.displayName).toBe("Viewer");
+    expect(Object.keys(comments.value.items[0].author)).not.toContain("email");
+  });
+
+  it("stranger is denied comment and reaction orchestration", async () => {
+    const graph: Record<string, readonly FriendId[]> = { "u-stranger": [], "u-author": [] };
+    const friendPosts = makeFriendPosts(graph);
+    const created = await friendPosts.createPost({ authorUserId: "u-author", body: "post" });
+    if (!created.ok) throw new Error("setup");
+    const uc = createFriendFeedUseCaseV2({
+      friendPosts,
+      social: socialStub(graph),
+      identity: identityStub({ "u-author": { displayName: "Author", slug: "author" } }),
+    });
+    const comment = await uc.createFriendPostComment({
+      viewerUserId: "u-stranger",
+      friendPostId: created.value.id,
+      body: "no",
+    });
+    expect(comment.ok).toBe(false);
+    const reaction = await uc.reactToFriendPost({
+      viewerUserId: "u-stranger",
+      friendPostId: created.value.id,
+      mode: "set",
+    });
+    expect(reaction.ok).toBe(false);
+  });
+
+  it("feed items include real interaction summary", async () => {
+    const graph: Record<string, readonly FriendId[]> = {
+      "u-viewer": ["u-friend"],
+      "u-friend": ["u-viewer"],
+    };
+    const friendPosts = makeFriendPosts(graph);
+    const created = await friendPosts.createPost({ authorUserId: "u-friend", body: "post" });
+    if (!created.ok) throw new Error("setup");
+    await friendPosts.createComment({ friendPostId: created.value.id, authorUserId: "u-viewer", body: "nice" });
+    await friendPosts.toggleReaction({ friendPostId: created.value.id, actorUserId: "u-viewer", mode: "set" });
+    const uc = createFriendFeedUseCaseV2({
+      friendPosts,
+      social: socialStub(graph),
+      identity: identityStub({
+        "u-viewer": { displayName: "Viewer", slug: "viewer" },
+        "u-friend": { displayName: "Friend", slug: "friend" },
+      }),
+    });
+    const page = await uc.listFriendFeed({ viewerUserId: "u-viewer" });
+    expect(page.items[0].interactionSummary.commentCount).toBe(1);
+    expect(page.items[0].interactionSummary.reactionSummary.likeCount).toBe(1);
+    expect(page.items[0].interactionSummary.viewerReactionState.viewerLiked).toBe(true);
+  });
 });

@@ -248,6 +248,11 @@
   flex: 1;
 }
 
+.actionSummary {
+  color: var(--c-text-soft);
+  font-size: 0.78rem;
+}
+
 .emptyState,
 .permissionState {
   padding: 24px;

@@ -11,6 +11,7 @@ import type {
   CreateFriendPostCommentInput,
   DeactivateFriendPostInput,
   DeleteFriendPostCommentInput,
+  FriendFeedInteractionSummaryDTO,
   FriendFeedPageDTO,
   FriendPostCommentDTO,
   FriendPostDTO,
@@ -18,8 +19,12 @@ import type {
   FriendPostReactionSummaryDTO,
   FriendPostStatus,
   FriendPostVisibility,
+  GetFriendFeedInteractionSummaryQuery,
   ListFriendFeedCommand,
   ListFriendPostCommentsQuery,
+  ReactToFriendPostCommentInput,
+  ReactToFriendPostInput,
+  UpdateFriendPostCommentInput,
   UpdateFriendPostInput,
 } from "./dto";
 import {
@@ -31,7 +36,6 @@ import {
   canViewFriendPost,
   isFriendPostVisibility,
   validateFriendPostBody,
-  validateFriendPostCommentBody,
   validateFriendPostMediaRefs,
 } from "./policy";
 import type { FriendshipResolver } from "./contracts";
@@ -41,6 +45,14 @@ import type {
   FriendPostRepository,
 } from "./store";
 import type { FriendFeedEventPublisher } from "./events";
+import {
+  createFriendPostComment,
+  deleteFriendPostComment,
+  getFriendFeedInteractionSummary,
+  listFriendPostComments,
+  reactToFriendPost,
+  updateFriendPostComment,
+} from "./interaction-service";
 
 // QUALITY_STRUCTURE_EXCEPTION: Slice-11 foundation service intentionally keeps
 // command/read orchestration together until a durable store replaces the
@@ -85,19 +97,21 @@ export interface FriendPostsService {
   createComment(
     input: CreateFriendPostCommentInput,
   ): Promise<FriendPostsResult<FriendPostCommentDTO>>;
+  updateComment(input: UpdateFriendPostCommentInput): Promise<FriendPostsResult<FriendPostCommentDTO>>;
   deleteComment(input: DeleteFriendPostCommentInput): Promise<FriendPostsResult<FriendPostCommentDTO>>;
   listComments(
     query: ListFriendPostCommentsQuery,
     viewerUserId: string,
   ): Promise<FriendPostsResult<{ items: readonly FriendPostCommentDTO[]; nextCursor: string | null }>>;
-  toggleReaction(input: {
-    friendPostId: string;
-    actorUserId: string;
-  }): Promise<FriendPostsResult<FriendPostReactionSummaryDTO>>;
+  toggleReaction(input: ReactToFriendPostInput): Promise<FriendPostsResult<FriendPostReactionSummaryDTO>>;
+  reactToComment(input: ReactToFriendPostCommentInput): Promise<FriendPostsResult<FriendFeedInteractionSummaryDTO>>;
   getReactionSummary(
     friendPostId: string,
     viewerUserId: string,
   ): Promise<FriendPostsResult<FriendPostReactionSummaryDTO>>;
+  getInteractionSummary(
+    query: GetFriendFeedInteractionSummaryQuery,
+  ): Promise<FriendPostsResult<readonly FriendFeedInteractionSummaryDTO[]>>;
 }
 
 export interface FriendFeedRawPageDTO {
@@ -114,6 +128,15 @@ function fail<T>(code: FriendPostsErrorCode, message: string): FriendPostsResult
 function defaultVisibility(input: CreateFriendPostCommand): FriendPostVisibility {
   if (input.visibility !== undefined) return input.visibility;
   return "friends_only";
+}
+
+async function publishIfRecipientDiffers(deps: Deps, event: Parameters<FriendFeedEventPublisher["publish"]>[0]): Promise<void> {
+  if ("recipientUserId" in event && event.actorUserId === event.recipientUserId) return;
+  await deps.events.publish(event);
+}
+
+function canInteractWithFriendPost(post: FriendPostDTO, viewerUserId: string, isFriend: boolean): boolean {
+  return post.authorUserId === viewerUserId || isFriend;
 }
 
 async function createPost(deps: Deps, input: CreateFriendPostCommand): Promise<FriendPostsResult<FriendPostPublicDTO>> {
@@ -227,93 +250,46 @@ async function listAuthorFeedRaw(
   authorUserId: string,
   limit: number,
 ): Promise<readonly FriendPostDTO[]> {
-  return deps.posts.listByAuthor(authorUserId, null, Math.min(limit, FRIEND_FEED_MAX_LIMIT));
+  return deps.posts.listByAuthor(authorUserId, null, Math.min(limit, FRIEND_FEED_MAX_LIMIT)); // stable order: createdAt desc + id.
 }
 
-async function createComment(deps: Deps, input: CreateFriendPostCommentInput): Promise<FriendPostsResult<FriendPostCommentDTO>> {
-  const post = await deps.posts.getById(input.friendPostId);
-  if (!post) return fail("NOT_FOUND", "Friend post not found.");
-  const isFriend = await deps.friendship.areFriends(input.authorUserId, post.authorUserId);
-  if (!canViewFriendPost(post, input.authorUserId, isFriend)) {
-    return fail("FORBIDDEN", "Viewer cannot comment on this post.");
-  }
-  const bodyErr = validateFriendPostCommentBody(input.body);
-  if (bodyErr) return fail("VALIDATION_FAILED", bodyErr);
-  const now = deps.clock.now().toISOString();
-  const comment: FriendPostCommentDTO = {
-    id: deps.ids.next(),
-    friendPostId: post.id,
-    authorUserId: input.authorUserId,
-    body: input.body.trim(),
-    status: "active",
-    createdAt: now,
-    updatedAt: now,
-  };
-  await deps.comments.insert(comment);
-  await deps.events.publish({
-    type: "FriendFeedCommentCreated",
-    eventId: `evt-${deps.ids.next()}`,
-    actorUserId: input.authorUserId,
-    authorUserId: post.authorUserId,
-    postId: post.id,
-    commentId: comment.id,
-    occurredAt: now,
-    correlationId: null,
-  });
-  return { ok: true, value: comment };
-}
-
-async function deleteComment(deps: Deps, input: DeleteFriendPostCommentInput): Promise<FriendPostsResult<FriendPostCommentDTO>> {
-  const existing = await deps.comments.getById(input.commentId);
-  if (!existing) return fail("NOT_FOUND", "Comment not found.");
-  if (existing.status === "deleted") return { ok: true, value: existing };
-  if (existing.authorUserId !== input.actorUserId) return fail("FORBIDDEN", "Only the author can delete this comment.");
-  const now = deps.clock.now().toISOString();
-  const updated: FriendPostCommentDTO = { ...existing, body: "", status: "deleted", updatedAt: now };
-  await deps.comments.update(updated);
-  return { ok: true, value: updated };
-}
-
-// SCALABILITY_HOT_PATH_EXCEPTION: comment store returns stable order (createdAt asc + id) with cursor + bounded limit.
-async function listComments(
-  deps: Deps,
-  query: ListFriendPostCommentsQuery,
-  viewerUserId: string,
-): Promise<FriendPostsResult<{ items: readonly FriendPostCommentDTO[]; nextCursor: string | null }>> {
-  const post = await deps.posts.getById(query.friendPostId);
-  if (!post) return fail("NOT_FOUND", "Friend post not found.");
-  const isFriend = await deps.friendship.areFriends(viewerUserId, post.authorUserId);
-  if (!canViewFriendPost(post, viewerUserId, isFriend)) {
-    return fail("FORBIDDEN", "Viewer cannot view comments.");
-  }
-  const limit = clampLimit(query.limit);
-  const items = await deps.comments.listForPost(query.friendPostId, query.cursor ?? null, limit); // SCALABILITY_HOT_PATH_EXCEPTION: comment store returns stable order createdAt asc + id.
-  const nextCursor = items.length === limit ? items[items.length - 1].id : null;
-  return { ok: true, value: { items, nextCursor } };
-}
-
-async function toggleReaction(deps: Deps, input: { friendPostId: string; actorUserId: string }): Promise<FriendPostsResult<FriendPostReactionSummaryDTO>> {
-  const post = await deps.posts.getById(input.friendPostId);
+// SCALABILITY_HOT_PATH_EXCEPTION: summary read delegates to bounded batch query for one post.
+async function reactToComment(deps: Deps, input: ReactToFriendPostCommentInput): Promise<FriendPostsResult<FriendFeedInteractionSummaryDTO>> {
+  const comment = await deps.comments.getById(input.commentId);
+  if (!comment || comment.status === "deactivated") return fail("NOT_FOUND", "Comment not found.");
+  const post = await deps.posts.getById(comment.friendPostId);
   if (!post) return fail("NOT_FOUND", "Friend post not found.");
   const isFriend = await deps.friendship.areFriends(input.actorUserId, post.authorUserId);
-  if (!canViewFriendPost(post, input.actorUserId, isFriend)) {
-    return fail("FORBIDDEN", "Viewer cannot react to this post.");
+  if (!canViewFriendPost(post, input.actorUserId, isFriend) || !canInteractWithFriendPost(post, input.actorUserId, isFriend)) {
+    return fail("FORBIDDEN", "Viewer cannot react to this comment.");
   }
-  const { liked } = await deps.reactions.toggleLike(input.friendPostId, input.actorUserId);
-  if (liked) {
-    await deps.events.publish({
-      type: "FriendFeedReactionAdded",
+  const mode = input.mode ?? "toggle";
+  let created = false;
+  if (mode === "remove") {
+    await deps.reactions.removeLike("friend_post_comment", comment.id, input.actorUserId);
+  } else if (mode === "set") {
+    const res = await deps.reactions.setLike("friend_post_comment", comment.id, input.actorUserId);
+    created = res.created;
+  } else {
+    const res = await deps.reactions.toggleLike("friend_post_comment", comment.id, input.actorUserId);
+    created = res.liked;
+  }
+  if (created) {
+    await publishIfRecipientDiffers(deps, {
+      type: "FriendFeedCommentReactionAdded",
       eventId: `evt-${deps.ids.next()}`,
       actorUserId: input.actorUserId,
-      authorUserId: post.authorUserId,
+      recipientUserId: comment.authorUserId,
       postId: post.id,
+      commentId: comment.id,
       reactionType: "like",
       occurredAt: deps.clock.now().toISOString(),
       correlationId: null,
     });
   }
-  const likeCount = await deps.reactions.countLikes(input.friendPostId);
-  return { ok: true, value: { friendPostId: input.friendPostId, likeCount, viewerLiked: liked } };
+  const summary = await getFriendFeedInteractionSummary(deps, { friendPostIds: [post.id], viewerUserId: input.actorUserId }, fail);
+  if (!summary.ok) return summary;
+  return { ok: true, value: summary.value[0] };
 }
 
 async function getReactionSummary(deps: Deps, friendPostId: string, viewerUserId: string): Promise<FriendPostsResult<FriendPostReactionSummaryDTO>> {
@@ -323,9 +299,9 @@ async function getReactionSummary(deps: Deps, friendPostId: string, viewerUserId
   if (!canViewFriendPost(post, viewerUserId, isFriend)) {
     return fail("FORBIDDEN", "Viewer cannot view reactions.");
   }
-  const likeCount = await deps.reactions.countLikes(friendPostId);
-  const viewerLiked = await deps.reactions.hasViewerLiked(friendPostId, viewerUserId);
-  return { ok: true, value: { friendPostId, likeCount, viewerLiked } };
+  const summary = await getFriendFeedInteractionSummary(deps, { friendPostIds: [friendPostId], viewerUserId }, fail);
+  if (!summary.ok) return summary;
+  return { ok: true, value: summary.value[0] };
 }
 
 export function createFriendPostsService(deps: FriendPostsServiceDeps): FriendPostsService {
@@ -336,11 +312,14 @@ export function createFriendPostsService(deps: FriendPostsServiceDeps): FriendPo
     getPostForViewer: (id, viewerId) => getPostForViewer(deps, id, viewerId),
     listFriendFeedRaw: (input) => listFriendFeedRaw(deps, input), // SCALABILITY_HOT_PATH_EXCEPTION: delegate preserves stable order.
     listAuthorFeedRaw: (authorId, limit) => listAuthorFeedRaw(deps, authorId, limit), // SCALABILITY_HOT_PATH_EXCEPTION: delegate preserves stable order.
-    createComment: (input) => createComment(deps, input),
-    deleteComment: (input) => deleteComment(deps, input),
-    listComments: (query, viewerId) => listComments(deps, query, viewerId),
-    toggleReaction: (input) => toggleReaction(deps, input),
+    createComment: (input) => createFriendPostComment(deps, input, fail, { publishIfRecipientDiffers: (e) => publishIfRecipientDiffers(deps, e) }),
+    updateComment: (input) => updateFriendPostComment(deps, input, fail),
+    deleteComment: (input) => deleteFriendPostComment(deps, input, fail),
+    listComments: (query, viewerId) => listFriendPostComments(deps, query, viewerId, fail),
+    toggleReaction: (input) => reactToFriendPost(deps, input, fail, { publishIfRecipientDiffers: (e) => publishIfRecipientDiffers(deps, e) }),
+    reactToComment: (input) => reactToComment(deps, input),
     getReactionSummary: (id, viewerId) => getReactionSummary(deps, id, viewerId),
+    getInteractionSummary: (query) => getFriendFeedInteractionSummary(deps, query, fail),
   };
 }
 

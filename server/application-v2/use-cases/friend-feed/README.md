@@ -17,6 +17,13 @@ Orchestrates the friend feed product flow. The use-case:
 - `listFriendFeed` (cursor, bounded by `FRIEND_FEED_MAX_LIMIT`)
 - `getPersonalProfileFriendFeedPreview` (owner / friend / stranger)
 - `getFriendFeedComposerState`
+- `createFriendPostComment`
+- `listFriendPostComments`
+- `updateOwnFriendPostComment`
+- `deactivateOwnFriendPostComment`
+- `reactToFriendPost`
+- `reactToFriendPostComment`
+- `getFriendFeedInteractionSummary`
 
 ## Out of scope
 

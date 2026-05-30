@@ -34,6 +34,14 @@ submodules do not read channel visibility, follow state, lead permissions or
 community membership; `application-v2/use-cases/channel-interactions` enforces
 that through `channels` and `communities-v2` public contracts.
 
+### friend-posts interactions (Friend Feed Slice 13, BACKEND_PARTIAL)
+
+`friend-posts/` owns comments and `like` reactions for the friend feed:
+create/list/edit/deactivate own comments, post/comment reaction set/remove/toggle,
+batch interaction summaries, and typed event hooks for future notifications.
+`social` remains the source of friendship truth and `identity` remains the
+source of public author summaries; application-v2 orchestrates both.
+
 ## Implemented (BACKEND_PARTIAL)
 
 In-memory runtime foundation for posts + friend feed read model:

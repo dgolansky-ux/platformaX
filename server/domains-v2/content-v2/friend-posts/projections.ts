@@ -33,7 +33,7 @@ export function toFriendPostCommentPublic(
     id: comment.id,
     friendPostId: comment.friendPostId,
     author,
-    body: comment.status === "deleted" ? "" : comment.body,
+    body: comment.status === "deactivated" ? "" : comment.body,
     status: comment.status,
     createdAt: comment.createdAt,
     updatedAt: comment.updatedAt,

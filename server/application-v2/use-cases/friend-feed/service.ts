@@ -24,6 +24,7 @@ import type { SocialContactsService } from "@server/domains-v2/social/public-api
 import type { IdentityService } from "@server/domains-v2/identity/public-api";
 import type {
   FriendFeedComposerStateViewDTO,
+  FriendFeedCommentListViewDTO,
   FriendFeedItemViewDTO,
   FriendFeedPageViewDTO,
   PersonalProfileFriendFeedPreviewViewDTO,
@@ -70,6 +71,49 @@ export interface FriendFeedUseCaseV2 {
   getFriendFeedComposerState(input: {
     viewerUserId: string;
   }): Promise<FriendFeedComposerStateViewDTO>;
+
+  createFriendPostComment(input: {
+    viewerUserId: string;
+    friendPostId: string;
+    body: string;
+  }): Promise<FriendPostsResult<FriendFeedCommentListViewDTO>>;
+
+  listFriendPostComments(input: {
+    viewerUserId: string;
+    friendPostId: string;
+    cursor?: string | null;
+    limit?: number;
+  }): Promise<FriendPostsResult<FriendFeedCommentListViewDTO>>;
+
+  updateOwnFriendPostComment(input: {
+    viewerUserId: string;
+    commentId: string;
+    friendPostId: string;
+    body: string;
+  }): Promise<FriendPostsResult<FriendFeedCommentListViewDTO>>;
+
+  deactivateOwnFriendPostComment(input: {
+    viewerUserId: string;
+    commentId: string;
+    friendPostId: string;
+  }): Promise<FriendPostsResult<FriendFeedCommentListViewDTO>>;
+
+  reactToFriendPost(input: {
+    viewerUserId: string;
+    friendPostId: string;
+    mode?: "toggle" | "set" | "remove";
+  }): ReturnType<FriendPostsService["toggleReaction"]>;
+
+  reactToFriendPostComment(input: {
+    viewerUserId: string;
+    commentId: string;
+    mode?: "toggle" | "set" | "remove";
+  }): ReturnType<FriendPostsService["reactToComment"]>;
+
+  getFriendFeedInteractionSummary(input: {
+    viewerUserId: string;
+    friendPostIds: readonly string[];
+  }): ReturnType<FriendPostsService["getInteractionSummary"]>;
 }
 
 type Deps = FriendFeedUseCaseDeps;
@@ -105,6 +149,19 @@ async function buildAuthorMap(
   return map;
 }
 
+async function buildCommentAuthorMap(
+  deps: Deps,
+  viewerUserId: string,
+  comments: readonly { authorUserId: string }[],
+): Promise<Map<string, FriendPostAuthorSummary>> {
+  const map = new Map<string, FriendPostAuthorSummary>();
+  for (const c of comments) {
+    if (map.has(c.authorUserId)) continue;
+    map.set(c.authorUserId, await buildAuthor(deps, viewerUserId, c.authorUserId));
+  }
+  return map;
+}
+
 async function isFriend(deps: Deps, viewerUserId: string, otherUserId: string): Promise<boolean> {
   if (viewerUserId === otherUserId) return false;
   const friends = await deps.social.listFriends(viewerUserId as never);
@@ -116,9 +173,10 @@ function toItemView(
   author: FriendPostAuthorSummary,
   viewerUserId: string,
   viewerIsFriendOfAuthor: boolean,
+  interactionSummary: FriendFeedItemViewDTO["interactionSummary"],
 ): FriendFeedItemViewDTO {
   const viewerIsAuthor = post.authorUserId === viewerUserId;
-  const interactionAllowed = viewerIsAuthor || viewerIsFriendOfAuthor || post.visibility === "public";
+  const interactionAllowed = viewerIsAuthor || viewerIsFriendOfAuthor;
   return {
     postId: post.id,
     author,
@@ -131,6 +189,36 @@ function toItemView(
     viewerCanComment: interactionAllowed,
     viewerCanReact: interactionAllowed,
     viewerIsAuthor,
+    interactionSummary,
+  };
+}
+
+async function enrichComments(
+  deps: Deps,
+  viewerUserId: string,
+  friendPostId: string,
+  cursor?: string | null,
+  limit?: number,
+): Promise<FriendPostsResult<FriendFeedCommentListViewDTO>> {
+  const res = await deps.friendPosts.listComments({ friendPostId, cursor, limit }, viewerUserId);
+  if (!res.ok) return res;
+  const authors = await buildCommentAuthorMap(deps, viewerUserId, res.value.items);
+  return {
+    ok: true,
+    value: {
+      items: res.value.items.map((comment) => ({
+        id: comment.id,
+        friendPostId: comment.friendPostId,
+        author: authors.get(comment.authorUserId) ?? { userId: comment.authorUserId, ...FALLBACK_AUTHOR },
+        body: comment.status === "deactivated" ? "" : comment.body,
+        status: comment.status,
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt,
+        viewerCanEdit: comment.authorUserId === viewerUserId && comment.status !== "deactivated",
+        viewerCanDelete: comment.authorUserId === viewerUserId && comment.status !== "deactivated",
+      })),
+      nextCursor: res.value.nextCursor,
+    },
   };
 }
 
@@ -173,12 +261,25 @@ export function createFriendFeedUseCaseV2(deps: FriendFeedUseCaseDeps): FriendFe
       const authors = await buildAuthorMap(deps, input.viewerUserId, raw.items);
       const friends = await deps.social.listFriends(input.viewerUserId as never);
       const friendSet = new Set(friends.map((f) => f.friendId as unknown as string));
+      const summaryRes = await deps.friendPosts.getInteractionSummary({
+        viewerUserId: input.viewerUserId,
+        friendPostIds: raw.items.map((p) => p.id),
+      });
+      const summaries = new Map(
+        summaryRes.ok ? summaryRes.value.map((summary) => [summary.friendPostId, summary]) : [],
+      );
       const items: FriendFeedItemViewDTO[] = raw.items.map((post) =>
         toItemView(
           post,
           authors.get(post.authorUserId)!,
           input.viewerUserId,
           friendSet.has(post.authorUserId),
+          summaries.get(post.id) ?? {
+            friendPostId: post.id,
+            commentCount: 0,
+            reactionSummary: { targetType: "friend_post", targetId: post.id, likeCount: 0 },
+            viewerReactionState: { targetType: "friend_post", targetId: post.id, viewerLiked: false },
+          },
         ),
       );
       return { items, nextCursor: raw.nextCursor };
@@ -204,7 +305,12 @@ export function createFriendFeedUseCaseV2(deps: FriendFeedUseCaseDeps): FriendFe
         visible.length === 0 && viewerRelation === "stranger" ? "not_friends" : "none";
 
       const items = visible.slice(0, limit).map((post) =>
-        toItemView(post, author, input.viewerUserId, viewerIsFriend),
+        toItemView(post, author, input.viewerUserId, viewerIsFriend, {
+          friendPostId: post.id,
+          commentCount: 0,
+          reactionSummary: { targetType: "friend_post", targetId: post.id, likeCount: 0 },
+          viewerReactionState: { targetType: "friend_post", targetId: post.id, viewerLiked: false },
+        }),
       );
       const hasMore = visible.length > limit;
       return {
@@ -215,6 +321,59 @@ export function createFriendFeedUseCaseV2(deps: FriendFeedUseCaseDeps): FriendFe
         restrictedReason,
         ctaTargetRoute: "/friends-feed",
       };
+    },
+
+    async createFriendPostComment(input) {
+      const created = await deps.friendPosts.createComment({
+        friendPostId: input.friendPostId,
+        authorUserId: input.viewerUserId,
+        body: input.body,
+      });
+      if (!created.ok) return created;
+      return enrichComments(deps, input.viewerUserId, input.friendPostId);
+    },
+
+    async listFriendPostComments(input) {
+      return enrichComments(deps, input.viewerUserId, input.friendPostId, input.cursor, input.limit);
+    },
+
+    async updateOwnFriendPostComment(input) {
+      const updated = await deps.friendPosts.updateComment({
+        commentId: input.commentId,
+        actorUserId: input.viewerUserId,
+        body: input.body,
+      });
+      if (!updated.ok) return updated;
+      return enrichComments(deps, input.viewerUserId, input.friendPostId);
+    },
+
+    async deactivateOwnFriendPostComment(input) {
+      const deleted = await deps.friendPosts.deleteComment({
+        commentId: input.commentId,
+        actorUserId: input.viewerUserId,
+      });
+      if (!deleted.ok) return deleted;
+      return enrichComments(deps, input.viewerUserId, input.friendPostId);
+    },
+
+    reactToFriendPost(input) {
+      return deps.friendPosts.toggleReaction({
+        friendPostId: input.friendPostId,
+        actorUserId: input.viewerUserId,
+        mode: input.mode,
+      });
+    },
+
+    reactToFriendPostComment(input) {
+      return deps.friendPosts.reactToComment({
+        commentId: input.commentId,
+        actorUserId: input.viewerUserId,
+        mode: input.mode,
+      });
+    },
+
+    getFriendFeedInteractionSummary(input) {
+      return deps.friendPosts.getInteractionSummary(input);
     },
 
     async getFriendFeedComposerState(input) {

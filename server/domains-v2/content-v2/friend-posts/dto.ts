@@ -56,6 +56,7 @@ export interface FriendFeedItemDTO {
   status: "published" | "edited";
   viewerCanComment: boolean;
   viewerCanReact: boolean;
+  interactionSummary: FriendFeedInteractionSummaryDTO;
 }
 
 export interface FriendFeedPageDTO {
@@ -68,9 +69,10 @@ export interface FriendPostCommentDTO {
   friendPostId: string;
   authorUserId: string;
   body: string;
-  status: "active" | "deleted";
+  status: "active" | "edited" | "deactivated";
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;
 }
 
 export interface FriendPostCommentPublicDTO {
@@ -78,16 +80,34 @@ export interface FriendPostCommentPublicDTO {
   friendPostId: string;
   author: FriendPostAuthorSummary;
   body: string;
-  status: "active" | "deleted";
+  status: "active" | "edited" | "deactivated";
   createdAt: string;
   updatedAt: string;
 }
 
-export interface FriendPostReactionSummaryDTO {
-  friendPostId: string;
+export type FriendFeedReactionTargetType = "friend_post" | "friend_post_comment";
+export type FriendFeedReactionType = "like";
+
+export interface FriendFeedReactionSummaryDTO {
+  targetType: FriendFeedReactionTargetType;
+  targetId: string;
   likeCount: number;
+}
+
+export interface FriendFeedViewerReactionStateDTO {
+  targetType: FriendFeedReactionTargetType;
+  targetId: string;
   viewerLiked: boolean;
 }
+
+export interface FriendFeedInteractionSummaryDTO {
+  friendPostId: string;
+  commentCount: number;
+  reactionSummary: FriendFeedReactionSummaryDTO;
+  viewerReactionState: FriendFeedViewerReactionStateDTO;
+}
+
+export type FriendPostReactionSummaryDTO = FriendFeedInteractionSummaryDTO;
 
 export interface FriendPostViewerStateDTO {
   friendPostId: string;
@@ -142,6 +162,12 @@ export interface CreateFriendPostCommentInput {
   body: string;
 }
 
+export interface UpdateFriendPostCommentInput {
+  commentId: string;
+  actorUserId: string;
+  body: string;
+}
+
 export interface DeleteFriendPostCommentInput {
   commentId: string;
   actorUserId: string;
@@ -152,6 +178,34 @@ export interface ListFriendPostCommentsQuery {
   cursor?: string | null;
   limit?: number;
 }
+
+export interface ReactToFriendPostInput {
+  friendPostId: string;
+  actorUserId: string;
+  mode?: "toggle" | "set" | "remove";
+}
+
+export interface ReactToFriendPostCommentInput {
+  commentId: string;
+  actorUserId: string;
+  mode?: "toggle" | "set" | "remove";
+}
+
+export interface GetFriendFeedInteractionSummaryQuery {
+  friendPostIds: readonly string[];
+  viewerUserId: string;
+}
+
+export type FriendFeedCommentDTO = FriendPostCommentPublicDTO;
+
+export interface FriendFeedCommentListDTO {
+  items: readonly FriendFeedCommentDTO[];
+  nextCursor: string | null;
+}
+
+export type CreateFriendFeedCommentCommand = CreateFriendPostCommentInput;
+export type ReactToFriendFeedPostCommand = ReactToFriendPostInput;
+export type ReactToFriendFeedCommentCommand = ReactToFriendPostCommentInput;
 
 export const FRIEND_POST_BODY_MAX = 4000;
 export const FRIEND_POST_COMMENT_BODY_MAX = 2000;

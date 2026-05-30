@@ -158,7 +158,20 @@ describe("friend-posts service", () => {
     if (!denied.ok) expect(denied.error.code).toBe("FORBIDDEN");
   });
 
-  it("deleted comment body is stripped at the mapper boundary", async () => {
+  it("updates own comment and marks it edited", async () => {
+    const svc = makeService({ friendship: { areFriends: () => true } });
+    const created = await svc.createPost({ authorUserId: "u-author", body: "p" });
+    if (!created.ok) throw new Error("setup");
+    const c = await svc.createComment({ friendPostId: created.value.id, authorUserId: "u-friend", body: "hi" });
+    if (!c.ok) throw new Error("setup");
+    const updated = await svc.updateComment({ commentId: c.value.id, actorUserId: "u-friend", body: "hello" });
+    expect(updated.ok).toBe(true);
+    if (!updated.ok) return;
+    expect(updated.value.status).toBe("edited");
+    expect(updated.value.body).toBe("hello");
+  });
+
+  it("deactivated comment body is stripped at the mapper boundary", async () => {
     const svc = makeService({ friendship: { areFriends: () => true } });
     const created = await svc.createPost({ authorUserId: "u-author", body: "p" });
     if (!created.ok) throw new Error("setup");
@@ -168,7 +181,7 @@ describe("friend-posts service", () => {
     const list = await svc.listComments({ friendPostId: created.value.id }, "u-author");
     if (!list.ok) throw new Error("setup");
     expect(list.value.items[0].body).toBe("");
-    expect(list.value.items[0].status).toBe("deleted");
+    expect(list.value.items[0].status).toBe("deactivated");
   });
 
   it("reaction toggle increments + decrements likeCount", async () => {
@@ -178,12 +191,53 @@ describe("friend-posts service", () => {
     const r1 = await svc.toggleReaction({ friendPostId: created.value.id, actorUserId: "u-friend" });
     expect(r1.ok).toBe(true);
     if (!r1.ok) return;
-    expect(r1.value.likeCount).toBe(1);
-    expect(r1.value.viewerLiked).toBe(true);
+    expect(r1.value.reactionSummary.likeCount).toBe(1);
+    expect(r1.value.viewerReactionState.viewerLiked).toBe(true);
     const r2 = await svc.toggleReaction({ friendPostId: created.value.id, actorUserId: "u-friend" });
     if (!r2.ok) throw new Error("setup");
-    expect(r2.value.likeCount).toBe(0);
-    expect(r2.value.viewerLiked).toBe(false);
+    expect(r2.value.reactionSummary.likeCount).toBe(0);
+    expect(r2.value.viewerReactionState.viewerLiked).toBe(false);
+  });
+
+  it("set reaction is deduped and emits only first added event", async () => {
+    const captured: FriendFeedDomainEvent[] = [];
+    const svc = makeService({ friendship: { areFriends: () => true }, capturedEvents: captured });
+    const created = await svc.createPost({ authorUserId: "u-author", body: "p" });
+    if (!created.ok) throw new Error("setup");
+    await svc.toggleReaction({ friendPostId: created.value.id, actorUserId: "u-friend", mode: "set" });
+    const r2 = await svc.toggleReaction({ friendPostId: created.value.id, actorUserId: "u-friend", mode: "set" });
+    if (!r2.ok) throw new Error("setup");
+    expect(r2.value.reactionSummary.likeCount).toBe(1);
+    expect(captured.filter((e) => e.type === "FriendFeedReactionAdded")).toHaveLength(1);
+  });
+
+  it("comment reaction emits comment reaction event without PII", async () => {
+    const captured: FriendFeedDomainEvent[] = [];
+    const svc = makeService({ friendship: { areFriends: () => true }, capturedEvents: captured });
+    const created = await svc.createPost({ authorUserId: "u-author", body: "p" });
+    if (!created.ok) throw new Error("setup");
+    const c = await svc.createComment({ friendPostId: created.value.id, authorUserId: "u-friend", body: "hi" });
+    if (!c.ok) throw new Error("setup");
+    const res = await svc.reactToComment({ commentId: c.value.id, actorUserId: "u-author", mode: "set" });
+    expect(res.ok).toBe(true);
+    const event = captured.find((e) => e.type === "FriendFeedCommentReactionAdded");
+    expect(event).toBeTruthy();
+    expect(Object.keys(event ?? {})).not.toContain("email");
+    expect(Object.keys(event ?? {})).not.toContain("phone");
+  });
+
+  it("batch interaction summary includes comment and reaction counts", async () => {
+    const svc = makeService({ friendship: { areFriends: () => true } });
+    const created = await svc.createPost({ authorUserId: "u-author", body: "p" });
+    if (!created.ok) throw new Error("setup");
+    await svc.createComment({ friendPostId: created.value.id, authorUserId: "u-friend", body: "hi" });
+    await svc.toggleReaction({ friendPostId: created.value.id, actorUserId: "u-friend", mode: "set" });
+    const summary = await svc.getInteractionSummary({ friendPostIds: [created.value.id], viewerUserId: "u-friend" });
+    expect(summary.ok).toBe(true);
+    if (!summary.ok) return;
+    expect(summary.value[0].commentCount).toBe(1);
+    expect(summary.value[0].reactionSummary.likeCount).toBe(1);
+    expect(summary.value[0].viewerReactionState.viewerLiked).toBe(true);
   });
 
   it("reaction by stranger is FORBIDDEN", async () => {
@@ -201,5 +255,20 @@ describe("friend-posts service", () => {
     if (!created.ok) throw new Error("setup");
     expect(Object.keys(created.value)).not.toContain("email");
     expect(Object.keys(created.value)).not.toContain("phone");
+  });
+
+  it("event payloads carry no PII and skip actor recipient notifications", async () => {
+    const captured: FriendFeedDomainEvent[] = [];
+    const svc = makeService({ friendship: { areFriends: () => true }, capturedEvents: captured });
+    const created = await svc.createPost({ authorUserId: "u-author", body: "p" });
+    if (!created.ok) throw new Error("setup");
+    await svc.createComment({ friendPostId: created.value.id, authorUserId: "u-author", body: "self" });
+    await svc.toggleReaction({ friendPostId: created.value.id, actorUserId: "u-author", mode: "set" });
+    expect(captured.filter((e) => e.type === "FriendFeedCommentCreated")).toHaveLength(0);
+    expect(captured.filter((e) => e.type === "FriendFeedReactionAdded")).toHaveLength(0);
+    for (const event of captured) {
+      expect(Object.keys(event)).not.toContain("email");
+      expect(Object.keys(event)).not.toContain("phone");
+    }
   });
 });

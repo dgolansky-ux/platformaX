@@ -6,8 +6,6 @@
  * empty / loading / list states without ever touching localStorage.
  */
 import type {
-  CreateCommentInputUi,
-  CreateFriendPostInputUi,
   FriendFeedAdapterResult,
   FriendFeedAuthorUi,
   FriendFeedComposerStateUi,
@@ -18,8 +16,39 @@ import type {
   FriendFeedWorkplaceTeaserPageUi,
   FriendPostCommentUi,
   PersonalProfileFriendFeedPreviewUi,
-  ToggleReactionInputUi,
 } from "./types";
+
+type CreateFriendPostInputUi = {
+  viewerUserId: string;
+  body: string;
+  visibility: FriendFeedVisibility;
+};
+
+type ToggleReactionInputUi = {
+  viewerUserId: string;
+  postId?: string;
+  commentId?: string;
+  targetType?: "friend_post" | "friend_post_comment";
+};
+
+type CreateCommentInputUi = {
+  viewerUserId: string;
+  postId: string;
+  body: string;
+};
+
+type UpdateCommentInputUi = {
+  viewerUserId: string;
+  postId: string;
+  commentId: string;
+  body: string;
+};
+
+type DeleteCommentInputUi = {
+  viewerUserId: string;
+  postId: string;
+  commentId: string;
+};
 
 interface PostRow {
   id: string;
@@ -36,12 +65,14 @@ interface CommentRow {
   postId: string;
   authorUserId: string;
   body: string;
-  status: "active" | "deleted";
+  status: "active" | "edited" | "deactivated";
   createdAt: string;
+  updatedAt: string;
 }
 
 interface ReactionRow {
-  postId: string;
+  targetType: "friend_post" | "friend_post_comment";
+  targetId: string;
   userId: string;
 }
 
@@ -100,11 +131,12 @@ const COMMENTS: CommentRow[] = [
     body: "Super, daj znać jaka książka!",
     status: "active",
     createdAt: "2026-05-29T08:15:00Z",
+    updatedAt: "2026-05-29T08:15:00Z",
   },
 ];
 
 const REACTIONS: ReactionRow[] = [
-  { postId: "fp-1", userId: "u-viewer" },
+  { targetType: "friend_post", targetId: "fp-1", userId: "u-viewer" },
 ];
 
 const WORKPLACE_TEASERS: FriendFeedWorkplaceTeaserItemUi[] = [
@@ -139,16 +171,16 @@ function canView(post: PostRow, viewerId: string): boolean {
   return false;
 }
 
-function countLikes(postId: string): number {
-  return REACTIONS.filter((r) => r.postId === postId).length;
+function countLikes(targetType: "friend_post" | "friend_post_comment", targetId: string): number {
+  return REACTIONS.filter((r) => r.targetType === targetType && r.targetId === targetId).length;
 }
 
-function viewerLiked(postId: string, viewerId: string): boolean {
-  return REACTIONS.some((r) => r.postId === postId && r.userId === viewerId);
+function viewerLiked(targetType: "friend_post" | "friend_post_comment", targetId: string, viewerId: string): boolean {
+  return REACTIONS.some((r) => r.targetType === targetType && r.targetId === targetId && r.userId === viewerId);
 }
 
 function countComments(postId: string): number {
-  return COMMENTS.filter((c) => c.postId === postId && c.status === "active").length;
+  return COMMENTS.filter((c) => c.postId === postId && c.status !== "deactivated").length;
 }
 
 function toFeedItem(post: PostRow, viewerId: string): FriendFeedItemUi {
@@ -160,7 +192,7 @@ function toFeedItem(post: PostRow, viewerId: string): FriendFeedItemUi {
   };
   const viewerIsAuthor = post.authorUserId === viewerId;
   const friendOfAuthor = areFriends(viewerId, post.authorUserId);
-  const canInteract = viewerIsAuthor || friendOfAuthor || post.visibility === "public";
+  const canInteract = viewerIsAuthor || friendOfAuthor;
   return {
     postId: post.id,
     author,
@@ -173,8 +205,8 @@ function toFeedItem(post: PostRow, viewerId: string): FriendFeedItemUi {
     viewerCanComment: canInteract,
     viewerCanReact: canInteract,
     viewerIsAuthor,
-    likeCount: countLikes(post.id),
-    viewerLiked: viewerLiked(post.id, viewerId),
+    likeCount: countLikes("friend_post", post.id),
+    viewerLiked: viewerLiked("friend_post", post.id, viewerId),
     commentCount: countComments(post.id),
   };
 }
@@ -218,19 +250,29 @@ export const friendFeedMockAdapter = {
   },
 
   async toggleReaction(input: ToggleReactionInputUi): Promise<FriendFeedAdapterResult<{ likeCount: number; viewerLiked: boolean }>> {
-    const post = POSTS.find((p) => p.id === input.postId);
+    const targetType = input.targetType ?? "friend_post";
+    const targetId = targetType === "friend_post_comment" ? input.commentId : input.postId;
+    if (!targetId) return fail("VALIDATION_FAILED", "Brak celu reakcji.");
+    const post = targetType === "friend_post"
+      ? POSTS.find((p) => p.id === targetId)
+      : POSTS.find((p) => p.id === COMMENTS.find((c) => c.id === targetId)?.postId);
     if (!post) return fail("NOT_FOUND", "Wpis nie istnieje.");
     if (!canView(post, input.viewerUserId)) return fail("FORBIDDEN", "Nie możesz reagować na ten wpis.");
-    const idx = REACTIONS.findIndex((r) => r.postId === input.postId && r.userId === input.viewerUserId);
+    if (post.authorUserId !== input.viewerUserId && !areFriends(input.viewerUserId, post.authorUserId)) {
+      return fail("FORBIDDEN", "Nie możesz reagować na ten wpis.");
+    }
+    const idx = REACTIONS.findIndex(
+      (r) => r.targetType === targetType && r.targetId === targetId && r.userId === input.viewerUserId,
+    );
     let liked: boolean;
     if (idx === -1) {
-      REACTIONS.push({ postId: input.postId, userId: input.viewerUserId });
+      REACTIONS.push({ targetType, targetId, userId: input.viewerUserId });
       liked = true;
     } else {
       REACTIONS.splice(idx, 1);
       liked = false;
     }
-    return { ok: true, value: { likeCount: countLikes(input.postId), viewerLiked: liked } };
+    return { ok: true, value: { likeCount: countLikes(targetType, targetId), viewerLiked: liked } };
   },
 
   async listComments(viewerUserId: string, postId: string): Promise<FriendFeedAdapterResult<readonly FriendPostCommentUi[]>> {
@@ -241,9 +283,14 @@ export const friendFeedMockAdapter = {
       id: c.id,
       postId: c.postId,
       author: AUTHORS[c.authorUserId] ?? { userId: c.authorUserId, displayName: "Użytkownik", handle: null, avatarRef: null },
-      body: c.status === "deleted" ? "" : c.body,
+      body: c.status === "deactivated" ? "" : c.body,
       status: c.status,
       createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+      viewerCanEdit: c.authorUserId === viewerUserId && c.status !== "deactivated",
+      viewerCanDelete: c.authorUserId === viewerUserId && c.status !== "deactivated",
+      likeCount: countLikes("friend_post_comment", c.id),
+      viewerLiked: viewerLiked("friend_post_comment", c.id, viewerUserId),
     }));
     return { ok: true, value: items };
   },
@@ -252,15 +299,20 @@ export const friendFeedMockAdapter = {
     const post = POSTS.find((p) => p.id === input.postId);
     if (!post) return fail("NOT_FOUND", "Wpis nie istnieje.");
     if (!canView(post, input.viewerUserId)) return fail("FORBIDDEN", "Nie możesz komentować tego wpisu.");
+    if (post.authorUserId !== input.viewerUserId && !areFriends(input.viewerUserId, post.authorUserId)) {
+      return fail("FORBIDDEN", "Nie możesz komentować tego wpisu.");
+    }
     const trimmed = input.body.trim();
     if (trimmed.length === 0) return fail("VALIDATION_FAILED", "Treść nie może być pusta.");
+    const now = new Date().toISOString();
     const comment: CommentRow = {
       id: `fc-${++seq}`,
       postId: input.postId,
       authorUserId: input.viewerUserId,
       body: trimmed,
       status: "active",
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
     COMMENTS.push(comment);
     return {
@@ -272,8 +324,36 @@ export const friendFeedMockAdapter = {
         body: comment.body,
         status: "active",
         createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt,
+        viewerCanEdit: true,
+        viewerCanDelete: true,
+        likeCount: 0,
+        viewerLiked: false,
       },
     };
+  },
+
+  async updateComment(input: UpdateCommentInputUi): Promise<FriendFeedAdapterResult<readonly FriendPostCommentUi[]>> {
+    const comment = COMMENTS.find((c) => c.id === input.commentId && c.postId === input.postId);
+    if (!comment) return fail("NOT_FOUND", "Komentarz nie istnieje.");
+    if (comment.status === "deactivated") return fail("NOT_FOUND", "Komentarz nie istnieje.");
+    if (comment.authorUserId !== input.viewerUserId) return fail("FORBIDDEN", "Możesz edytować tylko własny komentarz.");
+    const trimmed = input.body.trim();
+    if (trimmed.length === 0) return fail("VALIDATION_FAILED", "Treść nie może być pusta.");
+    comment.body = trimmed;
+    comment.status = "edited";
+    comment.updatedAt = new Date().toISOString();
+    return this.listComments(input.viewerUserId, input.postId);
+  },
+
+  async deleteComment(input: DeleteCommentInputUi): Promise<FriendFeedAdapterResult<readonly FriendPostCommentUi[]>> {
+    const comment = COMMENTS.find((c) => c.id === input.commentId && c.postId === input.postId);
+    if (!comment) return fail("NOT_FOUND", "Komentarz nie istnieje.");
+    if (comment.authorUserId !== input.viewerUserId) return fail("FORBIDDEN", "Możesz usuwać tylko własny komentarz.");
+    comment.body = "";
+    comment.status = "deactivated";
+    comment.updatedAt = new Date().toISOString();
+    return this.listComments(input.viewerUserId, input.postId);
   },
 
   async getComposerState(viewerUserId: string): Promise<FriendFeedAdapterResult<FriendFeedComposerStateUi>> {
@@ -385,7 +465,8 @@ export const friendFeedMockAdapter = {
       body: "Super, daj znać jaka książka!",
       status: "active",
       createdAt: "2026-05-29T08:15:00Z",
+      updatedAt: "2026-05-29T08:15:00Z",
     });
-    REACTIONS.push({ postId: "fp-1", userId: "u-viewer" });
+    REACTIONS.push({ targetType: "friend_post", targetId: "fp-1", userId: "u-viewer" });
   },
 };

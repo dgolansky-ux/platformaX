@@ -22,7 +22,7 @@ export interface FriendFeedCommentCreatedEvent {
   type: "FriendFeedCommentCreated";
   eventId: string;
   actorUserId: string;
-  authorUserId: string;
+  recipientUserId: string;
   postId: string;
   commentId: string;
   occurredAt: string;
@@ -33,9 +33,43 @@ export interface FriendFeedReactionAddedEvent {
   type: "FriendFeedReactionAdded";
   eventId: string;
   actorUserId: string;
-  authorUserId: string;
+  recipientUserId: string;
   postId: string;
   reactionType: "like";
+  occurredAt: string;
+  correlationId: string | null;
+}
+
+export interface FriendFeedCommentReactionAddedEvent {
+  type: "FriendFeedCommentReactionAdded";
+  eventId: string;
+  actorUserId: string;
+  recipientUserId: string;
+  postId: string;
+  commentId: string;
+  reactionType: "like";
+  occurredAt: string;
+  correlationId: string | null;
+}
+
+export interface FriendFeedCommentUpdatedEvent {
+  type: "FriendFeedCommentUpdated";
+  eventId: string;
+  actorUserId: string;
+  recipientUserId: string;
+  postId: string;
+  commentId: string;
+  occurredAt: string;
+  correlationId: string | null;
+}
+
+export interface FriendFeedCommentDeletedEvent {
+  type: "FriendFeedCommentDeleted";
+  eventId: string;
+  actorUserId: string;
+  recipientUserId: string;
+  postId: string;
+  commentId: string;
   occurredAt: string;
   correlationId: string | null;
 }
@@ -43,7 +77,10 @@ export interface FriendFeedReactionAddedEvent {
 export type FriendFeedDomainEvent =
   | FriendFeedPostCreatedEvent
   | FriendFeedCommentCreatedEvent
-  | FriendFeedReactionAddedEvent;
+  | FriendFeedReactionAddedEvent
+  | FriendFeedCommentReactionAddedEvent
+  | FriendFeedCommentUpdatedEvent
+  | FriendFeedCommentDeletedEvent;
 
 export interface FriendFeedEventPublisher {
   publish(event: FriendFeedDomainEvent): Promise<void> | void;

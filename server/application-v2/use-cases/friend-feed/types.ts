@@ -7,6 +7,8 @@
  * avatarRef from the public profile projection).
  */
 import type {
+  FriendFeedInteractionSummaryDTO,
+  FriendPostCommentPublicDTO,
   FriendPostAuthorSummary,
   FriendPostVisibility,
 } from "@server/domains-v2/content-v2/public-api";
@@ -23,6 +25,7 @@ export interface FriendFeedItemViewDTO {
   viewerCanComment: boolean;
   viewerCanReact: boolean;
   viewerIsAuthor: boolean;
+  interactionSummary: FriendFeedInteractionSummaryDTO;
 }
 
 export interface FriendFeedPageViewDTO {
@@ -44,4 +47,14 @@ export interface FriendFeedComposerStateViewDTO {
   disabledReason: "none" | "no_friends" | "transport_not_ready";
   defaultVisibility: FriendPostVisibility;
   supportedVisibilities: readonly FriendPostVisibility[];
+}
+
+export type FriendFeedCommentViewDTO = FriendPostCommentPublicDTO & {
+  viewerCanEdit: boolean;
+  viewerCanDelete: boolean;
+};
+
+export interface FriendFeedCommentListViewDTO {
+  items: readonly FriendFeedCommentViewDTO[];
+  nextCursor: string | null;
 }

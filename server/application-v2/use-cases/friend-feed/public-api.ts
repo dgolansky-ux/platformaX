@@ -8,4 +8,6 @@ export type {
   FriendFeedPageViewDTO,
   PersonalProfileFriendFeedPreviewViewDTO,
   FriendFeedComposerStateViewDTO,
+  FriendFeedCommentViewDTO,
+  FriendFeedCommentListViewDTO,
 } from "./types";

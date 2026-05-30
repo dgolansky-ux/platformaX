@@ -146,7 +146,10 @@ domains:
       publish, cursor + bounded limit, visibility-gated) and
       `workplace-teasers` (friend-feed mini-teaser read-model: dedupe per
       source_post_id, preview-only — never the full post body, scoped to the
-      viewer's friend set; private posts skip teaser creation).
+      viewer's friend set; private posts skip teaser creation). Friend Feed
+      Slice 13 extends `friend-posts` with comments, post/comment like reactions,
+      batch interaction summaries, and PII-free event hooks for future
+      notifications; storage remains in-memory and transport remains pending.
 
   - name: communities-v2
     type: OWNER_DOMAIN
