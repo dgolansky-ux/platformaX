@@ -186,7 +186,7 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(portalBtn?.disabled).toBe(true);
   });
 
-  test("professional layer is a MODE of the same profile, not a separate domain/route", () => {
+  test("professional layer is a MODE of the same profile (workplaces feature is a UI shell, not a separate domain)", () => {
     renderProfile();
     // default mode is personal: professional content is not shown
     expect(screen.queryByText(/Specjaliści/)).toBeNull();
@@ -196,8 +196,13 @@ describe("ProfilePage — personal profile mobile shell", () => {
     expect(screen.getByText(/Dodaj zawód/)).toBeDefined();
     // personal-only sections are hidden in professional mode
     expect(screen.queryByRole("region", { name: /^Kontakty$/ })).toBeNull();
-    // it is still the same /profile route, and there is no separate domain folder
-    expect(existsSync(join(ROOT, "client/src/features-v2/professional-profile"))).toBe(false);
+    // Slice 12 introduces the `professional-profile` feature for workplaces UI
+    // (UI_SHELL_ONLY + MOCK_LOCAL_ONLY). It is a UI feature folder, NOT a
+    // separate backend domain — backend workplaces live under
+    // `server/domains-v2/identity/workplaces/*` (still part of identity).
+    expect(existsSync(join(ROOT, "client/src/features-v2/professional-profile"))).toBe(true);
+    expect(existsSync(join(ROOT, "server/domains-v2/professional-profile"))).toBe(false);
+    expect(existsSync(join(ROOT, "server/domains-v2/identity/workplaces"))).toBe(true);
   });
 
   test("can switch back to personal after professional (mode is local view state)", () => {

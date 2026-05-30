@@ -198,3 +198,95 @@ export {
   toFriendPostCommentPublic,
 } from "./friend-posts/projections";
 
+// ── workplace-posts (Slice 12) ─────────────────────────────────────────────
+export { createWorkplacePostsService } from "./workplace-posts/service";
+export type {
+  WorkplacePostsService,
+  WorkplacePostsServiceDeps,
+  WorkplacePostsResult,
+  WorkplacePostsErrorCode,
+  WorkplacePostClock,
+  WorkplacePostIdGen,
+} from "./workplace-posts/service";
+export { createInMemoryWorkplacePostRepository } from "./workplace-posts/store";
+export type { WorkplacePostRepository } from "./workplace-posts/ports";
+export {
+  createNoopWorkplacePostEventPublisher,
+} from "./workplace-posts/events";
+export type {
+  WorkplacePostEventPublisher,
+  WorkplacePostDomainEvent,
+  WorkplacePostCreatedEvent,
+} from "./workplace-posts/events";
+export type {
+  WorkplaceOwnershipResolver,
+  WorkplacePostFriendshipResolver,
+} from "./workplace-posts/contracts";
+export type {
+  WorkplacePostPublicDTO,
+  WorkplacePostListDTO,
+  WorkplacePostType,
+  WorkplacePostStatus,
+  WorkplacePostVisibility,
+  CreateWorkplacePostCommand,
+  DeactivateWorkplacePostCommand,
+  ListWorkplacePostsQuery,
+} from "./workplace-posts/dto";
+export {
+  WORKPLACE_POST_BODY_MAX,
+  WORKPLACE_POST_MEDIA_REFS_MAX,
+  WORKPLACE_POST_DEFAULT_LIMIT,
+  WORKPLACE_POST_MAX_LIMIT,
+  WORKPLACE_POST_TEASER_PREVIEW_MAX,
+} from "./workplace-posts/dto";
+export {
+  canViewWorkplacePost,
+  isWorkplacePostType,
+  isWorkplacePostVisibility,
+} from "./workplace-posts/policy";
+export { toWorkplacePostPublic } from "./workplace-posts/projections";
+
+// ── workplace-teasers (Slice 12) ───────────────────────────────────────────
+export { createWorkplaceTeasersService } from "./workplace-teasers/service";
+export type {
+  WorkplaceTeasersService,
+  WorkplaceTeasersServiceDeps,
+  WorkplaceTeaserCreateResult,
+  WorkplaceTeasersErrorCode,
+  WorkplaceTeaserPageDTO,
+  WorkplaceTeaserClock,
+  WorkplaceTeaserIdGen,
+} from "./workplace-teasers/service";
+export { createInMemoryWorkplaceTeaserRepository } from "./workplace-teasers/store";
+export type { WorkplaceTeaserRepository } from "./workplace-teasers/ports";
+export {
+  createNoopWorkplaceTeaserEventPublisher,
+} from "./workplace-teasers/events";
+export type {
+  WorkplaceTeaserEventPublisher,
+  WorkplaceTeaserDomainEvent,
+  FriendFeedWorkplaceTeaserCreatedEvent,
+} from "./workplace-teasers/events";
+export type { WorkplaceTeaserFriendshipResolver } from "./workplace-teasers/contracts";
+export type {
+  WorkplaceTeaserPublicDTO,
+  WorkplaceTeaserVisibility,
+  CreateWorkplaceTeaserCommand,
+  ListWorkplaceTeasersForViewerQuery,
+} from "./workplace-teasers/dto";
+export {
+  WORKPLACE_TEASER_DEFAULT_LIMIT,
+  WORKPLACE_TEASER_MAX_LIMIT,
+} from "./workplace-teasers/dto";
+export {
+  buildPreviewText as buildWorkplaceTeaserPreviewText,
+  buildDedupeKey as buildWorkplaceTeaserDedupeKey,
+  canViewTeaser as canViewWorkplaceTeaser,
+  deriveTeaserVisibility as deriveWorkplaceTeaserVisibility,
+  isWorkplaceTeaserVisibility,
+} from "./workplace-teasers/policy";
+export {
+  toWorkplaceTeaserPublic,
+  workplacePostRoute,
+} from "./workplace-teasers/projections";
+

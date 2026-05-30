@@ -25,11 +25,24 @@ domains:
       - server/domains-v2/identity/__tests__/repository.test.ts
       - server/domains-v2/identity/__tests__/domain-contract.test.ts
       - server/domains-v2/identity/__tests__/public-mapper-no-pii.test.ts
+      - server/domains-v2/identity/workplaces/dto.ts
+      - server/domains-v2/identity/workplaces/policy.ts
+      - server/domains-v2/identity/workplaces/service.ts
+      - server/domains-v2/identity/workplaces/store.ts
+      - server/domains-v2/identity/workplaces/public-api.ts
+      - server/domains-v2/identity/workplaces/__tests__/workplaces-service.test.ts
     notes: >
       Real runtime: service, repository (in-memory adapter), mapper, policy,
       validation, events, internal DTOs. 5 test files. Supabase repository pending.
       Resolved: domain-registry.ts updated from SCAFFOLD_ONLY to PARTIAL.
       domain-status.md already said PARTIAL. Evidence confirms PARTIAL.
+      Slice 12 adds the `workplaces` submodule (BACKEND_PARTIAL): workplace
+      entity + policy + in-memory store + service (create / update / archive /
+      contact view / viewer state) under `identity/workplaces/*`. Workplaces
+      are part of the professional layer of the personal profile — they are
+      NOT a community (no members, no roles, no join flow). Public DTO carries
+      no contact email / phone; the contact view is policy-gated. DB adapter
+      pending.
 
   - name: media
     type: OWNER_DOMAIN
@@ -112,6 +125,12 @@ domains:
       - server/domains-v2/content-v2/index.ts
       - server/domains-v2/content-v2/__tests__/content-feed-service.test.ts
       - server/domains-v2/content-v2/__tests__/domain-contract.test.ts
+      - server/domains-v2/content-v2/workplace-posts/service.ts
+      - server/domains-v2/content-v2/workplace-posts/public-api.ts
+      - server/domains-v2/content-v2/workplace-posts/__tests__/workplace-posts-service.test.ts
+      - server/domains-v2/content-v2/workplace-teasers/service.ts
+      - server/domains-v2/content-v2/workplace-teasers/public-api.ts
+      - server/domains-v2/content-v2/workplace-teasers/__tests__/workplace-teasers-service.test.ts
     notes: >
       BACKEND_PARTIAL / READ_MODEL_SKELETON. In-memory posts + friend-feed
       foundation: createPost (EMPTY_BODY guard) and listFriendFeed (cursor +
@@ -122,7 +141,12 @@ domains:
       permissions stay in channels. Channel comments/reactions/topics and DB
       adapter remain out of scope. Channels Slice 9 adds channel-comments and
       channel-reactions submodules with in-memory services, batch counts and
-      viewer reaction state; DB adapter remains pending.
+      viewer reaction state; DB adapter remains pending. Slice 12 adds two
+      new submodules: `workplace-posts` (workplace micro-feed: owner-only
+      publish, cursor + bounded limit, visibility-gated) and
+      `workplace-teasers` (friend-feed mini-teaser read-model: dedupe per
+      source_post_id, preview-only — never the full post body, scoped to the
+      viewer's friend set; private posts skip teaser creation).
 
   - name: communities-v2
     type: OWNER_DOMAIN

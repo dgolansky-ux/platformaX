@@ -14,6 +14,8 @@ import type {
   FriendFeedItemUi,
   FriendFeedPageUi,
   FriendFeedVisibility,
+  FriendFeedWorkplaceTeaserItemUi,
+  FriendFeedWorkplaceTeaserPageUi,
   FriendPostCommentUi,
   PersonalProfileFriendFeedPreviewUi,
   ToggleReactionInputUi,
@@ -103,6 +105,25 @@ const COMMENTS: CommentRow[] = [
 
 const REACTIONS: ReactionRow[] = [
   { postId: "fp-1", userId: "u-viewer" },
+];
+
+const WORKPLACE_TEASERS: FriendFeedWorkplaceTeaserItemUi[] = [
+  {
+    teaser: {
+      id: "wt-1",
+      sourcePostId: "wpost-1",
+      workplaceId: "wp-1",
+      workplaceName: "Coach Dawid",
+      workplaceSlug: "coach-dawid",
+      ownerUserId: "u-viewer",
+      previewText: "Pierwszy wpis w mikro-feedzie miejsca pracy — wystartowałem nowy program coachingowy.",
+      previewMediaRef: null,
+      visibility: "public",
+      createdAt: "2026-05-26T09:00:00Z",
+      targetRoute: "/profile/workplaces/coach-dawid/posts/wpost-1",
+    },
+    owner: AUTHORS["u-viewer"],
+  },
 ];
 
 function areFriends(viewerId: string, otherId: string): boolean {
@@ -266,6 +287,26 @@ export const friendFeedMockAdapter = {
         supportedVisibilities: ["friends_only", "private", "public"],
       },
     };
+  },
+
+  /**
+   * Friend-feed view of workplace mini-teasers.
+   *
+   * Each teaser is a smaller projection than a full post: short preview only,
+   * no full body, no contact data. Visibility is enforced against the viewer's
+   * friend graph: `friends_only` teasers are shown only when the viewer is a
+   * confirmed friend of the workplace owner; `public` teasers are shown to
+   * any viewer; the owner always sees own teasers.
+   */
+  async listWorkplaceTeasersForViewer(
+    viewerUserId: string,
+  ): Promise<FriendFeedAdapterResult<FriendFeedWorkplaceTeaserPageUi>> {
+    const visible = WORKPLACE_TEASERS.filter((item) => {
+      if (item.teaser.ownerUserId === viewerUserId) return true;
+      if (item.teaser.visibility === "public") return areFriends(viewerUserId, item.teaser.ownerUserId);
+      return areFriends(viewerUserId, item.teaser.ownerUserId);
+    });
+    return { ok: true, value: { items: visible, nextCursor: null } };
   },
 
   async getProfilePreview(

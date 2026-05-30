@@ -79,3 +79,44 @@ export interface PersonalProfileFriendFeedPreviewUi {
 export type FriendFeedAdapterResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: { code: "FORBIDDEN" | "NOT_FOUND" | "VALIDATION_FAILED" | "ADAPTER_FAILURE"; message: string } };
+
+/**
+ * Friend-feed view of a workplace mini-teaser.
+ *
+ * Mirrors the application-v2 `FriendFeedWorkplaceTeaserItemViewDTO` shape so
+ * the friend-feed feature can render the mini-card without importing from
+ * another feature. The teaser is intentionally smaller than a full post and
+ * carries only a short preview plus the target route to the full workplace
+ * post — never the full body, never contact data.
+ */
+export interface FriendFeedWorkplaceTeaserAuthorUi {
+  userId: string;
+  displayName: string;
+  handle: string | null;
+  avatarRef: string | null;
+}
+
+export interface FriendFeedWorkplaceTeaserUi {
+  id: string;
+  sourcePostId: string;
+  workplaceId: string;
+  workplaceName: string;
+  workplaceSlug: string;
+  ownerUserId: string;
+  previewText: string;
+  previewMediaRef: string | null;
+  visibility: "friends_only" | "public";
+  createdAt: string;
+  /** Logical route the UI navigates to on click — the full workplace post. */
+  targetRoute: string;
+}
+
+export interface FriendFeedWorkplaceTeaserItemUi {
+  teaser: FriendFeedWorkplaceTeaserUi;
+  owner: FriendFeedWorkplaceTeaserAuthorUi;
+}
+
+export interface FriendFeedWorkplaceTeaserPageUi {
+  items: readonly FriendFeedWorkplaceTeaserItemUi[];
+  nextCursor: string | null;
+}

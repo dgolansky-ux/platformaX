@@ -21,6 +21,8 @@ import { ChannelProfilePage } from "./channels/ChannelProfilePage";
 import { ManageDashboard } from "./manage/ManageDashboard";
 import { PersonalProfileManageRoute } from "./manage/PersonalProfileManageRoute";
 import { ProfessionalSectionRoute } from "./manage/ProfessionalSectionRoute";
+import { WorkplaceCreateRoute } from "./profile/workplaces/WorkplaceCreateRoute";
+import { WorkplacePageRoute } from "./profile/workplaces/WorkplacePageRoute";
 
 export function AppRouter() {
   return (
@@ -48,6 +50,8 @@ export function AppRouter() {
         <Route path="/manage" element={<ManageDashboard />} />
         <Route path="/manage/profil-osobisty" element={<PersonalProfileManageRoute />} />
         <Route path="/manage/sekcja-zawodowa" element={<ProfessionalSectionRoute />} />
+        <Route path="/manage/profile/workplaces/new" element={<WorkplaceCreateRoute />} />
+        <Route path="/profile/workplaces/:slug" element={<WorkplacePageRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

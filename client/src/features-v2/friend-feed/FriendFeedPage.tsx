@@ -1,9 +1,14 @@
 /**
+ * QUALITY_STRUCTURE_EXCEPTION: Slice 12 grew this page by one section
+ * (workplace mini-teasers list) to surface "Aktualizacje zawodowe znajomych"
+ * inline; splitting per-section would dilute the page header context. The
+ * page stays a thin orchestrator over the friend-feed mock adapter.
+ *
  * features-v2/friend-feed / FriendFeedPage — UI_SHELL_ONLY + MOCK_LOCAL_ONLY.
  *
- * Composes the friend feed: header, composer, list of post cards, loading /
- * empty / error / permission states. Composer disabled state explains why.
- * No `@server/*` imports.
+ * Composes the friend feed: header, composer, optional workplace mini-teaser
+ * list, list of post cards, loading / empty / error / permission states.
+ * Composer disabled state explains why. No `@server/*` imports.
  */
 import { useCallback, useEffect, useState } from "react";
 import type {
@@ -14,6 +19,8 @@ import type {
 } from "./types";
 import { friendFeedMockAdapter } from "./mock-adapter";
 import { FriendFeedPostCard } from "./FriendFeedPostCard";
+import { FriendFeedWorkplaceTeaserCard } from "./FriendFeedWorkplaceTeaserCard";
+import type { FriendFeedWorkplaceTeaserPageUi } from "./types";
 import styles from "./FriendFeed.module.css";
 
 type Props = {
@@ -23,7 +30,7 @@ type Props = {
 type LoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; page: FriendFeedPageUi; composerState: FriendFeedComposerStateUi };
+  | { status: "ready"; page: FriendFeedPageUi; composerState: FriendFeedComposerStateUi; teasers: FriendFeedWorkplaceTeaserPageUi };
 
 const VISIBILITY_LABEL: Record<FriendFeedVisibility, string> = {
   friends_only: "Znajomi",
@@ -46,9 +53,10 @@ export function FriendFeedPage({ viewerUserId }: Props) {
 
   const load = useCallback(async () => {
     setState({ status: "loading" });
-    const [pageRes, composerRes] = await Promise.all([
+    const [pageRes, composerRes, teaserRes] = await Promise.all([
       friendFeedMockAdapter.listFeed(viewerUserId, null, FEED_LIMIT),
       friendFeedMockAdapter.getComposerState(viewerUserId),
+      friendFeedMockAdapter.listWorkplaceTeasersForViewer(viewerUserId),
     ]);
     if (!pageRes.ok) {
       setState({ status: "error", message: pageRes.error.message });
@@ -58,7 +66,10 @@ export function FriendFeedPage({ viewerUserId }: Props) {
       setState({ status: "error", message: composerRes.error.message });
       return;
     }
-    setState({ status: "ready", page: pageRes.value, composerState: composerRes.value });
+    const teasers: FriendFeedWorkplaceTeaserPageUi = teaserRes.ok
+      ? teaserRes.value
+      : { items: [], nextCursor: null };
+    setState({ status: "ready", page: pageRes.value, composerState: composerRes.value, teasers });
     setComposerVisibility(composerRes.value.defaultVisibility);
   }, [viewerUserId]);
 
@@ -151,6 +162,20 @@ export function FriendFeedPage({ viewerUserId }: Props) {
         </div>
         {composerError ? <p className={styles.composerError} role="alert">{composerError}</p> : null}
       </form>
+
+      {state.teasers.items.length > 0 ? (
+        <ul className={styles.list} aria-label="Aktualizacje zawodowe znajomych">
+          {state.teasers.items.map((item) => (
+            <FriendFeedWorkplaceTeaserCard
+              key={item.teaser.id}
+              item={item}
+              onOpen={(route) => {
+                window.location.assign(route);
+              }}
+            />
+          ))}
+        </ul>
+      ) : null}
 
       {items.length === 0 ? (
         <div className={styles.emptyState} role="status">
