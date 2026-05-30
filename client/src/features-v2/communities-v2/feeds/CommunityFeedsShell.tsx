@@ -22,6 +22,7 @@ import { communityInteractionsMockAdapter } from "./community-interactions-mock-
 import { CommunityFeedTabs } from "./CommunityFeedTabs";
 import { CommunityFeedComposer, type ComposerSubmit } from "./CommunityFeedComposer";
 import { CommunityFeedList, type FeedListState } from "./CommunityFeedList";
+import { ComposerModal, ComposerTrigger } from "../../publishing";
 import styles from "./Feeds.module.css";
 
 type TabsLoad =
@@ -55,6 +56,7 @@ export function CommunityFeedsShell({ slug }: { slug: string }) {
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
 
   const registerItems = useCallback((items: readonly CommunityFeedItemDTO[], tabs: CommunityFeedTabsStateDTO) => {
     const role = viewerRoleFor(tabs);
@@ -104,6 +106,7 @@ export function CommunityFeedsShell({ slug }: { slug: string }) {
     });
     setPublishing(false);
     if (!res.ok) { setPublishError(res.error.message); return; }
+    setComposerOpen(false);
     setFlash(res.value.distributedCount > 0 ? `Opublikowano i rozesłano do ${res.value.distributedCount} podspołeczności.` : "Opublikowano.");
     const tabsRes = await communityFeedsMockAdapter.getFeedTabsState(slug);
     if (tabsRes.ok) {
@@ -146,14 +149,29 @@ export function CommunityFeedsShell({ slug }: { slug: string }) {
       </header>
       <CommunityFeedTabs tabs={tabs} active={active} onSelect={onSelect} />
       {flash ? <p className={styles.successFlash} role="status">{flash}</p> : null}
-      <CommunityFeedComposer
-        feedType={active}
-        tabs={tabs}
-        descendants={descendants}
-        publishing={publishing}
-        error={publishError}
-        onPublish={(input) => void onPublish(input)}
+      <ComposerTrigger
+        avatarInitial="D"
+        placeholder="Co chcesz pokazać społeczności?"
+        onOpen={() => {
+          setPublishError(null);
+          setComposerOpen(true);
+        }}
       />
+      <ComposerModal
+        open={composerOpen}
+        title="Wpis dla społeczności"
+        subtitle={active === "staff_only" ? "Widoczne tylko dla kadry." : undefined}
+        onClose={() => setComposerOpen(false)}
+      >
+        <CommunityFeedComposer
+          feedType={active}
+          tabs={tabs}
+          descendants={descendants}
+          publishing={publishing}
+          error={publishError}
+          onPublish={(input) => void onPublish(input)}
+        />
+      </ComposerModal>
       <CommunityFeedList
         state={feed}
         canComment={canComment}

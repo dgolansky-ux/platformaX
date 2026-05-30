@@ -20,7 +20,7 @@ import { friendFeedMockAdapter } from "./mock-adapter";
 import { FriendFeedPostCard } from "./FriendFeedPostCard";
 import { FriendFeedWorkplaceTeaserCard } from "./FriendFeedWorkplaceTeaserCard";
 import type { FriendFeedWorkplaceTeaserPageUi } from "./types";
-import { FriendFeedComposer } from "../publishing";
+import { ComposerModal, ComposerTrigger, FriendFeedComposer } from "../publishing";
 import { createFriendFeedPublishingAdapter } from "./publishing-adapter";
 import styles from "./FriendFeed.module.css";
 
@@ -44,6 +44,7 @@ const DEFAULT_COMPOSER_STATE: FriendFeedComposerStateUi = {
 
 export function FriendFeedPage({ viewerUserId }: Props) {
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [composerOpen, setComposerOpen] = useState(false);
   const publishingAdapter = useMemo(() => createFriendFeedPublishingAdapter(), []);
   const composerState = state.status === "ready" ? state.composerState : DEFAULT_COMPOSER_STATE;
   const friendFeedTarget = useMemo(() => ({
@@ -107,13 +108,29 @@ export function FriendFeedPage({ viewerUserId }: Props) {
         <p className={styles.headerSubtitle}>Widzisz wpisy swoje i swoich znajomych — bez globalnego feedu, bez rankingu.</p>
       </header>
 
-      <FriendFeedComposer
-        viewerUserId={viewerUserId}
-        adapter={publishingAdapter}
-        availableTargets={[friendFeedTarget]}
-        friendFeedTarget={friendFeedTarget}
-        onPublished={() => void load()}
+      <ComposerTrigger
+        avatarInitial="D"
+        placeholder="Co chcesz udostępnić znajomym?"
+        onOpen={() => setComposerOpen(true)}
+        disabled={state.composerState.disabledReason === "no_friends"}
       />
+      <ComposerModal
+        open={composerOpen}
+        title="Wpis do feedu znajomych"
+        subtitle="Publikacja widoczna zgodnie z wybraną widocznością."
+        onClose={() => setComposerOpen(false)}
+      >
+        <FriendFeedComposer
+          viewerUserId={viewerUserId}
+          adapter={publishingAdapter}
+          availableTargets={[friendFeedTarget]}
+          friendFeedTarget={friendFeedTarget}
+          onPublished={() => {
+            setComposerOpen(false);
+            void load();
+          }}
+        />
+      </ComposerModal>
       {state.composerState.disabledReason === "no_friends" ? (
         <p className={styles.composerStatus}>Dodaj znajomych, aby Twoje wpisy ich osiągnęły.</p>
       ) : null}

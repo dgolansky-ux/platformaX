@@ -39,10 +39,16 @@ describe("CommunityFeedsShell — MOCK_LOCAL_ONLY feeds screen", () => {
     expect(screen.queryByRole("tab", { name: /Kadra/ })).not.toBeInTheDocument();
   });
 
+  async function openCommunityComposer() {
+    const trigger = await screen.findByRole("button", { name: /Co chcesz pokazać społeczności/ });
+    fireEvent.click(trigger);
+  }
+
   test("composer publishes a real post to the main feed (no fake save)", async () => {
     renderFeeds("product-builders");
     await screen.findByRole("tab", { name: /Główny/ });
-    const textarea = await screen.findByPlaceholderText("Co chcesz pokazać społeczności?");
+    await openCommunityComposer();
+    const textarea = await screen.findByRole("textbox");
     fireEvent.change(textarea, { target: { value: "Nowy post testowy" } });
     fireEvent.click(screen.getByRole("button", { name: /Opublikuj/ }));
     await waitFor(() => expect(screen.getByText("Nowy post testowy")).toBeInTheDocument());
@@ -51,7 +57,8 @@ describe("CommunityFeedsShell — MOCK_LOCAL_ONLY feeds screen", () => {
   test("scope selector is shown for staff and reveals the descendant picker", async () => {
     renderFeeds("product-builders");
     await screen.findByRole("tab", { name: /Główny/ });
-    expect(screen.getByText("Zasięg publikacji")).toBeInTheDocument();
+    await openCommunityComposer();
+    expect(await screen.findByText("Zasięg publikacji")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Wybrane podspołeczności" }));
     await waitFor(() => expect(screen.getByText("Frontend Guild")).toBeInTheDocument());
     expect(screen.getByText("Backend Guild")).toBeInTheDocument();
@@ -62,6 +69,7 @@ describe("CommunityFeedsShell — MOCK_LOCAL_ONLY feeds screen", () => {
     renderFeeds("product-builders");
     const relTab = await screen.findByRole("tab", { name: /Relacyjny/ });
     fireEvent.click(relTab);
+    await openCommunityComposer();
     await waitFor(() => expect(screen.getByText(/Limit miesięczny: 0\/3/)).toBeInTheDocument());
   });
 
@@ -79,6 +87,7 @@ describe("CommunityFeedsShell — MOCK_LOCAL_ONLY feeds screen", () => {
     await communityFeedsMockAdapter.updateFeedSettings({ communitySlug: "product-builders", relationalEnabled: true });
     renderFeeds("product-builders");
     fireEvent.click(await screen.findByRole("tab", { name: /Relacyjny/ }));
+    await openCommunityComposer();
     await waitFor(() => expect(screen.getByText(/Limit miesięczny/)).toBeInTheDocument());
     expect(screen.queryByText("Zasięg publikacji")).not.toBeInTheDocument();
   });

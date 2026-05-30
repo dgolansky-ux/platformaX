@@ -19,22 +19,38 @@ describe("FriendFeedPage", () => {
     friendFeedMockAdapter.__resetForTests();
   });
 
-  test("renders heading + composer + fixture posts", async () => {
+  async function openComposer() {
+    const trigger = await screen.findByRole("button", { name: /Co chcesz udostępnić znajomym/ });
+    fireEvent.click(trigger);
+  }
+
+  test("renders heading + composer trigger + fixture posts", async () => {
     renderPage("u-viewer");
     expect(await screen.findByRole("heading", { name: /Feed znajomych/ })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Co u Ciebie?")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Co chcesz udostępnić znajomym/ })).toBeInTheDocument();
     expect(await screen.findByText(/Pierwszy wpis Ady/)).toBeInTheDocument();
     expect(screen.getByText(/Kuba wstał wcześnie/)).toBeInTheDocument();
   });
 
+  test("composer trigger opens modal with textarea", async () => {
+    renderPage("u-viewer");
+    await screen.findByText(/Pierwszy wpis Ady/);
+    await openComposer();
+    expect(await screen.findByPlaceholderText("Co u Ciebie?")).toBeInTheDocument();
+  });
+
   test("publish CTA disabled when textarea empty", async () => {
     renderPage("u-viewer");
+    await screen.findByText(/Pierwszy wpis Ady/);
+    await openComposer();
     const btn = await screen.findByRole("button", { name: /Opublikuj/ });
     expect(btn).toBeDisabled();
   });
 
   test("publishing a new post adds it to the list", async () => {
     renderPage("u-viewer");
+    await screen.findByText(/Pierwszy wpis Ady/);
+    await openComposer();
     const textarea = await screen.findByPlaceholderText("Co u Ciebie?");
     fireEvent.change(textarea, { target: { value: "Świeży wpis testowy" } });
     const btn = screen.getByRole("button", { name: /Opublikuj/ });
