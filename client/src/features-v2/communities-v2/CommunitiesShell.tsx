@@ -1,13 +1,12 @@
 /**
  * features-v2/communities-v2 / CommunitiesShell — UI_SHELL_ONLY + MOCK_LOCAL_ONLY.
  *
- * Clean-room re-implementation odpowiednika legacy Communities.tsx — pełen
- * layout listy społeczności:
+ * Clean-room re-implementation of the legacy Communities screen — Slice 20B-FIX
+ * top-tier redesign. Premium hero (no dev copy), persistent search bar,
+ * scannable "Moje społeczności" grid, horizontal "Polecane" carousel and a
+ * proper category grid for discovery.
  *
- *   header (H1 + CTA Utwórz) → search panel → search results (gdy aktywny) →
- *   moje społeczności → polecane dla Ciebie → siatka kategorii.
- *
- * Wszystkie dane przez MOCK_LOCAL_ONLY adapter; żadnego @server/* importu.
+ * All data through MOCK_LOCAL_ONLY adapter; no `@server/*` imports.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -72,21 +71,23 @@ export function CommunitiesShell() {
   return (
     <section className={styles.root} aria-labelledby="communities-heading">
       <header className={styles.hero}>
-        <div>
-          <p className={styles.brand}>Społeczności</p>
+        <div className={styles.heroContent}>
+          <p className={styles.brand}>Odkrywaj</p>
           <h1 id="communities-heading" className={styles.title}>Społeczności</h1>
-          <p className={styles.modeNote}>
-            Znajdź społeczności, dołącz do nich albo utwórz własną. Dane MOCK_LOCAL_ONLY —
-            flow tworzenia, dołączania i zarządzania jest realny w obrębie sesji.
+          <p className={styles.subtitle}>
+            Dołącz do społeczności, w których ludzie rozwijają to, co Cię interesuje — albo zbuduj własną.
           </p>
         </div>
-        <button
-          type="button"
-          className={styles.primaryButton}
-          onClick={() => navigate("/communities/new")}
-        >
-          ＋ Utwórz społeczność
-        </button>
+        <div className={styles.heroActions}>
+          <button
+            type="button"
+            className={styles.primaryButton}
+            onClick={() => navigate("/communities/new")}
+          >
+            <span className={styles.primaryButtonPlus} aria-hidden="true">＋</span>
+            Utwórz społeczność
+          </button>
+        </div>
       </header>
 
       {state.status === "loading" ? (
@@ -152,7 +153,7 @@ function SearchResults({ results }: { results: readonly CommunityCardDTO[] }) {
     return (
       <div className={sections.searchEmpty}>
         <span className={sections.searchEmptyIcon} aria-hidden="true">🔍</span>
-        <p>Brak wyników</p>
+        <p>Brak wyników. Spróbuj innej frazy albo wyczyść filtry.</p>
       </div>
     );
   }

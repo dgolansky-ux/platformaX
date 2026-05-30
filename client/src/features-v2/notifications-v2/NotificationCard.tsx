@@ -26,6 +26,15 @@ const CATEGORY_ICON: Record<NotificationCategoryUi, string> = {
   system: "ℹ️",
 };
 
+const CATEGORY_ICON_CLASS: Record<NotificationCategoryUi, string> = {
+  friend_feed: styles.cardIconFriendFeed,
+  communities: styles.cardIconCommunities,
+  channels: styles.cardIconChannels,
+  professional: styles.cardIconProfessional,
+  modules: styles.cardIconModules,
+  system: styles.cardIconSystem,
+};
+
 function formatRelativeTime(iso: string): string {
   const now = Date.now();
   const then = Date.parse(iso);
@@ -44,10 +53,11 @@ export function NotificationCard({ notification, onOpen, onMarkRead, onArchive }
   const unread = notification.status === "unread";
   const categoryLabel = CATEGORY_LABEL[notification.category];
   const icon = CATEGORY_ICON[notification.category];
+  const iconClass = CATEGORY_ICON_CLASS[notification.category];
 
   return (
     <li className={`${styles.card} ${unread ? styles.cardUnread : ""}`} data-testid="notification-card">
-      <span className={styles.cardIcon} aria-hidden="true">{icon}</span>
+      <span className={`${styles.cardIcon} ${iconClass}`} aria-hidden="true">{icon}</span>
       <div className={styles.cardMain}>
         <div className={styles.cardTitleRow}>
           <button
@@ -66,7 +76,7 @@ export function NotificationCard({ notification, onOpen, onMarkRead, onArchive }
             {unread ? (
               <button
                 type="button"
-                className={styles.cardActionBtn}
+                className={`${styles.cardActionBtn} ${styles.cardActionBtnPrimary}`}
                 onClick={() => onMarkRead(notification)}
                 aria-label="Oznacz jako przeczytane"
               >

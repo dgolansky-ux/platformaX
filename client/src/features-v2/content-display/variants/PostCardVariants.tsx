@@ -13,6 +13,7 @@ import {
   PostDisplayRoot,
   PostMediaGrid,
   PostMeta,
+  PostStatsRow,
 } from "../PostDisplayKit";
 import { PostActionBar, PostRouteLink } from "../PostActionBar";
 import type { PostDisplayViewModel } from "../types";
@@ -32,6 +33,7 @@ interface Props {
 }
 
 function StandardCard({ vm, variantClassName, ariaLabel, onReact, onComment, onShare, moreMenuSlot }: Props & { variantClassName: string; ariaLabel: string }) {
+  const summary = vm.interactionSummary;
   return (
     <PostDisplayRoot variantClassName={variantClassName} ariaLabel={ariaLabel}>
       <PostDisplayHeader
@@ -44,16 +46,19 @@ function StandardCard({ vm, variantClassName, ariaLabel, onReact, onComment, onS
       <PostBody title={vm.title} text={vm.bodyFull ?? vm.bodyPreview} />
       <PostMediaGrid mediaRefs={vm.mediaRefs} />
       <PostMeta createdAt={vm.createdAt} updatedAt={vm.updatedAt} />
+      {summary ? (
+        <PostStatsRow likeCount={summary.likeCount} commentCount={summary.commentCount} />
+      ) : null}
       <PostActionBar
         config={vm.actions}
-        interaction={vm.interactionSummary}
+        interaction={summary}
         routeTarget={vm.routeTarget}
         onReact={onReact}
         onComment={onComment}
         onShare={onShare}
       />
       {moreMenuSlot ? (
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "6px" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "0 16px 10px" }}>
           {moreMenuSlot}
         </div>
       ) : null}

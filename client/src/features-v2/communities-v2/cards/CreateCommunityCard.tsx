@@ -1,6 +1,9 @@
 /**
- * features-v2/communities-v2/cards / CreateCommunityCard — empty-state CTA tile
- * that opens the wizard. Pure presentational; navigation is owned by the parent.
+ * features-v2/communities-v2/cards / CreateCommunityCard — Slice 20B-FIX.
+ *
+ * Empty-state CTA tile that opens the wizard. Premium "+" disc with brand
+ * gradient + soft dashed wrapper. Pure presentational; routing is owned by
+ * the parent. Used in MyCommunitiesSection when the user has no membership.
  */
 import { Link } from "react-router-dom";
 import styles from "./Cards.module.css";

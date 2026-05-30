@@ -1,162 +1,252 @@
 /*
  * features-v2/content-display — Post Display Kit styles.
  *
- * Slice 20B-21 v2 refresh: aggressive Facebook-feel upgrade. Larger radius,
- * stronger shadow + hover lift, bold gradient avatars, larger fonts, more
- * breathing room, bigger action buttons with active feedback.
+ * QUALITY_STRUCTURE_EXCEPTION (EXC-014) + ALLOW_FILE_SIZE_EXCEPTION: single
+ * canonical Post Display Kit stylesheet co-locates card layout, header /
+ * body / stats / action-bar / media / variants / states for every post
+ * variant (FriendFeedPostCard, CommunityFeedPostCard, RelationalFeedPostCard,
+ * StaffFeedPostCard, ChannelPostCard, WorkplacePostCard, ImportantEventCard,
+ * ProfilePresentationCard, WorkplaceTeaserCard, CompactPostPreviewCard). CSS
+ * modules cannot import each other so splitting per-variant would either
+ * duplicate the palette or break cascade. See EXCEPTIONS_REGISTER.md.
+ *
+ * Slice 20B-FIX v2: Facebook-style post layout.
+ *   compact header (40px avatar · name bold · meta secondary)
+ *   → body (15px, breathable)
+ *   → full-bleed media grid (escapes card padding)
+ *   → optional stats row (X reakcji · Y komentarzy · Z udostępnień)
+ *   → equal-width action bar (Lubię to · Komentarz · Udostępnij)
+ *   → optional comments thread
  */
 
 .card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 22px 24px;
-  border: 1px solid #e6ecf5;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 10px 30px rgba(15, 23, 42, 0.06);
-  transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
+  padding: 0;
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--radius-xl);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+  transition: box-shadow 200ms var(--ease-soft), border-color 200ms var(--ease-soft);
 }
 
 .card:hover {
-  border-color: #dbeafe;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 18px 40px rgba(15, 23, 42, 0.10);
-  transform: translateY(-1px);
+  border-color: var(--c-border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Padded sections inside the card */
+.cardHeader,
+.cardBody,
+.actionBar,
+.metaRow,
+.statsRow,
+.badgeRow {
+  padding-inline: 16px;
 }
 
 .cardHeader {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  padding-top: 14px;
+  padding-bottom: 10px;
 }
 
 .avatar {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e4fd8, #7c3aed);
+  background: var(--c-brand-gradient);
   color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: "Sora", "DM Sans", sans-serif;
-  font-size: 18px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(30, 79, 216, 0.25);
+  box-shadow: 0 2px 6px rgba(79, 95, 231, 0.24);
+  letter-spacing: -0.01em;
 }
 
 .authorBlock {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
   flex: 1;
 }
 
 .authorName {
   margin: 0;
-  font-family: "Sora", "DM Sans", sans-serif;
-  font-size: 15.5px;
+  font-family: var(--font-sans);
+  font-size: 15px;
   font-weight: 600;
-  color: #0f172a;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
+  color: var(--c-text);
+  line-height: 1.25;
+  letter-spacing: -0.005em;
 }
 
 .authorMeta {
   margin: 0;
-  font-size: 13px;
-  color: #64748b;
-  line-height: 1.4;
+  font-size: 12.5px;
+  color: var(--c-text-soft);
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
 .title {
-  margin: 6px 0 0;
-  font-family: "Sora", "DM Sans", sans-serif;
-  font-size: 19px;
+  margin: 0 16px;
+  padding-top: 4px;
+  font-family: var(--font-display);
+  font-size: 17px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--c-text);
   line-height: 1.3;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 
+.cardBody { /* Wrapper for body+title section when needed by variants */ }
+
 .body {
-  margin: 0;
-  font-size: 15.5px;
-  line-height: 1.65;
-  color: #1f2937;
+  margin: 0 16px;
+  padding-bottom: 4px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--c-text);
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
 .bodyTeaser {
-  margin: 0;
+  margin: 0 16px;
+  padding-bottom: 4px;
   font-size: 14.5px;
-  line-height: 1.55;
-  color: #475569;
+  line-height: 1.5;
+  color: var(--c-text-soft);
   font-style: italic;
 }
 
+/* Meta row (timestamps) — small, secondary, only when surfaces want it */
 .metaRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 14px;
-  font-size: 12.5px;
-  color: #94a3b8;
+  gap: 4px 12px;
+  font-size: 12px;
+  color: var(--c-text-faint);
+  padding-top: 6px;
+  padding-bottom: 0;
 }
 
-.actionBar {
+/* Stats row — FB-style "X reakcji · Y komentarzy · Z udostępnień" */
+.statsRow {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding-top: 12px;
-  margin-top: 6px;
-  border-top: 1px solid #f1f5f9;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  padding-bottom: 8px;
+  font-size: 13px;
+  color: var(--c-text-soft);
 }
 
-.actionButton {
+.statsLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statsReactionBubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--c-brand);
+  color: #ffffff;
+  font-size: 11px;
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
+.statsRight {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Action bar — Facebook-style: equal-width buttons, top separator */
+.actionBar {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-top: 1px solid var(--c-border-faint);
+  margin-top: 4px;
+}
+
+.actionButton {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: none;
   background: transparent;
-  color: #475569;
+  color: var(--c-text-muted);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  padding: 10px 16px;
-  border-radius: 12px;
-  transition: background 180ms ease, color 180ms ease, transform 100ms ease;
+  padding: 10px 8px;
+  border-radius: 8px;
+  transition: background var(--dur-fast) var(--ease-soft), color var(--dur-fast) var(--ease-soft);
+  min-height: 40px;
 }
 
-.actionButton:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+.actionButton:hover:not(:disabled) {
+  background: var(--c-bg-soft);
+  color: var(--c-text);
 }
 
-.actionButton:active {
-  transform: scale(0.97);
+.actionButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .actionButton[aria-pressed="true"] {
-  color: #1e4fd8;
-  background: rgba(30, 79, 216, 0.10);
+  color: var(--c-brand);
+}
+
+.actionButtonIcon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.actionButtonLabel {
+  font-weight: 600;
 }
 
 .actionLink {
+  flex: 0 0 auto;
   margin-left: auto;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
-  color: #1e4fd8;
+  color: var(--c-brand);
   text-decoration: none;
-  padding: 10px 16px;
-  border-radius: 12px;
-  transition: background 180ms ease;
+  padding: 10px 14px;
+  border-radius: 8px;
+  align-self: center;
+  transition: background var(--dur-fast) var(--ease-soft);
 }
 
 .actionLink:hover {
-  background: rgba(30, 79, 216, 0.10);
+  background: var(--c-brand-soft);
   text-decoration: none;
 }
 
@@ -164,37 +254,47 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 11px;
-  border-radius: 9999px;
-  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  background: #eef2ff;
-  color: #3730a3;
-  margin-left: auto;
+  background: var(--c-bg-soft);
+  color: var(--c-text-muted);
 }
 
-.privacyPublic { background: #dcfce7; color: #166534; }
-.privacyPrivate { background: #fee2e2; color: #991b1b; }
-.privacyStaff { background: #fce7f3; color: #9d174d; }
-.privacyChannel { background: #cffafe; color: #0e7490; }
-.privacyWorkplace { background: #ccfbf1; color: #115e59; }
+.privacyPublic    { background: var(--c-success-soft); color: var(--c-success); }
+.privacyPrivate   { background: var(--c-danger-soft); color: var(--c-danger); }
+.privacyStaff     { background: #fce7f3; color: #9d174d; }
+.privacyChannel   { background: #e0f2fe; color: #0369a1; }
+.privacyWorkplace { background: #d4f4ed; color: #0f766e; }
 
+.headerRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Media — full-bleed (escapes card padding) */
 .mediaGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 4px;
+  gap: 2px;
+  margin-top: 8px;
+  background: var(--c-border-faint);
+}
+
+.mediaGrid:has(:nth-child(1):last-child) {
+  grid-template-columns: 1fr;
 }
 
 .mediaCell {
   aspect-ratio: 16/10;
-  background: linear-gradient(135deg, #e0e7ff, #fef3c7);
-  border-radius: 14px;
+  background: var(--c-brand-gradient-soft);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #475569;
+  color: var(--c-text-muted);
   font-size: 12px;
   overflow: hidden;
 }
@@ -203,36 +303,38 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .badge {
   font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
-  padding: 4px 11px;
-  border-radius: 9999px;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
 }
 
-.badgeNeutral { background: #f1f5f9; color: #475569; }
-.badgeInfo { background: #dbeafe; color: #1e40af; }
-.badgeWarning { background: #fef3c7; color: #92400e; }
-.badgeSuccess { background: #dcfce7; color: #166534; }
+.badgeNeutral { background: var(--c-bg-soft); color: var(--c-text-muted); }
+.badgeInfo    { background: var(--c-brand-soft); color: var(--c-brand); }
+.badgeWarning { background: var(--c-warning-soft); color: var(--c-warning); }
+.badgeSuccess { background: var(--c-success-soft); color: var(--c-success); }
 
 .skeleton {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 22px 24px;
-  border: 1px solid #e6ecf5;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--radius-xl);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-xs);
 }
 
 .skeletonRow {
   height: 12px;
-  background: linear-gradient(90deg, #e2e8f0, #f1f5f9, #e2e8f0);
+  background: linear-gradient(90deg, var(--c-bg-soft), var(--c-bg-subtle), var(--c-bg-soft));
   border-radius: 6px;
   background-size: 200% 100%;
   animation: skeletonShimmer 1.4s ease-in-out infinite;
@@ -243,72 +345,68 @@
 .skeletonBodyShort { height: 14px; width: 70%; }
 
 @keyframes skeletonShimmer {
-  0% { background-position: 200% 0; }
+  0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
 .emptyState, .errorState {
-  padding: 32px 24px;
-  border-radius: 20px;
+  padding: 36px 24px;
+  border-radius: var(--radius-xl);
   text-align: center;
-  border: 1px dashed #cbd5e1;
-  color: #475569;
-  background: #f8fafc;
-  font-size: 14.5px;
+  border: 1px dashed var(--c-border);
+  color: var(--c-text-soft);
+  background: var(--c-bg-subtle);
+  font-size: 14px;
 }
 
 .errorState {
-  background: #fff1f2;
-  border-color: #fecaca;
-  color: #991b1b;
+  background: var(--c-danger-soft);
+  border-color: transparent;
+  color: var(--c-danger);
 }
 
-/* Variant accents — left-border ribbon for category color hint. */
-.variantFriend { border-left: 4px solid #4f46e5; }
-.variantCommunity { border-left: 4px solid #f97316; }
-.variantStaff { border-left: 4px solid #db2777; }
-.variantRelational { border-left: 4px solid #ea580c; }
-.variantChannel { border-left: 4px solid #0ea5e9; }
-.variantWorkplace { border-left: 4px solid #0d9488; }
-
-.variantWorkplaceTeaser {
-  border-left: 4px solid #14b8a6;
-  background: linear-gradient(180deg, #f0fdfa, #ffffff 35%);
-}
+/* Variant accents — subtle left ribbon (no rainbow gradients). */
+.variantFriend       { border-left: 3px solid var(--c-brand); }
+.variantCommunity    { border-left: 3px solid #f97316; }
+.variantStaff        { border-left: 3px solid #db2777; }
+.variantRelational   { border-left: 3px solid #ea580c; }
+.variantChannel      { border-left: 3px solid #0369a1; }
+.variantWorkplace    { border-left: 3px solid var(--c-success); }
+.variantWorkplaceTeaser { border-left: 3px solid #14b8a6; background: linear-gradient(180deg, #f0fdfa, var(--c-surface) 35%); }
 
 .variantImportantEvent {
   border: 1px solid #fed7aa;
   background: linear-gradient(135deg, #fff7ed, #fffbeb);
-  border-radius: 22px;
   box-shadow: 0 1px 3px rgba(251, 146, 60, 0.10), 0 14px 36px rgba(251, 146, 60, 0.14);
 }
 
 .variantPresentation {
   border: 1px solid #ddd6fe;
-  background: linear-gradient(135deg, #f5f3ff, #ffffff);
-  border-radius: 22px;
-  box-shadow: 0 1px 3px rgba(167, 139, 250, 0.10), 0 14px 36px rgba(167, 139, 250, 0.14);
+  background: linear-gradient(135deg, var(--c-violet-soft), var(--c-surface));
+  box-shadow: 0 1px 3px rgba(124, 76, 224, 0.10), 0 14px 36px rgba(124, 76, 224, 0.14);
 }
 
-.variantCompact { padding: 16px 18px; }
+.variantCompact .cardHeader { padding-top: 12px; padding-bottom: 8px; }
+.variantCompact .body, .variantCompact .bodyTeaser { padding-bottom: 12px; }
 
 .eventDateBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 5px 13px;
-  border-radius: 9999px;
-  font-size: 12.5px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
   font-weight: 700;
   background: linear-gradient(135deg, #fb923c, #f97316);
   color: #ffffff;
   box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {
-  .card { padding: 18px 20px; border-radius: 18px; }
-  .skeleton { padding: 18px 20px; border-radius: 18px; }
-  .avatar { width: 44px; height: 44px; font-size: 16px; }
-  .body { font-size: 15px; }
-  .actionButton { padding: 10px 14px; font-size: 13.5px; }
+  .cardHeader { padding-top: 12px; padding-bottom: 8px; }
+  .avatar { width: 38px; height: 38px; font-size: 14px; }
+  .body { font-size: 14.5px; }
+  .actionButton { padding: 9px 6px; font-size: 13.5px; min-height: 38px; }
+  .actionButtonIcon { font-size: 16px; }
 }

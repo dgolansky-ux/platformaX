@@ -19,7 +19,7 @@ export function ProfileCivilCard({ isOwner }: { isOwner: boolean }) {
       type="button"
       className={styles.civilCard}
       disabled
-      title="Ustaw stan cywilny — wkrótce"
+      title="Ustaw stan cywilny — niedostępne"
     >
       <span className={styles.civilIcon} aria-hidden="true">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -41,7 +41,7 @@ export function ProfileStatusRow({ status, isOwner }: ProfileStatusBarProps) {
         <button
           type="button"
           className={styles.statusPill}
-          aria-label={isOwner ? "Edytuj status — wkrótce" : "Status użytkownika"}
+          aria-label={isOwner ? "Edytuj status — niedostępne" : "Status użytkownika"}
           title={isOwner ? STATUS_PILL_HINT : undefined}
           disabled
         >
@@ -76,7 +76,7 @@ export function ProfileStatusRow({ status, isOwner }: ProfileStatusBarProps) {
         <button
           type="button"
           className={`${styles.statusPill} ${styles.statusPillEmpty}`}
-          aria-label={isOwner ? "Ustaw status — wkrótce" : "Brak statusu"}
+          aria-label={isOwner ? "Ustaw status — niedostępne" : "Brak statusu"}
           title={isOwner ? STATUS_PILL_HINT : undefined}
           disabled
         >
@@ -88,7 +88,7 @@ export function ProfileStatusRow({ status, isOwner }: ProfileStatusBarProps) {
       <button
         type="button"
         className={styles.statusPhoto}
-        aria-label="Zdjęcie statusowe — wkrótce"
+        aria-label="Zdjęcie statusowe — niedostępne"
         title="Zdjęcie statusowe będzie dostępne po podłączeniu media"
         disabled
       >

@@ -140,9 +140,9 @@ export function WorkplacePage({ viewerUserId, ownerUserId, workplaceSlug }: Prop
         <section className={styles.section} aria-labelledby="workplace-owner-actions-title">
           <h2 id="workplace-owner-actions-title" className={styles.sectionTitle}>Akcje właściciela</h2>
           <div className={styles.ownerActions}>
-            <button type="button" className={styles.button} disabled>Edytuj (wkrótce)</button>
-            <button type="button" className={styles.button} disabled>Archiwizuj (wkrótce)</button>
-            <button type="button" className={styles.button} disabled>Zarządzaj widocznością (wkrótce)</button>
+            <button type="button" className={styles.button} disabled>Edytuj</button>
+            <button type="button" className={styles.button} disabled>Archiwizuj</button>
+            <button type="button" className={styles.button} disabled>Zarządzaj widocznością</button>
           </div>
         </section>
       ) : null}

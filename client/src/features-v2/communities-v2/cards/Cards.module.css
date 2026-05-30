@@ -1,62 +1,60 @@
+/* Communities cards — Slice 20B-FIX top-tier redesign.
+   Premium tiles for "Moje społeczności", "Polecane dla Ciebie", "Odkryj
+   kategorie" oraz CTA "Utwórz społeczność". Tokeny w globals.css. */
 .dotGreen {
   display: inline-block;
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+  background: var(--c-success);
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(17, 135, 91, 0.15);
 }
 
-/* ── My communities row ───────────────────────────────────────────── */
-.myRow {
+/* ── My communities tile (grid) ───────────────────────────────────── */
+.myCard {
   display: flex;
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: 14px 18px;
-  border: 1px solid #eef2f7;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 20px rgba(15, 23, 42, 0.04);
+  padding: 16px 18px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--radius-xl);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-xs);
   text-decoration: none;
   color: inherit;
   font-family: inherit;
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  transition: transform 200ms var(--ease-soft), box-shadow 200ms var(--ease-soft), border-color 200ms var(--ease-soft);
 }
 
-.myRow:hover {
+.myCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 14px 30px rgba(15, 23, 42, 0.10);
-  border-color: #dbeafe;
+  box-shadow: var(--shadow-md);
+  border-color: var(--c-border);
 }
 
 .myAvatarWrap {
   position: relative;
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
 }
 
-.orbitRing {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-}
-
 .myAvatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1e4fd8, #7c3aed);
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--c-brand-gradient);
   color: #ffffff;
-  font-weight: 800;
-  font-size: 1.05rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #1e4fd8;
+  letter-spacing: -0.02em;
+  box-shadow: 0 4px 12px rgba(79, 95, 231, 0.28);
 }
 
 .myBody {
@@ -71,196 +69,228 @@
 }
 
 .myTitle {
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: #0f172a;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--c-text);
   line-height: 1.3;
   letter-spacing: -0.01em;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-word;
 }
 
 .crown {
-  font-size: 0.85rem;
+  font-size: 14px;
+  filter: saturate(1.4);
 }
 
 .myMeta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-top: 4px;
-  color: #64748b;
-  font-size: 0.78rem;
+  color: var(--c-text-soft);
+  font-size: 12.5px;
+}
+
+.metaDivider {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--c-text-faint);
+  flex-shrink: 0;
 }
 
 .chevron {
-  color: #94a3b8;
-  font-size: 1.1rem;
+  color: var(--c-text-faint);
+  font-size: 18px;
+  line-height: 1;
   flex-shrink: 0;
+  transition: transform 200ms var(--ease-soft), color 200ms var(--ease-soft);
 }
 
-/* ── Recommended card ─────────────────────────────────────────────── */
+.myCard:hover .chevron {
+  color: var(--c-brand);
+  transform: translateX(2px);
+}
+
+/* ── Recommended card (carousel) ──────────────────────────────────── */
 .recommendedCard {
   flex-shrink: 0;
-  width: 160px;
-  border-radius: 18px;
-  border: 1px solid #eef2f7;
-  background: #ffffff;
+  width: 192px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--c-border-soft);
+  background: var(--c-surface);
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 18px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-xs);
   display: flex;
   flex-direction: column;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  transition: transform 220ms var(--ease-soft), box-shadow 220ms var(--ease-soft);
 }
 
 .recommendedCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 12px 28px rgba(15, 23, 42, 0.10);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
 }
 
 .recommendedHead {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 80px;
+  height: 100px;
   text-decoration: none;
-  font-size: 34px;
-  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  font-size: 38px;
+  background: var(--c-brand-gradient-soft);
+  position: relative;
+}
+
+.recommendedHead::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(255, 255, 255, 0.32) 100%);
+  pointer-events: none;
 }
 
 .recommendedEmoji {
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.16));
 }
 
 .recommendedBody {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 12px 14px 14px;
+  padding: 14px 16px 16px;
 }
 
 .recommendedName {
   margin: 0;
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--c-text);
   line-height: 1.3;
+  letter-spacing: -0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  letter-spacing: -0.01em;
 }
 
 .recommendedMeta {
   display: flex;
   align-items: center;
-  gap: 4px;
-  color: #64748b;
-  font-size: 0.72rem;
+  gap: 6px;
+  color: var(--c-text-soft);
+  font-size: 12px;
 }
 
 .recommendedJoin {
-  margin-top: 6px;
-  padding: 8px 10px;
-  border-radius: 999px;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border-radius: var(--radius-pill);
   border: 0;
-  background: linear-gradient(135deg, #1e4fd8, #2563eb);
+  background: var(--c-text);
   color: #ffffff;
-  font-size: 0.78rem;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: filter 150ms ease;
+  transition: background var(--dur-fast) var(--ease-soft);
 }
 
 .recommendedJoin:hover {
-  background: #1a44b8;
+  background: var(--c-brand);
 }
 
-/* ── Category chip ────────────────────────────────────────────────── */
-.categoryChip {
+/* ── Category tile ────────────────────────────────────────────────── */
+.categoryTile {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 76px;
-  height: 76px;
-  border: 2px solid #eef2f7;
-  border-radius: 16px;
-  background: #ffffff;
+  gap: 8px;
+  min-height: 100px;
+  padding: 14px 8px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--radius-lg);
+  background: var(--c-surface);
   cursor: pointer;
   font-family: inherit;
   color: inherit;
-  flex-shrink: 0;
-  transition: border-color 150ms ease, background 150ms ease, transform 100ms ease;
+  transition: border-color var(--dur-base) var(--ease-soft), background var(--dur-base) var(--ease-soft), transform 140ms var(--ease-soft), box-shadow var(--dur-base) var(--ease-soft);
 }
 
-.categoryChip:hover {
-  border-color: #1e4fd8;
-  background: #eef2ff;
-  transform: translateY(-1px);
+.categoryTile:hover {
+  border-color: var(--c-brand);
+  background: var(--c-brand-softer);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
-.categoryChip:focus-visible {
-  outline: 3px solid #c7d2fe;
-  outline-offset: 2px;
+.categoryTile:focus-visible {
+  outline: 3px solid var(--c-brand-soft);
+  outline-offset: 1px;
 }
 
-.categoryChipActive {
-  border-color: #1e4fd8;
-  background: #eef2ff;
+.categoryTileActive {
+  border-color: var(--c-brand);
+  background: var(--c-brand-soft);
+  color: var(--c-brand-deep);
 }
 
 .categoryEmoji {
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.08));
 }
 
 .categoryName {
-  font-size: 0.66rem;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   text-align: center;
-  padding-inline: 4px;
-  line-height: 1.15;
-  color: #334155;
+  padding-inline: 6px;
+  line-height: 1.2;
+  color: inherit;
+  letter-spacing: -0.005em;
 }
 
 /* ── Create community CTA card ────────────────────────────────────── */
 .createCard {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  border-radius: 18px;
-  border: 1.5px dashed #cbd5e1;
-  background: #f8fafc;
-  color: #1e293b;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: var(--radius-xl);
+  border: 1.5px dashed var(--c-border-strong);
+  background: var(--c-bg-subtle);
+  color: var(--c-text);
   text-decoration: none;
   font-family: inherit;
-  transition: border-color 150ms ease, background 150ms ease;
+  transition: border-color var(--dur-base) var(--ease-soft), background var(--dur-base) var(--ease-soft);
 }
 
 .createCard:hover {
-  border-color: #1e4fd8;
-  background: #eef2ff;
+  border-color: var(--c-brand);
+  background: var(--c-brand-softer);
 }
 
 .createCardIcon {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #1e4fd8;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  background: var(--c-brand);
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(79, 95, 231, 0.28);
 }
 
 .createCardBody {
@@ -271,13 +301,16 @@
 
 .createCardTitle {
   margin: 0;
-  font-weight: 800;
-  font-size: 0.95rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
 }
 
 .createCardHelp {
   margin: 0;
-  color: #64748b;
-  font-size: 0.82rem;
-  line-height: 1.4;
+  color: var(--c-text-soft);
+  font-size: 13px;
+  line-height: 1.45;
 }

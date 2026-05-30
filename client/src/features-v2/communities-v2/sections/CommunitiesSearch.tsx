@@ -1,7 +1,10 @@
 /**
- * features-v2/communities-v2/sections / CommunitiesSearch — collapsible search
- * panel mirroring the legacy CommunitiesSearchPanel structure. Debounce 350ms,
- * location-mode chips, category filter chip, clear button.
+ * features-v2/communities-v2/sections / CommunitiesSearch — Slice 20B-FIX.
+ *
+ * Premium persistent search bar + on-demand filter panel:
+ *   [🔍] [____________________________] [Filtry]
+ * Filter panel (mode + category chips) only mounts when the user expands.
+ * Debounce 350ms; chip toggles propagate immediately.
  */
 import { useEffect, useState } from "react";
 import type { CommunityCategoryDTO } from "@shared/contracts/communities";
@@ -42,7 +45,8 @@ export function CommunitiesSearch({ categories, onChange }: CommunitiesSearchPro
     onChange({ query: debounced, locationMode, categorySlug });
   }, [debounced, locationMode, categorySlug, onChange]);
 
-  const hasActive = query.length > 0 || locationMode !== null || categorySlug !== null;
+  const activeCount = (locationMode ? 1 : 0) + (categorySlug ? 1 : 0);
+  const hasActive = query.length > 0 || activeCount > 0;
 
   const clear = () => {
     setQuery("");
@@ -52,29 +56,30 @@ export function CommunitiesSearch({ categories, onChange }: CommunitiesSearchPro
 
   return (
     <section className={styles.searchPanel} aria-label="Wyszukiwarka społeczności">
-      <button
-        type="button"
-        className={styles.searchToggle}
-        onClick={() => setExpanded((v) => !v)}
-        aria-expanded={expanded}
-      >
-        <span aria-hidden="true">🔍</span>
-        <span>{hasActive ? "Wyszukiwanie aktywne" : "Wyszukaj społeczność"}</span>
-        <span className={styles.searchToggleChevron} aria-hidden="true">{expanded ? "▲" : "▼"}</span>
-      </button>
+      <div className={styles.searchBar}>
+        <span className={styles.searchBarIcon} aria-hidden="true">🔍</span>
+        <input
+          className={styles.searchInput}
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Szukaj społeczności, tematów, ludzi…"
+          maxLength={80}
+          aria-label="Wpisz frazę"
+        />
+        <button
+          type="button"
+          className={`${styles.searchToggle} ${expanded || activeCount > 0 ? styles.searchToggleActive : ""}`.trim()}
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          aria-controls="communities-search-filters"
+        >
+          Filtry{activeCount > 0 ? ` · ${activeCount}` : ""}
+        </button>
+      </div>
+
       {expanded ? (
-        <div className={styles.searchBody}>
-          <label className={styles.searchInputWrap}>
-            <span className="sr-only">Wpisz frazę</span>
-            <input
-              className={styles.searchInput}
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Wpisz nazwę albo temat społeczności"
-              maxLength={80}
-            />
-          </label>
+        <div id="communities-search-filters" className={styles.searchBody}>
           <div className={styles.searchRow}>
             <span className={styles.searchLabel}>Tryb działania</span>
             <div className={styles.chipGroup}>

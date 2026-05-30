@@ -118,8 +118,8 @@
 
 @media (min-width: 1024px) {
   .page {
-    background: #f3f4f6;
-    padding-left: 250px;
+    background: var(--c-bg-app, #f6f7fb);
+    padding-left: var(--shell-sidebar-width, 280px);
   }
 
   .shell {

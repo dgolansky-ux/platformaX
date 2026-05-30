@@ -61,7 +61,7 @@ describe("FriendFeedPage", () => {
   test("react toggles likeCount", async () => {
     renderPage("u-viewer");
     await screen.findByText(/Kuba wstał wcześnie/);
-    const likeButtons = screen.getAllByRole("button", { name: /👍/ });
+    const likeButtons = screen.getAllByRole("button", { name: /Lubię to|Lubisz to/ });
     const firstLike = likeButtons[0];
     const before = firstLike.textContent ?? "";
     fireEvent.click(firstLike);

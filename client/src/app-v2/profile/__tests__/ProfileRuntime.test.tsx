@@ -60,7 +60,7 @@ describe("ProfilePage — runtime wiring (step-33)", () => {
 
   test("edit affordance stays disabled until identity returns an owner profile", () => {
     renderProfile();
-    const edit = screen.getByRole("button", { name: /edytuj profil — wkrótce/i });
+    const edit = screen.getByRole("button", { name: /edytuj profil — niedostępne/i });
     expect((edit as HTMLButtonElement).disabled).toBe(true);
   });
 
@@ -94,7 +94,7 @@ describe("ProfilePage — runtime wiring (step-33)", () => {
   test("bio edit button is the only edit affordance in the topbar", () => {
     renderProfile();
     // anonymous state: edit is disabled-policy, not a hidden no-op.
-    const edit = screen.getByRole("button", { name: /edytuj profil — wkrótce/i });
+    const edit = screen.getByRole("button", { name: /edytuj profil — niedostępne/i });
     expect(edit.getAttribute("disabled")).not.toBeNull();
     fireEvent.click(edit);
     // disabled button never opens the bio sheet

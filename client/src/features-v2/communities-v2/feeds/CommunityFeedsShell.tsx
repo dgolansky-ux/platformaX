@@ -22,7 +22,7 @@ import { communityInteractionsMockAdapter } from "./community-interactions-mock-
 import { CommunityFeedTabs } from "./CommunityFeedTabs";
 import { CommunityFeedComposer, type ComposerSubmit } from "./CommunityFeedComposer";
 import { CommunityFeedList, type FeedListState } from "./CommunityFeedList";
-import { ComposerModal, ComposerTrigger } from "../../publishing";
+import { ComposerModal, ComposerTrigger, useComposerOpenEvent } from "../../publishing";
 import styles from "./Feeds.module.css";
 
 type TabsLoad =
@@ -91,6 +91,12 @@ export function CommunityFeedsShell({ slug }: { slug: string }) {
   }, [slug, loadFeed]);
 
   useEffect(() => { void loadTabs(); }, [loadTabs]);
+
+  const handleFabOpen = useCallback(() => {
+    setPublishError(null);
+    setComposerOpen(true);
+  }, []);
+  useComposerOpenEvent("community_feed", handleFabOpen);
 
   const onSelect = (feedType: CommunityFeedType) => {
     setActive(feedType); setPublishError(null); setFlash(null);

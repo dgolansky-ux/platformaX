@@ -20,7 +20,12 @@ import { friendFeedMockAdapter } from "./mock-adapter";
 import { FriendFeedPostCard } from "./FriendFeedPostCard";
 import { FriendFeedWorkplaceTeaserCard } from "./FriendFeedWorkplaceTeaserCard";
 import type { FriendFeedWorkplaceTeaserPageUi } from "./types";
-import { ComposerModal, ComposerTrigger, FriendFeedComposer } from "../publishing";
+import {
+  ComposerModal,
+  ComposerTrigger,
+  FriendFeedComposer,
+  useComposerOpenEvent,
+} from "../publishing";
 import { createFriendFeedPublishingAdapter } from "./publishing-adapter";
 import styles from "./FriendFeed.module.css";
 
@@ -89,6 +94,12 @@ export function FriendFeedPage({ viewerUserId }: Props) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const canOpenComposer = composerState.disabledReason !== "no_friends";
+  const handleFabOpen = useCallback(() => {
+    if (canOpenComposer) setComposerOpen(true);
+  }, [canOpenComposer]);
+  useComposerOpenEvent("friend_feed", handleFabOpen);
 
   if (state.status === "loading") {
     return <div className={styles.loading} aria-busy="true">Ładuję feed znajomych…</div>;

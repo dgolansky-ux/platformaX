@@ -163,7 +163,7 @@ describe("ProfilePage — personal profile mobile shell", () => {
     const mojaPraca = screen.getByRole("button", { name: /moja praca/i });
     expect((mojaPraca as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByText(/moduł w budowie/i)).toBeDefined();
-    expect(screen.getByText(/sekcja miejsce pracy będzie dostępna wkrótce/i)).toBeDefined();
+    expect(screen.getByText(/sekcja miejsce pracy jest w przygotowaniu/i)).toBeDefined();
   });
 
   test("floating navigation is mounted on /profile with profil as active", () => {

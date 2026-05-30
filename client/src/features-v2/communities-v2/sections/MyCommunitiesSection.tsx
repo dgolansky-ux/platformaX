@@ -22,9 +22,9 @@ export function MyCommunitiesSection({ communities }: MyCommunitiesSectionProps)
       </section>
     );
   }
-  const half = Math.ceil(communities.length / 2);
-  const visible = expanded ? communities : communities.slice(0, half);
-  const more = communities.length - half;
+  const COLLAPSED = 4;
+  const visible = expanded ? communities : communities.slice(0, COLLAPSED);
+  const more = Math.max(0, communities.length - COLLAPSED);
   return (
     <section className={sections.section} aria-label="Moje społeczności">
       <div className={sections.sectionHeader}>

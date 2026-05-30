@@ -1,0 +1,94 @@
+ M client/src/app-v2/AppRouter.tsx
+ M client/src/app-v2/channels/ChannelProfilePage.tsx
+ D client/src/app-v2/channels/ChannelsPage.module.css
+ M client/src/app-v2/channels/ChannelsPage.tsx
+ D client/src/app-v2/communities/CommunitiesPage.module.css
+ M client/src/app-v2/communities/CommunitiesPage.tsx
+ M client/src/app-v2/communities/CommunityChannelsPage.tsx
+ M client/src/app-v2/communities/CommunityFeedPage.tsx
+ M client/src/app-v2/communities/CommunityHubPage.tsx
+ M client/src/app-v2/communities/CommunityManagePage.tsx
+ M client/src/app-v2/communities/CommunityModulesManagePage.tsx
+ M client/src/app-v2/communities/CommunityProfilePage.tsx
+ M client/src/app-v2/communities/CommunityStructurePage.tsx
+ M client/src/app-v2/contacts/ContactRequestsPage.tsx
+ D client/src/app-v2/contacts/ContactsPage.module.css
+ M client/src/app-v2/contacts/ContactsPage.tsx
+ D client/src/app-v2/friend-feed/FriendFeedPageRoute.module.css
+ M client/src/app-v2/friend-feed/FriendFeedPageRoute.tsx
+ M client/src/app-v2/friends/FriendRequestsPage.tsx
+ M client/src/app-v2/friends/FriendsPage.tsx
+ M client/src/app-v2/manage/ManageDashboard.module.css
+ M client/src/app-v2/manage/ManageDashboard.tsx
+ D client/src/app-v2/manage/ManageLayout.module.css
+ M client/src/app-v2/manage/PersonalProfileManageRoute.tsx
+ M client/src/app-v2/manage/ProfessionalSectionRoute.tsx
+ M client/src/app-v2/manage/__tests__/ManageDashboard.test.tsx
+ M client/src/app-v2/navigation/DesktopSidebar.tsx
+ M client/src/app-v2/navigation/FloatingNav.tsx
+ M client/src/app-v2/navigation/__tests__/FloatingNav.test.tsx
+ M client/src/app-v2/navigation/desktop-sidebar.module.css
+ M client/src/app-v2/navigation/floating-nav.module.css
+ M client/src/app-v2/notifications/NotificationsPage.tsx
+ D client/src/app-v2/profile/PersonalProfileRoute.module.css
+ M client/src/app-v2/profile/PersonalProfileRoute.tsx
+ M client/src/app-v2/profile/__tests__/ProfilePage.test.tsx
+ M client/src/app-v2/profile/__tests__/ProfileRuntime.test.tsx
+ M client/src/app-v2/profile/sections/ProfilePersonalSections.tsx
+ M client/src/app-v2/profile/sections/ProfilePortalCards.tsx
+ M client/src/app-v2/profile/sections/ProfileProfessionalActivities.tsx
+ M client/src/app-v2/profile/sections/ProfileStatusBar.tsx
+ M client/src/app-v2/profile/sections/ProfileTopBar.tsx
+ M client/src/app-v2/profile/styles/profile-layout.module.css
+ M client/src/features-v2/channels/ChannelInteractions.module.css
+ M client/src/features-v2/channels/ChannelProfileShell.tsx
+ M client/src/features-v2/channels/Channels.module.css
+ M client/src/features-v2/communities-v2/CommunitiesShell.module.css
+ M client/src/features-v2/communities-v2/CommunitiesShell.tsx
+ M client/src/features-v2/communities-v2/__tests__/CommunitiesShell.test.tsx
+ M client/src/features-v2/communities-v2/cards/Cards.module.css
+ M client/src/features-v2/communities-v2/cards/CommunityCategoryCard.tsx
+ M client/src/features-v2/communities-v2/cards/CreateCommunityCard.tsx
+ M client/src/features-v2/communities-v2/cards/MyCommunityCard.tsx
+ M client/src/features-v2/communities-v2/cards/RecommendedCommunityCard.tsx
+ M client/src/features-v2/communities-v2/feeds/CommunityFeedsShell.tsx
+ M client/src/features-v2/communities-v2/feeds/Feeds.module.css
+ M client/src/features-v2/communities-v2/feeds/interactions/Interactions.module.css
+ M client/src/features-v2/communities-v2/sections/CommunitiesSearch.tsx
+ M client/src/features-v2/communities-v2/sections/MyCommunitiesSection.tsx
+ M client/src/features-v2/communities-v2/sections/Sections.module.css
+ M client/src/features-v2/content-display/ContentDisplay.module.css
+ M client/src/features-v2/content-display/PostActionBar.tsx
+ M client/src/features-v2/content-display/PostDisplayKit.tsx
+ M client/src/features-v2/content-display/variants/PostCardVariants.tsx
+ M client/src/features-v2/feature-registry.ts
+ M client/src/features-v2/friend-feed/FriendFeedPage.tsx
+ M client/src/features-v2/friend-feed/__tests__/FriendFeedPage.test.tsx
+ M client/src/features-v2/notifications-v2/NotificationCard.tsx
+ M client/src/features-v2/notifications-v2/NotificationsPage.module.css
+ M client/src/features-v2/professional-profile/WorkplacePage.tsx
+ M client/src/features-v2/publishing/ComposerTrigger.tsx
+ M client/src/features-v2/publishing/Publishing.module.css
+ M client/src/features-v2/publishing/public-api.ts
+ M client/src/main.tsx
+ M docs/governance/EXCEPTIONS_REGISTER.md
+ M scripts/check-feature-registry.mjs
+?? ZIPY/
+?? client/src/app-v2/manage/ManageSectionRoute.tsx
+?? client/src/app-v2/navigation/AppShell.tsx
+?? client/src/app-v2/navigation/app-shell.module.css
+?? client/src/app-v2/styles/
+?? client/src/features-v2/manage/
+?? client/src/features-v2/publishing/useComposerOpenEvent.ts
+?? docs/architecture/adr/ADR-016-manage-orchestrator-and-port-pattern.md
+?? docs/review/global-audit-v2/
+?? docs/review/manage-v2/
+?? docs/review/stabilization-v2/
+?? docs/review/ui-v2/UI_POLISH_SLICE_20B_FIX_TOP_TIER_REDESIGN_REPORT.md
+?? docs_temp_git_status.txt
+?? scripts/audit/
+?? scripts/create-slice-20c-zip.mjs
+?? server/application-v2/use-cases/manage/
+?? shared/contracts/manage-dashboard-base.ts
+?? shared/contracts/manage-dashboard-sections.ts
+?? shared/contracts/manage-dashboard.ts

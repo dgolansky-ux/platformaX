@@ -1,3 +1,4 @@
+// UI_ONLY: uses React Testing Library getAllByRole helpers; no runtime list APIs.
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, test } from "vitest";
@@ -43,17 +44,20 @@ describe("CommunitiesShell — Slice 1 legacy layout", () => {
   test("typing in search filters communities + shows empty state on no match", async () => {
     renderShell();
     await screen.findByRole("heading", { name: "Społeczności" });
-    fireEvent.click(screen.getByRole("button", { name: /Wyszukaj społeczność/ }));
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "zzzzzzzzz" } });
-    await waitFor(() => expect(screen.getByText("Brak wyników")).toBeInTheDocument(), { timeout: 1500 });
+    await waitFor(() => expect(screen.getByText(/Brak wyników/)).toBeInTheDocument(), { timeout: 1500 });
   });
 
   test("clicking a category chip activates it (filters search)", async () => {
     renderShell();
     await screen.findByRole("heading", { name: "Społeczności" });
-    const techChip = screen.getByRole("button", { name: /Technologia/, pressed: false });
-    fireEvent.click(techChip);
-    // Tylko społeczności z categorySlug=technologia ujawniają się; pozostałe nie.
+    // Category tiles in the "Odkryj społeczności" grid are pressable; the first
+    // press toggles the filter on, narrowing the result list to that category.
+    const techTile = screen
+      .getAllByRole("button", { pressed: false })
+      .find((b) => /Technologia/.test(b.textContent ?? ""));
+    expect(techTile).toBeDefined();
+    fireEvent.click(techTile!);
     await waitFor(() => expect(screen.getByText("Product Builders")).toBeInTheDocument());
   });
 

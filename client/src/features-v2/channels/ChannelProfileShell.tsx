@@ -4,7 +4,7 @@
  * Hero + owner community link + follow CTA + leads panel + real MOCK_LOCAL_ONLY
  * channel feed. Composer is visible only for leads with publish permission.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ChannelProfileDTO } from "@shared/contracts/channels";
 import { channelsMockAdapter } from "./channels-mock-adapter";
@@ -12,6 +12,7 @@ import { ChannelLeadsPanel } from "./ChannelLeadsPanel";
 import { ChannelPostComposer } from "./ChannelPostComposer";
 import { ChannelFeedList } from "./ChannelFeedList";
 import { ChannelInteractionSettingsPanel } from "./ChannelInteractionSettingsPanel";
+import { useComposerOpenEvent } from "../publishing";
 import styles from "./Channels.module.css";
 
 type Props = { slug: string };
@@ -28,6 +29,7 @@ function followLabel(channel: { viewerFollows: boolean }): string {
 export function ChannelProfileShell({ slug }: Props) {
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [busy, setBusy] = useState(false);
+  const composerRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(async () => {
     setState({ status: "loading" });
@@ -37,6 +39,15 @@ export function ChannelProfileShell({ slug }: Props) {
   }, [slug]);
 
   useEffect(() => { void load(); }, [load]);
+
+  const focusComposer = useCallback(() => {
+    const node = composerRef.current;
+    if (!node) return;
+    node.scrollIntoView({ behavior: "smooth", block: "start" });
+    const target = node.querySelector<HTMLElement>("textarea, input[type='text']");
+    target?.focus();
+  }, []);
+  useComposerOpenEvent("channel", focusComposer);
 
   async function toggleFollow() {
     if (state.status !== "ready") return;
@@ -98,12 +109,14 @@ export function ChannelProfileShell({ slug }: Props) {
         </div>
       </header>
 
-      <ChannelPostComposer
-        channelSlug={channel.slug}
-        channelName={channel.name}
-        canPublish={state.data.feed.canPublish}
-        onPublished={load}
-      />
+      <div ref={composerRef}>
+        <ChannelPostComposer
+          channelSlug={channel.slug}
+          channelName={channel.name}
+          canPublish={state.data.feed.canPublish}
+          onPublished={load}
+        />
+      </div>
 
       <ChannelFeedList
         channelSlug={channel.slug}

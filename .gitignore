@@ -11,3 +11,5 @@ coverage/
 audit-out/
 .wip-safety/
 claude-auto.cmd
+# Local audit ZIP outputs — never committed; copies live on Desktop/ZIPY/.
+ZIPY/

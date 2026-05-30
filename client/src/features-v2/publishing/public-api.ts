@@ -22,6 +22,12 @@ export { usePublishingTargets } from "./hooks/usePublishingTargets";
 export { usePublishingPreview } from "./hooks/usePublishingPreview";
 export { usePublishCommand } from "./hooks/usePublishCommand";
 
+export {
+  useComposerOpenEvent,
+  dispatchOpenComposer,
+  type ComposerSurface,
+} from "./useComposerOpenEvent";
+
 export { FriendFeedComposer } from "./composers/FriendFeedComposer";
 export {
   CommunityFeedComposer,

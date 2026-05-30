@@ -115,7 +115,7 @@ export function ProfilePortalCards() {
             className={styles.portalCard}
             disabled={!enabled}
             aria-disabled={enabled ? undefined : "true"}
-            title={enabled ? card.title : `${card.title} — wkrótce`}
+            title={enabled ? card.title : `${card.title} — niedostępne`}
             style={cssVars}
             onClick={enabled ? () => navigate(card.route!) : undefined}
           >

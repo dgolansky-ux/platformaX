@@ -145,3 +145,37 @@ export const PostBadgeRow = memo(function PostBadgeRow({ badges }: { badges: rea
     </div>
   );
 });
+
+interface StatsRowProps {
+  likeCount: number;
+  commentCount: number;
+  shareCount?: number;
+}
+
+export const PostStatsRow = memo(function PostStatsRow({ likeCount, commentCount, shareCount }: StatsRowProps) {
+  if (likeCount === 0 && commentCount === 0 && (shareCount ?? 0) === 0) return null;
+  const rightParts: string[] = [];
+  if (commentCount > 0) rightParts.push(`${commentCount} ${pluralPL(commentCount, "komentarz", "komentarze", "komentarzy")}`);
+  if (shareCount && shareCount > 0) rightParts.push(`${shareCount} ${pluralPL(shareCount, "udostępnienie", "udostępnienia", "udostępnień")}`);
+  return (
+    <div className={styles.statsRow}>
+      <span className={styles.statsLeft}>
+        {likeCount > 0 ? (
+          <>
+            <span className={styles.statsReactionBubble} aria-hidden="true">👍</span>
+            <span>{likeCount}</span>
+          </>
+        ) : null}
+      </span>
+      {rightParts.length > 0 ? <span className={styles.statsRight}>{rightParts.join(" · ")}</span> : null}
+    </div>
+  );
+});
+
+function pluralPL(n: number, one: string, few: string, many: string): string {
+  if (n === 1) return one;
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
+}

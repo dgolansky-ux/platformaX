@@ -1,6 +1,8 @@
 /**
- * features-v2/communities-v2/cards / CommunityCategoryCard — 76×76 chip from the
- * legacy „Odkryj społeczności" grid: emoji + name + selected state.
+ * features-v2/communities-v2/cards / CommunityCategoryCard — Slice 20B-FIX.
+ *
+ * Premium category tile (≥100px). Active state pulls brand color + tint;
+ * hover lifts and tints lightly. Used by the "Odkryj społeczności" grid.
  */
 import type { CommunityCategoryDTO } from "@shared/contracts/communities";
 import styles from "./Cards.module.css";
@@ -15,7 +17,7 @@ export function CommunityCategoryCard({ category, isActive, onSelect }: Communit
   return (
     <button
       type="button"
-      className={`${styles.categoryChip} ${isActive ? styles.categoryChipActive : ""}`}
+      className={`${styles.categoryTile} ${isActive ? styles.categoryTileActive : ""}`}
       onClick={() => onSelect(category.slug)}
       aria-pressed={isActive}
     >

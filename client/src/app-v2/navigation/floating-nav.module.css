@@ -1,35 +1,40 @@
-/* Floating navigation — V2 app-shell UI, visual parity with legacy BottomNav.
-   Glassmorphism floating pill, central Home+Profil island, scroll hide/show,
-   bounce entry, prefers-reduced-motion respected. No legacy runtime. */
+/*
+ * Mobile bottom nav — Slice 22A.
+ *
+ * Native-feel bottom nav, hidden on >=1024px. Five tabs: Centrum, Feed, [+]
+ * compose, Powiadomienia, Profil. Touch target ≥48px. Scroll-hide. Glass
+ * surface with stronger contrast for legibility. The central FAB is
+ * route-aware (see FloatingNav.tsx) — no placeholder "Wkrótce" modal.
+ */
 
 .spacer {
-  height: 74px;
+  height: calc(var(--shell-bottom-nav) + env(safe-area-inset-bottom, 0px));
 }
 
 .nav {
   position: fixed;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 50;
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.04), 0 8px 32px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-top: 1px solid var(--c-border-soft);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   will-change: transform, opacity;
+  box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.06);
 }
 
 .inner {
   display: flex;
-  justify-content: space-around;
-  align-items: flex-end;
+  justify-content: space-between;
+  align-items: stretch;
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
   margin-inline: auto;
-  height: 58px;
+  height: var(--shell-bottom-nav);
+  padding: 6px 8px 4px;
 }
 
 .navBtn {
@@ -37,195 +42,132 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 3px;
   background: transparent;
   border: 0;
   cursor: pointer;
-  padding: 2px 0;
+  padding: 6px 4px;
+  border-radius: 12px;
   -webkit-tap-highlight-color: transparent;
+  transition: transform var(--dur-fast) var(--ease-soft);
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.navBtn:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .navBtn:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .navBtn:focus-visible {
-  outline: 2px solid #1e4fd8;
-  outline-offset: 2px;
-  border-radius: 12px;
+  outline: 2px solid var(--c-brand);
+  outline-offset: -2px;
 }
 
 .navIconWrap {
   position: relative;
-  border-radius: 10px;
-  padding: 3px 8px;
-  transition: transform 200ms ease, background 200ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  transition: background var(--dur-base) var(--ease-soft);
 }
 
 .navIconWrapActive {
-  background: rgba(30, 79, 216, 0.07);
-  padding: 3px 10px;
+  background: var(--c-brand-soft);
 }
 
 .navIcon {
-  font-size: 21px;
+  font-size: 19px;
   line-height: 1;
-  color: #a0aec0;
+  color: var(--c-text-faint);
   display: block;
+  transition: color var(--dur-fast) var(--ease-soft);
 }
 
 .navIconActive {
-  color: #1e4fd8;
-  transform: translateY(-2px);
+  color: var(--c-brand);
 }
 
 .navLabel {
-  font-size: 9px;
-  line-height: 1.2;
-  letter-spacing: 0.2px;
-  color: #a0aec0;
-  font-weight: 400;
+  font-size: 10.5px;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: var(--c-text-faint);
+  font-weight: 500;
 }
 
 .navLabelActive {
-  color: #1e4fd8;
-  font-weight: 600;
+  color: var(--c-brand);
+  font-weight: 700;
 }
 
 .badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: -3px;
+  right: -4px;
   min-width: 16px;
   height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 3px;
-  border-radius: 999px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 9px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--c-brand);
+  color: #ffffff;
+  font-size: 9.5px;
   font-weight: 700;
   line-height: 1;
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(79, 95, 231, 0.35);
 }
 
-/* ---- Central island: Home + Profil ---- */
-.island {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: none;
-  margin-top: -10px;
-  height: 44px;
-  padding: 0 12px;
-  border-radius: 22px;
-  background: linear-gradient(135deg, #1e4fd8, #3b6fe8);
-  box-shadow: 0 4px 20px rgba(30, 79, 216, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.islandBtn {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 16px;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    background 300ms ease;
-}
-
-.islandBtnActive {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.islandBtn:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 1px;
-}
-
-.islandIcon {
-  font-size: 18px;
-  line-height: 1;
-  color: #fff;
-  opacity: 0.75;
-}
-
-.islandIconActive {
-  opacity: 1;
-  transform: translateY(-2px);
-}
-
-.islandLabel {
-  font-size: 9px;
-  font-weight: 600;
-  color: #fff;
-  letter-spacing: 0.3px;
-  opacity: 0.75;
-}
-
-.islandLabelActive {
-  opacity: 1;
-}
-
-.islandSep {
-  width: 1px;
-  height: 24px;
-  border-radius: 1px;
-  background: rgba(255, 255, 255, 0.25);
-}
-
-/* ---- "Wkrótce" modal (search placeholder) ---- */
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: rgba(0, 0, 0, 0.45);
+/* ── Floating compose FAB (centre) ───────────────────────────────── */
+.fabSlot {
+  flex: 0 0 64px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: -22px;
 }
 
-.modalCard {
-  border-radius: 20px;
-  text-align: center;
-  background: #fff;
-  padding: 28px 24px;
-  max-width: 320px;
-  width: 90%;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
-}
-
-.modalTitle {
-  font-size: 17px;
-  font-weight: 700;
-  margin: 0 0 6px;
-  color: #1e293b;
-}
-
-.modalText {
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0 0 20px;
-  color: #64748b;
-}
-
-.modalButton {
+.fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
   border: 0;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  background: var(--c-brand-gradient);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  background: #1e4fd8;
-  color: #fff;
-  padding: 10px 28px;
+  box-shadow: 0 6px 18px rgba(79, 95, 231, 0.42), 0 2px 4px rgba(15, 23, 42, 0.1);
+  transition: transform var(--dur-fast) var(--ease-soft);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fab:active {
+  transform: scale(0.94);
+}
+
+.fabIcon {
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.fab:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
 }
 
 @media (min-width: 1024px) {
@@ -237,8 +179,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .nav,
-  .navIconWrap,
-  .islandBtn {
+  .navBtn,
+  .fab,
+  .navIconWrap {
     transition: none !important;
   }
 }

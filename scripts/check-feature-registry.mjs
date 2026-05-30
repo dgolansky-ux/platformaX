@@ -12,6 +12,8 @@ const KNOWN_FEATURES = [
   "shared-ui", "friend-feed", "professional-profile", "personal-profile",
   // Slice 17 — unified publishing system + post display kit.
   "publishing", "content-display",
+  // Slice 21 — central account management dashboard.
+  "manage",
 ];
 
 const SHARED_UI = "shared-ui";

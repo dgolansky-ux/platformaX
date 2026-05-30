@@ -1,6 +1,6 @@
 # Review Reports Index
 
-Last updated: 2026-05-26 (Step 29)
+Last updated: 2026-05-30 (Slice 22A)
 
 ## Allowed statuses
 
@@ -65,3 +65,8 @@ Last updated: 2026-05-26 (Step 29)
 | social-v2-slice-19-friends-consents | Slice 19: friendship + contact consent + blocking foundations (social/contact/profile/feed integration) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: social-v2/SOCIAL_SLICE_19_FRIENDS_CONTACT_CONSENTS_REPORT.md |
 | moderation-v2-slice-20-reports-foundation | Slice 20: moderation domain + report dialog + moderator queue + Post Display Kit integration | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: moderation-v2/MODERATION_SLICE_20_REPORTS_FOUNDATION_REPORT.md |
 | ui-v2-slice-20b-21-global-cards-and-composer | Slice 20B-21: top-tier sidebar + composer trigger/modal foundation + feed cards polish | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: ui-v2/UI_POLISH_SLICE_20B_21_GLOBAL_CARDS_AND_COMPOSER_REPORT.md |
+| ui-v2-slice-20b-fix-top-tier-redesign | Slice 20B-FIX: top-tier visual redesign (sidebar, nav, communities cards) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: ui-v2/UI_POLISH_SLICE_20B_FIX_TOP_TIER_REDESIGN_REPORT.md |
+| manage-v2-slice-21-account-privacy-settings-center | Slice 21: central manage dashboard (13 sections), privacy/contact/notifications editors, mock orchestrator | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: manage-v2/MANAGE_SLICE_21_ACCOUNT_PRIVACY_SETTINGS_CENTER_REPORT.md |
+| global-audit-v2-slice-20c | Slice 20C: pre-ZIP global audit (architecture, features, dead code, security, UI, gates) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: global-audit-v2/slice-20c/SLICE_20C_EXECUTIVE_SUMMARY.md |
+| stabilization-v2-slice-22a | Slice 22A: P1 stabilization (AppShell consolidation, route-aware FAB, status truth, code-splitting, dead-code prune) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: stabilization-v2/slice-22a/SLICE_22A_STABILIZATION_REPORT.md |
+| slice-22-audit-package | Slice 22 full-source audit ZIP package (git state, gate results, validation) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: slice-22-audit-package/SLICE_22_ZIP_GENERATION_REPORT.md |

@@ -1,7 +1,9 @@
 /**
- * features-v2/communities-v2/cards / RecommendedCommunityCard — horizontal-scroll
- * variant from legacy „Polecane dla Ciebie". Compact (140×~120), gradient top,
- * inline „Dołącz" CTA when viewer is not a member.
+ * features-v2/communities-v2/cards / RecommendedCommunityCard — Slice 20B-FIX.
+ *
+ * Premium carousel card for "Polecane dla Ciebie". Soft brand-tint header
+ * (no harsh rainbow gradients), category emoji as the cover icon, name +
+ * member count + optional "Dołącz" CTA.
  */
 import { Link } from "react-router-dom";
 import type { CommunityCardDTO } from "@shared/contracts/communities";
@@ -17,17 +19,22 @@ const FALLBACK_EMOJI = "🌍";
 
 export function RecommendedCommunityCard({ community, categoryEmoji, onJoin }: RecommendedCommunityCardProps) {
   const isMember = community.viewerRelation && community.viewerRelation !== "not_member" && community.viewerRelation !== "requested";
-  const gradient = GRADIENTS[(community.bannerGradientIdx ?? 0) % GRADIENTS.length];
+  const tint = TINTS[(community.bannerGradientIdx ?? 0) % TINTS.length];
   return (
     <article className={styles.recommendedCard}>
-      <Link to={`/communities/${community.slug}`} className={styles.recommendedHead} style={{ background: gradient }} aria-label={`Otwórz ${community.name}`}>
+      <Link
+        to={`/communities/${community.slug}`}
+        className={styles.recommendedHead}
+        style={{ background: tint }}
+        aria-label={`Otwórz ${community.name}`}
+      >
         <span className={styles.recommendedEmoji} aria-hidden="true">{categoryEmoji ?? FALLBACK_EMOJI}</span>
       </Link>
       <div className={styles.recommendedBody}>
         <p className={styles.recommendedName} title={community.name}>{community.name}</p>
         <div className={styles.recommendedMeta}>
           <span className={styles.dotGreen} aria-hidden="true" />
-          <span>{community.memberCount} czł.</span>
+          <span>{community.memberCount.toLocaleString("pl-PL")} czł.</span>
         </div>
         {!isMember && onJoin ? (
           <button
@@ -47,11 +54,11 @@ export function RecommendedCommunityCard({ community, categoryEmoji, onJoin }: R
   );
 }
 
-const GRADIENTS: readonly string[] = [
-  "linear-gradient(135deg, #1e4fd8 0%, #7c3aed 50%, #ec4899 100%)",
-  "linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #a855f7 100%)",
-  "linear-gradient(135deg, #14b8a6 0%, #3b82f6 50%, #8b5cf6 100%)",
-  "linear-gradient(135deg, #f59e0b 0%, #ef4444 50%, #ec4899 100%)",
-  "linear-gradient(135deg, #10b981 0%, #0ea5e9 50%, #6366f1 100%)",
-  "linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #f97316 100%)",
+const TINTS: readonly string[] = [
+  "linear-gradient(135deg, #eef0ff 0%, #f3edff 100%)",
+  "linear-gradient(135deg, #e6f7ee 0%, #eef0ff 100%)",
+  "linear-gradient(135deg, #fff3df 0%, #fde9eb 100%)",
+  "linear-gradient(135deg, #e0f2fe 0%, #f3edff 100%)",
+  "linear-gradient(135deg, #f3edff 0%, #ffe4f4 100%)",
+  "linear-gradient(135deg, #eaf7ff 0%, #e6f7ee 100%)",
 ];
