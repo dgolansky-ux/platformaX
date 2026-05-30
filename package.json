@@ -43,6 +43,7 @@
     "scaffold:domain": "node scripts/scaffold-domain.mjs",
     "scaffold:ui-shell": "node scripts/scaffold-ui-shell.mjs",
     "scaffold:route": "node scripts/scaffold-route.mjs",
+    "screenshots:v2": "playwright test --config=playwright.config.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -63,6 +64,7 @@
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
     "@eslint/js": "^9.27.0",
+    "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.1.0",

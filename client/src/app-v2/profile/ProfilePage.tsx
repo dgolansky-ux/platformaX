@@ -17,8 +17,7 @@ import { ProfileBioSheet } from "./sections/ProfileBioSheet";
 import { ProfileTopBar } from "./sections/ProfileTopBar";
 import { ProfileRuntimeBanner } from "./sections/ProfileRuntimeBanner";
 import type { MediaPurpose } from "../../features-v2/media";
-import { FloatingNav } from "../navigation/FloatingNav";
-import { DesktopSidebar } from "../navigation/DesktopSidebar";
+import { AppShell } from "../navigation/AppShell";
 import { useProfileData } from "./data/useProfileData";
 import layout from "./styles/profile-layout.module.css";
 import header from "./styles/profile-header.module.css";
@@ -104,22 +103,20 @@ export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {})
     : "user";
 
   return (
-    <div className={layout.page}>
-      <DesktopSidebar
-        active="profil"
-        displayName={sidebarName}
-        handle={sidebarHandle}
-        avatarInitial={profile.avatarInitial}
-        online
-      />
-      <div className={layout.shell}>
-        <ProfileTopBar
-          editEnabled={editEnabled}
-          onEditBio={() => setBioSheetOpen(true)}
-        />
-        <ProfileRuntimeBanner state={state} onReload={reload} />
+    <AppShell
+      active="profil"
+      displayName={sidebarName}
+      handle={sidebarHandle}
+      avatarInitial={profile.avatarInitial}
+    >
+      <div className={layout.profileTokens}>
+        <div className={layout.shell}>
+          <ProfileTopBar
+            editEnabled={editEnabled}
+            onEditBio={() => setBioSheetOpen(true)}
+          />
+          <ProfileRuntimeBanner state={state} onReload={reload} />
 
-        <main>
           <ProfileHeader
             profile={profile}
             mode={mode}
@@ -167,10 +164,8 @@ export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {})
               <ProfileProfessionalLayer isOwner={profile.isOwner} />
             </div>
           )}
-        </main>
+        </div>
       </div>
-
-      <FloatingNav active="profil" />
 
       {mediaTarget ? (
         <ProfileMediaSheet
@@ -191,6 +186,6 @@ export function ProfilePage({ profile: explicitProfile }: ProfilePageProps = {})
           }}
         />
       ) : null}
-    </div>
+    </AppShell>
   );
 }

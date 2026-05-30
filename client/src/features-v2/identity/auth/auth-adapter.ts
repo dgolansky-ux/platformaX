@@ -14,7 +14,7 @@ import type {
 const NOT_CONFIGURED: AuthError = {
   code: "NOT_CONFIGURED",
   message:
-    "Logowanie nie jest jeszcze skonfigurowane. Backend tożsamości zostanie podłączony wkrótce.",
+    "Logowanie nie jest jeszcze skonfigurowane. Backend tożsamości nie jest jeszcze dostępny.",
 };
 
 function mapUser(user: BackendUser | null): AuthUser | null {

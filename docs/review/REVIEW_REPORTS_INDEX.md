@@ -1,6 +1,6 @@
 # Review Reports Index
 
-Last updated: 2026-05-30 (Slice 22A)
+Last updated: 2026-05-30 (Slice 23)
 
 ## Allowed statuses
 
@@ -70,3 +70,5 @@ Last updated: 2026-05-30 (Slice 22A)
 | global-audit-v2-slice-20c | Slice 20C: pre-ZIP global audit (architecture, features, dead code, security, UI, gates) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: global-audit-v2/slice-20c/SLICE_20C_EXECUTIVE_SUMMARY.md |
 | stabilization-v2-slice-22a | Slice 22A: P1 stabilization (AppShell consolidation, route-aware FAB, status truth, code-splitting, dead-code prune) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: stabilization-v2/slice-22a/SLICE_22A_STABILIZATION_REPORT.md |
 | slice-22-audit-package | Slice 22 full-source audit ZIP package (git state, gate results, validation) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: slice-22-audit-package/SLICE_22_ZIP_GENERATION_REPORT.md |
+| foundation-v2-slice-23 | Slice 23: foundation hardening — ProfilePage → AppShell, screenshot tooling, status truth, knip cleanup, audit ZIP | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: foundation-v2/slice-23/SLICE_23_FOUNDATION_HARDENING_REPORT.md |
+| visual-v2-slice-23 | Slice 23 visual evidence — Playwright screenshots for 8 routes × desktop + mobile | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: visual-v2/slice-23/SLICE_23_VISUAL_SCREENSHOT_REPORT.md |

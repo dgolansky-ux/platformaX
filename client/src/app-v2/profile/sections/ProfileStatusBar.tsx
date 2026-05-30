@@ -104,15 +104,3 @@ export function ProfileStatusRow({ status, isOwner }: ProfileStatusBarProps) {
   );
 }
 
-/**
- * Combined status bar (civil card + status row). Kept for backward compat
- * with tests that import ProfileStatusBar.
- */
-export function ProfileStatusBar({ status, isOwner }: ProfileStatusBarProps) {
-  return (
-    <div className={styles.statusBar}>
-      <ProfileCivilCard isOwner={isOwner} />
-      <ProfileStatusRow status={status} isOwner={isOwner} />
-    </div>
-  );
-}

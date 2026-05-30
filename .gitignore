@@ -13,3 +13,7 @@ audit-out/
 claude-auto.cmd
 # Local audit ZIP outputs — never committed; copies live on Desktop/ZIPY/.
 ZIPY/
+# Playwright run cache — screenshots themselves are committed under
+# docs/review/visual-v2/, but the test-results/ scratch dir is not.
+test-results/
+playwright-report/
