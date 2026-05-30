@@ -1,0 +1,297 @@
+.root {
+  --c-surface: #ffffff;
+  --c-border-soft: #eef2f7;
+  --c-border: #e5e7eb;
+  --c-text: #111827;
+  --c-text-soft: #64748b;
+  --c-primary: #1e4fd8;
+  --c-primary-soft: #eef2ff;
+  --c-success: #047857;
+  --c-warning: #b45309;
+  --c-danger: #b91c1c;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 880px;
+  margin-inline: auto;
+  padding: 16px 18px 64px;
+  color: var(--c-text);
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.hero {
+  position: relative;
+  border: 1px solid var(--c-border-soft);
+  border-radius: 22px;
+  background: var(--c-surface);
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+}
+
+.heroBanner {
+  height: 160px;
+  background: linear-gradient(135deg, var(--c-primary), #5b9bff);
+  position: relative;
+}
+
+.heroAvatar {
+  position: absolute;
+  bottom: -36px;
+  left: 28px;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  font-size: 2rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid var(--c-surface);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+}
+
+.heroBody {
+  padding: 50px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.heroNameRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.heroName {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.4vw, 1.8rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.heroUsername {
+  color: var(--c-text-soft);
+  font-size: 0.92rem;
+}
+
+.heroBio {
+  margin: 0;
+  color: var(--c-text);
+  font-size: 0.95rem;
+}
+
+.heroMeta {
+  display: flex;
+  gap: 14px;
+  color: var(--c-text-soft);
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.editPill {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 0;
+  cursor: pointer;
+}
+
+.editPillRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.section {
+  border: 1px solid var(--c-border-soft);
+  border-radius: 18px;
+  background: var(--c-surface);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.sectionSubtitle {
+  margin: 0;
+  color: var(--c-text-soft);
+  font-size: 0.86rem;
+}
+
+.btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.btnPrimary {
+  background: var(--c-primary);
+  color: #ffffff;
+}
+
+.btnGhost {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  color: var(--c-text);
+}
+
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contactList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contactItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.contactField {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--c-text-soft);
+  text-transform: capitalize;
+}
+
+.contactValue {
+  font-size: 0.9rem;
+  color: var(--c-text);
+}
+
+.empty {
+  color: var(--c-text-soft);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.workplaceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.workplaceCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: 14px;
+  background: var(--c-surface);
+}
+
+.workplaceTitle {
+  margin: 0;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.workplaceHeadline {
+  margin: 0;
+  color: var(--c-text-soft);
+  font-size: 0.82rem;
+}
+
+.visibilityChip {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+  font-weight: 700;
+  font-size: 0.72rem;
+  margin-top: 4px;
+}
+
+.hubGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+.hubCard {
+  padding: 10px 12px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: 12px;
+  background: var(--c-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hubKey {
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+
+.hubStatus {
+  font-size: 0.76rem;
+  color: var(--c-text-soft);
+}
+
+.notFoundState,
+.restrictedState,
+.errorState {
+  padding: 32px;
+  border: 1px dashed var(--c-border);
+  border-radius: 16px;
+  background: var(--c-surface);
+  color: var(--c-text-soft);
+  text-align: center;
+}
+
+.loadingState {
+  padding: 24px;
+  color: var(--c-text-soft);
+  text-align: center;
+}

@@ -36,6 +36,7 @@ export const FEATURE_REGISTRY: FeatureEntry[] = [
   { name: "shared-ui", status: "SCAFFOLD_ONLY", hasDomainLogic: false },
   { name: "friend-feed", status: "UI_SHELL_ONLY", hasDomainLogic: false },
   { name: "professional-profile", status: "UI_SHELL_ONLY", hasDomainLogic: false },
+  { name: "personal-profile", status: "UI_SHELL_ONLY", hasDomainLogic: false },
 ];
 
 export const KNOWN_FEATURE_NAMES = FEATURE_REGISTRY.map((f) => f.name);

@@ -9,7 +9,7 @@ const KNOWN_FEATURES = [
   "channels", "chat", "events", "modules", "public-hub",
   "notifications", "notifications-v2",
   "media", "search", "moderation", "audit", "system",
-  "shared-ui", "friend-feed", "professional-profile",
+  "shared-ui", "friend-feed", "professional-profile", "personal-profile",
 ];
 
 const SHARED_UI = "shared-ui";

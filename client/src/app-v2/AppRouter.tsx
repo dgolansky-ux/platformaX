@@ -24,6 +24,7 @@ import { ProfessionalSectionRoute } from "./manage/ProfessionalSectionRoute";
 import { WorkplaceCreateRoute } from "./profile/workplaces/WorkplaceCreateRoute";
 import { WorkplacePageRoute } from "./profile/workplaces/WorkplacePageRoute";
 import { NotificationsPage } from "./notifications/NotificationsPage";
+import { PersonalProfileRoute } from "./profile/PersonalProfileRoute";
 
 export function AppRouter() {
   return (
@@ -36,6 +37,7 @@ export function AppRouter() {
         <Route path="/check-email" element={<CheckEmailRoute />} />
         <Route path="/onboarding" element={<OnboardingFlow />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/:username" element={<PersonalProfileRoute />} />
         <Route path="/contacts" element={<ContactsPage />} />
         <Route path="/communities" element={<CommunitiesPage />} />
         <Route path="/communities/new" element={<CreateCommunityPage />} />
