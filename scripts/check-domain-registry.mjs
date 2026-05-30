@@ -8,6 +8,7 @@ const KNOWN_DOMAINS = [
   "identity", "social", "communities-v2", "content-v2",
   "channels", "chat", "events", "modules", "public-hub",
   "notifications", "media", "search", "moderation", "audit", "system",
+  "topics-v2", "events-v2", "integrations-v2", "newsletter-chat-v2",
 ];
 
 const ALLOWED_STATUSES = [

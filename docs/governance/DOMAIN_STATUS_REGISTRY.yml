@@ -354,3 +354,84 @@ domains:
       Resolved: domain-registry.ts says SCAFFOLD_ONLY, domain-status.md said PLANNED.
       Scaffold files exist but no service/repository runtime. SCAFFOLD_ONLY correct.
       domain-status.md updated.
+
+  - name: topics-v2
+    type: OWNER_DOMAIN
+    status: PARTIAL
+    conflict: false
+    evidence:
+      - server/domains-v2/topics-v2/dto.ts
+      - server/domains-v2/topics-v2/contracts.ts
+      - server/domains-v2/topics-v2/policy.ts
+      - server/domains-v2/topics-v2/mapper.ts
+      - server/domains-v2/topics-v2/store.ts
+      - server/domains-v2/topics-v2/service.ts
+      - server/domains-v2/topics-v2/public-api.ts
+      - server/domains-v2/topics-v2/index.ts
+      - server/domains-v2/topics-v2/README.md
+      - server/domains-v2/topics-v2/__tests__/topics-service.test.ts
+    notes: >
+      Slice 10 — Tematy module foundation. In-memory store, ownership +
+      module-enablement resolver ports, public DTO with no createdByUserId.
+      No transport yet; DB persistence drafted in the slice report.
+
+  - name: events-v2
+    type: OWNER_DOMAIN
+    status: PARTIAL
+    conflict: false
+    evidence:
+      - server/domains-v2/events-v2/dto.ts
+      - server/domains-v2/events-v2/contracts.ts
+      - server/domains-v2/events-v2/policy.ts
+      - server/domains-v2/events-v2/mapper.ts
+      - server/domains-v2/events-v2/store.ts
+      - server/domains-v2/events-v2/service.ts
+      - server/domains-v2/events-v2/public-api.ts
+      - server/domains-v2/events-v2/index.ts
+      - server/domains-v2/events-v2/README.md
+      - server/domains-v2/events-v2/__tests__/events-service.test.ts
+    notes: >
+      Slice 10 — Wydarzenia module foundation. In-memory store. No ticketing,
+      no external scheduler sync, no RSVP runtime. Date/location validation
+      covered; public DTO with no createdByUserId.
+
+  - name: integrations-v2
+    type: OWNER_DOMAIN
+    status: PARTIAL
+    conflict: false
+    evidence:
+      - server/domains-v2/integrations-v2/dto.ts
+      - server/domains-v2/integrations-v2/contracts.ts
+      - server/domains-v2/integrations-v2/policy.ts
+      - server/domains-v2/integrations-v2/mapper.ts
+      - server/domains-v2/integrations-v2/store.ts
+      - server/domains-v2/integrations-v2/service.ts
+      - server/domains-v2/integrations-v2/public-api.ts
+      - server/domains-v2/integrations-v2/index.ts
+      - server/domains-v2/integrations-v2/README.md
+      - server/domains-v2/integrations-v2/__tests__/integrations-service.test.ts
+    notes: >
+      Slice 10 — Integracje module foundation. Safe-URL validation (rejects
+      javascript:/data:/file:/vbscript: schemes). No OAuth, no token storage,
+      no API sync. Public DTO carries no createdByUserId / no secrets.
+
+  - name: newsletter-chat-v2
+    type: OWNER_DOMAIN
+    status: PARTIAL
+    conflict: false
+    evidence:
+      - server/domains-v2/newsletter-chat-v2/dto.ts
+      - server/domains-v2/newsletter-chat-v2/contracts.ts
+      - server/domains-v2/newsletter-chat-v2/policy.ts
+      - server/domains-v2/newsletter-chat-v2/mapper.ts
+      - server/domains-v2/newsletter-chat-v2/store.ts
+      - server/domains-v2/newsletter-chat-v2/service.ts
+      - server/domains-v2/newsletter-chat-v2/service-helpers.ts
+      - server/domains-v2/newsletter-chat-v2/public-api.ts
+      - server/domains-v2/newsletter-chat-v2/index.ts
+      - server/domains-v2/newsletter-chat-v2/README.md
+      - server/domains-v2/newsletter-chat-v2/__tests__/newsletter-chat-service.test.ts
+    notes: >
+      Slice 10 — Newsletter chatowy foundation. Broadcast-only (owner/admin
+      publishes; subscribers receive only). NO_EMAIL_DELIVERY — delivery is
+      out of scope. Subscriber identities never public — counts only.
