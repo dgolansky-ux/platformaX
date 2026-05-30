@@ -1,8 +1,6 @@
 .page {
   min-height: 100vh;
   background: #f7f9fc;
-  display: grid;
-  grid-template-columns: 280px 1fr;
 }
 
 .content {
@@ -10,11 +8,14 @@
   padding: 24px;
 }
 
-@media (max-width: 900px) {
-  .page {
-    display: block;
+@media (min-width: 1024px) {
+  .content {
+    padding-left: 288px;
+    padding-right: 24px;
   }
+}
 
+@media (max-width: 900px) {
   .content {
     padding: 14px 12px 96px;
   }
