@@ -592,3 +592,109 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+
+  # Slice 25 — narrow P1 guards. Each fails closed on new code; existing
+  # pre-runtime files carry per-file PX-RULE-ACK markers logged under
+  # EXC-016.
+  - id: GUARD-063
+    command: node scripts/check-branded-id-types.mjs
+    file: scripts/check-branded-id-types.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ID-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+    coverage: NARROW
+
+  - id: GUARD-064
+    command: node scripts/check-domain-result-errors.mjs
+    file: scripts/check-domain-result-errors.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ERROR-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+    coverage: NARROW
+
+  - id: GUARD-065
+    command: node scripts/check-correlation-id-boundary.mjs
+    file: scripts/check-correlation-id-boundary.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-OBS-003]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+    coverage: NARROW
+
+  - id: GUARD-066
+    command: node scripts/check-presentational-container-boundary.mjs
+    file: scripts/check-presentational-container-boundary.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-UI-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+    coverage: NARROW
+    note: Scans components/ subfolders under features-v2 / app-v2. Current repo has no components/ subfolders so the guard is a forward-looking tripwire — activates as soon as a feature adopts the components/ pattern.
+
+  - id: GUARD-067
+    command: node scripts/check-deterministic-seeds.mjs
+    file: scripts/check-deterministic-seeds.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-SEED-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+    coverage: NARROW
+
+  - id: GUARD-068
+    command: node scripts/check-resource-context-refs.mjs
+    file: scripts/check-resource-context-refs.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CTX-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+    coverage: NARROW
+
+  - id: GUARD-069
+    command: node scripts/check-mock-adapter-status-truth.mjs
+    file: scripts/check-mock-adapter-status-truth.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-RUNTIME-001, PX-STATUS-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+    coverage: NARROW
+
+  - id: GUARD-070
+    command: node scripts/check-features-v2-internal-import.mjs
+    file: scripts/check-features-v2-internal-import.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-ARCH-003, PX-ARCH-004]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+    coverage: NARROW
+    parallel_status: PARALLEL_WITH_TOOLING
+    parallel_tools: [audit-domain-boundaries, dependency-cruiser]
+
+  - id: GUARD-071
+    command: node scripts/check-no-storage-as-backend.mjs
+    file: scripts/check-no-storage-as-backend.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-STORAGE-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+    coverage: NARROW
+
+  - id: GUARD-072
+    command: node scripts/check-public-hub-source-of-truth.mjs
+    file: scripts/check-public-hub-source-of-truth.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-HUB-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+    coverage: NARROW

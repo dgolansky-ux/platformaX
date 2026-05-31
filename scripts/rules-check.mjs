@@ -62,6 +62,17 @@ const GUARDS = [
   "check-read-model-owner.mjs",
   "check-backend-ownership-invariants.mjs",
   "check-media-attach-owner-purpose.mjs",
+  // Slice 25 — narrow P1 guards (fail-closed; ACK markers honored)
+  "check-branded-id-types.mjs",
+  "check-domain-result-errors.mjs",
+  "check-correlation-id-boundary.mjs",
+  "check-presentational-container-boundary.mjs",
+  "check-deterministic-seeds.mjs",
+  "check-resource-context-refs.mjs",
+  "check-mock-adapter-status-truth.mjs",
+  "check-features-v2-internal-import.mjs",
+  "check-no-storage-as-backend.mjs",
+  "check-public-hub-source-of-truth.mjs",
 ];
 
 let failed = 0;

@@ -1141,11 +1141,12 @@ rules:
     required_patterns:
       - "contextType contextOwnerId contextRefId visibility ownerUserId"
     enforced_by:
+      - scripts/check-resource-context-refs.mjs
       - manual_gate
     evidence_required: contracts/DTO fields + mapper tests
     status: active
     owner: architecture
-    notes: null
+    notes: Slice 25 shipped narrow token-presence guard on content-v2 contracts/dto files. 28 pre-runtime files ACKed under EXC-016. Semantic validation that contextOwnerId/contextRefId are present alongside contextType stays manual.
 
   - id: PX-MEDIA-004
     title: Media attach requires owner and purpose validation
@@ -1403,11 +1404,12 @@ rules:
     required_patterns:
       - "UserId PostId MediaAssetId CommunityId branded types at domain boundary"
     enforced_by:
+      - scripts/check-branded-id-types.mjs
       - manual_gate
     evidence_required: shared/types or domain contracts
     status: active
     owner: engineering
-    notes: check-branded-id-types.mjs TODO
+    notes: Slice 25 shipped narrow guard. Files declaring raw `<name>Id: string` on public-api.ts must either import branded-ids or carry a PX-ID-001-ACK marker.
 
   - id: PX-ERROR-001
     title: Domain boundaries return typed Result not raw thrown errors
@@ -1421,11 +1423,12 @@ rules:
     required_patterns:
       - "Result or DomainError at domain public boundary"
     enforced_by:
+      - scripts/check-domain-result-errors.mjs
       - manual_gate
     evidence_required: public-api return types + tests
     status: active
     owner: engineering
-    notes: null
+    notes: Slice 25 shipped narrow guard. server/domains-v2/media/service.ts ACKed under EXC-016.
 
   - id: PX-CURSOR-001
     title: Runtime list feed search uses opaque cursor not offset pagination
@@ -1541,11 +1544,12 @@ rules:
     required_patterns:
       - "container owns data presentational owns markup"
     enforced_by:
+      - scripts/check-presentational-container-boundary.mjs
       - manual_gate
     evidence_required: import review or lint rule future
     status: active
     owner: engineering
-    notes: check-presentational-container-boundary.mjs TODO
+    notes: Slice 25 shipped narrow guard. Scans components/ subfolders under features-v2 / app-v2. Forward-looking tripwire — current repo has no components/ subfolders.
 
   - id: PX-OBS-003
     title: Correlation ID flows through request use-case log error boundaries
@@ -1560,11 +1564,12 @@ rules:
     required_patterns:
       - "correlationId end to end"
     enforced_by:
+      - scripts/check-correlation-id-boundary.mjs
       - manual_gate
     evidence_required: middleware/use-case log fields
     status: active
     owner: engineering
-    notes: check-correlation-id-boundary.mjs TODO
+    notes: Slice 25 shipped narrow token-presence guard. 18 pre-runtime use-case service files ACKed under EXC-016. Semantic propagation check stays manual.
 
   - id: PX-TEST-001
     title: No placeholder or tautological assertions in tests
@@ -1602,9 +1607,53 @@ rules:
     required_patterns:
       - "stable IDs deterministic dates MOCK fixtures"
     enforced_by:
+      - scripts/check-deterministic-seeds.mjs
       - scripts/check-test-env-safety.mjs
       - manual_gate
     evidence_required: fixture builders + seed scripts review
     status: active
     owner: engineering
-    notes: check-deterministic-seeds.mjs TODO
+    notes: Slice 25 shipped narrow guard. Scans seed/fixture files for Math.random/Date.now/randomUUID; *.test.* files out of scope.
+
+  - id: PX-STORAGE-001
+    title: No localStorage or sessionStorage as fake backend
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [client]
+    forbidden_patterns:
+      - "localStorage.setItem for domain data outside UI prefs / consent / theme allow-list"
+      - "sessionStorage.setItem for domain data outside allow-list"
+    required_patterns:
+      - "feature-registry MOCK_LOCAL_ONLY adapter for in-memory state"
+      - "real transport adapter for runtime"
+    enforced_by:
+      - scripts/check-no-storage-as-backend.mjs
+    evidence_required: gate log + allow-list review
+    status: active
+    owner: architecture
+    notes: Slice 25 shipped narrow guard with UI-prefs/consent/theme/app-v2-system allow-list. New allow-listed paths must be registered in EXCEPTIONS_REGISTER.md.
+
+  - id: PX-HUB-001
+    title: Public Hub is composition-only and never owns source data
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+    applies_to: [server/domains-v2/public-hub]
+    forbidden_patterns:
+      - "public-hub imports another domain's repository"
+      - "public-hub imports db/ or adapters/ module"
+      - "public-hub imports @supabase/supabase-js"
+    required_patterns:
+      - "public-hub consumes resolver interfaces declared in its own contracts.ts"
+      - "owner-domain provides the resolver implementation"
+    enforced_by:
+      - scripts/check-public-hub-source-of-truth.mjs
+    evidence_required: gate log + public-hub service.ts review
+    status: active
+    owner: architecture
+    notes: Slice 25 shipped narrow guard. Public Hub is a COMPOSITION_DOMAIN by design.

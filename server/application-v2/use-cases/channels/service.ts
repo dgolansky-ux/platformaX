@@ -1,3 +1,7 @@
+// === Slice 25 PRE-runtime ACK markers (EXC-016) =====================
+// PX-OBS-003-ACK: pre-runtime use-case; request-context tracing wiring scheduled with RequestContext slice. EXC-016.
+// === end Slice 25 ACK markers =======================================
+
 /**
  * application-v2/use-cases/channels — orchestration (Slice 7 product slice).
  *

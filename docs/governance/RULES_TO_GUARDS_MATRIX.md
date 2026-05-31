@@ -63,7 +63,7 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-OWN-002 | viewerContext on public reads | BACKEND_ARCHITECTURE_INVARIANTS | check-viewer-context-on-public-reads, manual_gate | NO | Slice 24 shipped guard. Three public-only read files ACKed under EXC-016. |
 | PX-VIS-001 | Visibility matrix | BACKEND_ARCHITECTURE_INVARIANTS | check-visibility-matrix, check-policy-pure-functions, manual_gate | NO | Slice 24 shipped guard (predicate-name match). |
 | PX-DTO-002 | Public DTO zero PII extended | BACKEND_ARCHITECTURE_INVARIANTS | check-public-dto-pii, check-dto-privacy-classification | NO | Extends PX-SEC-001 |
-| PX-CTX-001 | Resource context refs | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
+| PX-CTX-001 | Resource context refs | BACKEND_ARCHITECTURE_INVARIANTS | check-resource-context-refs, manual_gate | PARTIAL | Slice 25 shipped narrow token-presence guard. 28 pre-runtime files ACKed under EXC-016. Semantic field-presence check stays manual. |
 | PX-MEDIA-004 | Media attach owner/purpose | BACKEND_ARCHITECTURE_INVARIANTS | check-media-attach-owner-purpose, check-media-base64, manual_gate | NO | Slice 24 shipped guard. identity/service.ts attach* ACKed under EXC-016. |
 | PX-LIST-004 | limit/cursor/stable order | BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns, check-scalability-hot-paths | NO | Extends PX-LIST-001 |
 | PX-DB-004 | No raw DB outside domain | BACKEND_ARCHITECTURE_INVARIANTS | audit-domain-boundaries, check-architecture-import-graph | NO | — |
@@ -75,16 +75,18 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-APP-001 | application-v2 use-cases | active-rules §10, ADR-010 | check-application-use-cases-boundary, manual_gate | NO | Slice 24 shipped guard. |
 | PX-READMODEL-001 | Single read-model owner | ADR-011 | check-read-model-owner, manual_gate | NO | Slice 24 shipped guard. |
 | PX-CONTRACT-001 | Public DTO contract tests | coding-standards | check-public-dto-contract-tests, check-public-dto-pii, manual_gate | NO | Slice 24 shipped guard. 4 scaffold domains ACKed under EXC-016. |
-| PX-ID-001 | Branded ID types | ADR-012 | manual_gate | YES | TODO_GUARD: check-branded-id-types |
-| PX-ERROR-001 | Result/DomainError boundary | ADR-012 | manual_gate | YES | MANUAL_GATE_REQUIRED |
+| PX-ID-001 | Branded ID types | ADR-012 | check-branded-id-types, manual_gate | PARTIAL | Slice 25 shipped narrow guard. Files declaring raw `<name>Id: string` on public-api.ts must import branded-ids or carry a PX-ID-001-ACK marker. |
+| PX-ERROR-001 | Result/DomainError boundary | ADR-012 | check-domain-result-errors, manual_gate | PARTIAL | Slice 25 shipped narrow guard. server/domains-v2/media/service.ts ACKed under EXC-016. |
 | PX-CURSOR-001 | Opaque cursor | ADR-013, BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns | PARTIAL | Offset ban manual on new endpoints |
 | PX-LIFECYCLE-001 | status + deletedAt | active-rules §10 | manual_gate | YES | Aligns PX-LC-001 |
 | PX-IDEMPOTENCY-001 | Idempotency table | ADR-015 | check-idempotency-flows, manual_gate | NO | Same guard as PX-IDEMP-001 (command-side). Table-side coverage stays manual until the idempotency table lands. |
 | PX-POLICY-001 | Pure policy functions | ADR-014 | check-policy-pure-functions, manual_gate | NO | Slice 24 shipped guard. |
 | PX-UI-001 | Design tokens | PROFILE_BLUEPRINT | manual_gate | YES | Visual review |
-| PX-UI-002 | Presentational/container | coding-standards | manual_gate | YES | TODO_GUARD: presentational boundary |
-| PX-OBS-003 | Correlation ID | active-rules §10 | manual_gate | YES | TODO_GUARD: check-correlation-id-boundary |
-| PX-SEED-001 | Deterministic PII-safe seeds | active-rules §10 | check-test-env-safety, manual_gate | PARTIAL | TODO_GUARD: check-deterministic-seeds |
+| PX-UI-002 | Presentational/container | coding-standards | check-presentational-container-boundary, manual_gate | PARTIAL | Slice 25 shipped narrow tripwire. Scans components/ subfolders; current repo has none so it currently triggers on no files — activates as soon as the pattern is adopted. |
+| PX-OBS-003 | Correlation ID | active-rules §10 | check-correlation-id-boundary, manual_gate | PARTIAL | Slice 25 shipped narrow token-presence guard. 18 pre-runtime use-case service files ACKed under EXC-016. Semantic propagation check stays manual. |
+| PX-SEED-001 | Deterministic PII-safe seeds | active-rules §10 | check-deterministic-seeds, check-test-env-safety, manual_gate | NO | Slice 25 shipped guard. Scans seed/fixture files for Math.random/Date.now/randomUUID. |
+| PX-STORAGE-001 | No localStorage as fake backend | active-rules §10, coding-standards | check-no-storage-as-backend | NO | Slice 25 shipped narrow guard with UI-prefs/consent/theme/app-v2-system allow-list. |
+| PX-HUB-001 | Public Hub never owns data | BACKEND_ARCHITECTURE_INVARIANTS | check-public-hub-source-of-truth | NO | Slice 25 shipped guard. Public Hub composes resolver interfaces; no repository / db / adapter / supabase imports. |
 | PX-TEST-001 | No placeholder/tautological tests | coding-standards | check-placeholder-tests | NO | — |
 
 ## Summary
@@ -93,11 +95,11 @@ Counts are derived directly from the table above and verified by
 `scripts/check-rules-to-guards-coverage.mjs` — if a row's `Gap?` column
 changes, this summary must be updated in the same commit.
 
-- **Total rules:** 74 (unchanged)
-- **Fully automated (Gap? = NO):** 59 (Slice 24: +12 — flipped 10 YES rows and 2 PARTIAL rows to NO)
-- **Manual gate only (Gap? = YES):** 12 (Slice 24: −10)
-- **Partial automation (Gap? = PARTIAL):** 3 (Slice 24: −2)
-- **Documented governance gaps (TODO_GUARD markers in last column):** 4
+- **Total rules:** 76 (Slice 25: +2 — PX-STORAGE-001, PX-HUB-001)
+- **Fully automated (Gap? = NO):** 62 (Slice 25: +3 — PX-SEED-001 flipped PARTIAL→NO + 2 new rules added with full guards)
+- **Manual gate only (Gap? = YES):** 7 (Slice 25: −5 — PX-ID-001, PX-ERROR-001, PX-UI-002, PX-OBS-003, PX-CTX-001 flipped YES→PARTIAL)
+- **Partial automation (Gap? = PARTIAL):** 7 (Slice 25: +4 net — the 5 P1 flips above − 1 PARTIAL→NO for PX-SEED-001)
+- **Documented governance gaps (TODO_GUARD markers in last column):** 0 (Slice 25: −4 — all four Slice 25 TODO_GUARDs shipped as narrow guards)
   — PX-ID-001 (branded IDs), PX-UI-002 (presentational/container),
   PX-OBS-003 (correlation ID), PX-SEED-001 (deterministic seeds). All
   scheduled for Slice 25 P1 — see the "Planned automation" bucket below.
