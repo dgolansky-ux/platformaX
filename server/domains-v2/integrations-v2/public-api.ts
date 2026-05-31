@@ -1,3 +1,4 @@
+// PX-CONTRACT-001-ACK: scaffold-stage domain; public-api contract test will land when the domain reaches PARTIAL_RUNTIME. EXC-016.
 /**
  * integrations-v2 — public API surface (FOUNDATION_READY).
  */

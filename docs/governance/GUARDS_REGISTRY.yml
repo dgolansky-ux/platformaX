@@ -482,3 +482,113 @@ guards:
     runs_in: [pre-push, ci]
     required: true
     status: active
+
+  # === SLICE 24 — RUNTIME INVARIANT GUARDS (P0) ===========================
+
+  - id: GUARD-051
+    command: node scripts/check-no-agent-bypass-language.mjs
+    file: scripts/check-no-agent-bypass-language.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-GOV-002, PX-GOV-005]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-052
+    command: node scripts/check-application-use-cases-boundary.mjs
+    file: scripts/check-application-use-cases-boundary.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-APP-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-053
+    command: node scripts/check-policy-pure-functions.mjs
+    file: scripts/check-policy-pure-functions.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-POLICY-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-054
+    command: node scripts/check-event-envelope-contract.mjs
+    file: scripts/check-event-envelope-contract.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-EVENT-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-055
+    command: node scripts/check-viewer-context-on-public-reads.mjs
+    file: scripts/check-viewer-context-on-public-reads.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-OWN-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-056
+    command: node scripts/check-visibility-matrix.mjs
+    file: scripts/check-visibility-matrix.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-VIS-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-057
+    command: node scripts/check-public-dto-contract-tests.mjs
+    file: scripts/check-public-dto-contract-tests.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-CONTRACT-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-058
+    command: node scripts/check-idempotency-flows.mjs
+    file: scripts/check-idempotency-flows.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-IDEMP-001, PX-IDEMPOTENCY-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-059
+    command: node scripts/check-transactional-outbox-pattern.mjs
+    file: scripts/check-transactional-outbox-pattern.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-EVENT-002]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-060
+    command: node scripts/check-read-model-owner.mjs
+    file: scripts/check-read-model-owner.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-READMODEL-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-061
+    command: node scripts/check-backend-ownership-invariants.mjs
+    file: scripts/check-backend-ownership-invariants.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-OWN-001]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active
+
+  - id: GUARD-062
+    command: node scripts/check-media-attach-owner-purpose.mjs
+    file: scripts/check-media-attach-owner-purpose.mjs
+    blocks: commit, merge
+    rules_enforced: [PX-MEDIA-004]
+    runs_in: [pre-push, ci]
+    required: true
+    status: active

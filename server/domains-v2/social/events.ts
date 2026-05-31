@@ -1,4 +1,8 @@
-﻿export type SocialEventBase = {
+﻿// PX-EVENT-001-ACK: social domain emits events in-process via the
+// injected `publish` callback; the transactional outbox + EventEnvelope
+// wrap is scheduled for the runtime backend slice. Tracked in
+// docs/governance/EXCEPTIONS_REGISTER.md under EXC-016.
+export type SocialEventBase = {
   requestId: string;
   actorUserId: string;
   recipientUserId: string;

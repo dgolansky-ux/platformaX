@@ -101,6 +101,42 @@ Defines all allowed status labels, when each may be used, and what evidence is r
 | `CLEAN` | All relevant gates pass |
 | `READY_FOR_PROD` | Staging, security, rollback, monitoring and evidence complete |
 
+## Deep-only acceptance — Slice 24 onward
+
+Only the result of `pnpm verify:deep` is acceptable as a CLAIMED green
+status for a real slice. The following are explicitly NOT acceptance:
+
+| Helper | Why it is not acceptance |
+|---|---|
+| `pnpm verify:fast` | HELPER_ONLY — runs only `check + lint`. Insufficient to claim READY / DONE / IMPLEMENTED. |
+| `pnpm verify:normal` | HELPER_ONLY — adds `test` but skips the guards umbrella, depcruise, gitleaks, knip, tooling:redcase. |
+| `pnpm tooling:check` | HELPER_ONLY — runs the tooling subset only. |
+| Individual guard scripts | HELPER_ONLY — they prove their own surface; they do NOT prove cross-surface coherence. |
+
+`pnpm verify:deep` runs (in order):
+
+1. `pnpm check`
+2. `pnpm lint`
+3. `pnpm test`
+4. `pnpm build`
+5. `pnpm rules:check`
+6. `pnpm arch:check:v2`
+7. `pnpm guards:all-local`
+8. `pnpm depcruise:check`
+9. `pnpm arch-tests`
+10. `pnpm knip:check`
+11. `pnpm secrets:gitleaks`
+12. `pnpm tooling:redcase`
+
+Any step that exits non-zero blocks acceptance. A step that cannot run
+in the current environment (e.g. `secrets:gitleaks` when the binary is
+not installed) must be reported as `NOT_RUN / ENV_BLOCKED` in the step
+report — it does NOT pass.
+
+`READY` / `DONE` / `IMPLEMENTED` / `BACKEND_DONE` / `VISUAL_DONE` are
+all forbidden without an attached `pnpm verify:deep` log (or
+`ENV_BLOCKED` entries truthfully documented).
+
 ## Forbidden Without Evidence
 
 The following words/phrases MUST NOT appear in reports, commits, or status docs without matching evidence:

@@ -59,28 +59,28 @@ Maps every rule to its enforcement mechanism. Identifies coverage gaps.
 | PX-SCALE-002 | No unbounded hot-path loops | coding-standards §22 | check-scalability-hot-paths | NO | — |
 | PX-SCALE-003 | No full scans for runtime lists | coding-standards §22 | check-scalability-hot-paths, check-pagination | NO | — |
 | PX-GOV-005 | No governance drift | HIDDEN_RULES_INVENTORY | check-governance-drift | NO | — |
-| PX-OWN-001 | Resource owner model | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | TODO_GUARD: check-backend-ownership-invariants |
-| PX-OWN-002 | viewerContext on public reads | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
-| PX-VIS-001 | Visibility matrix | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate, PX-POLICY-001 | YES | Policy tests per field |
+| PX-OWN-001 | Resource owner model | BACKEND_ARCHITECTURE_INVARIANTS | check-backend-ownership-invariants, manual_gate | NO | Slice 24 shipped guard. Pre-runtime files ACKed under EXC-016. |
+| PX-OWN-002 | viewerContext on public reads | BACKEND_ARCHITECTURE_INVARIANTS | check-viewer-context-on-public-reads, manual_gate | NO | Slice 24 shipped guard. Three public-only read files ACKed under EXC-016. |
+| PX-VIS-001 | Visibility matrix | BACKEND_ARCHITECTURE_INVARIANTS | check-visibility-matrix, check-policy-pure-functions, manual_gate | NO | Slice 24 shipped guard (predicate-name match). |
 | PX-DTO-002 | Public DTO zero PII extended | BACKEND_ARCHITECTURE_INVARIANTS | check-public-dto-pii, check-dto-privacy-classification | NO | Extends PX-SEC-001 |
 | PX-CTX-001 | Resource context refs | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
-| PX-MEDIA-004 | Media attach owner/purpose | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate, check-media-base64 | YES | Attach path tests required |
+| PX-MEDIA-004 | Media attach owner/purpose | BACKEND_ARCHITECTURE_INVARIANTS | check-media-attach-owner-purpose, check-media-base64, manual_gate | NO | Slice 24 shipped guard. identity/service.ts attach* ACKed under EXC-016. |
 | PX-LIST-004 | limit/cursor/stable order | BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns, check-scalability-hot-paths | NO | Extends PX-LIST-001 |
 | PX-DB-004 | No raw DB outside domain | BACKEND_ARCHITECTURE_INVARIANTS | audit-domain-boundaries, check-architecture-import-graph | NO | — |
-| PX-EVENT-001 | EventEnvelope + outbox fanout | BACKEND_ARCHITECTURE_INVARIANTS, ADR-009 | check-scalability-hot-paths, manual_gate | PARTIAL | TODO_GUARD: check-event-envelope-contract |
-| PX-EVENT-002 | Transactional outbox same TX | ADR-009 | manual_gate | YES | TODO_GUARD: outbox transaction pattern |
+| PX-EVENT-001 | EventEnvelope + outbox fanout | BACKEND_ARCHITECTURE_INVARIANTS, ADR-009 | check-event-envelope-contract, check-scalability-hot-paths, manual_gate | NO | Slice 24 shipped envelope-contract guard. social/moderation/notifications-v2 events.ts ACKed under EXC-016. |
+| PX-EVENT-002 | Transactional outbox same TX | ADR-009 | check-transactional-outbox-pattern, manual_gate | NO | Slice 24 shipped narrow heuristic guard. |
 | PX-LC-001 | Explicit lifecycle statuses | BACKEND_ARCHITECTURE_INVARIANTS | manual_gate | YES | MANUAL_GATE_REQUIRED |
-| PX-IDEMP-001 | Idempotency retry writes | BACKEND_ARCHITECTURE_INVARIANTS, ADR-015 | manual_gate | YES | TODO_GUARD: check-idempotency-flows |
+| PX-IDEMP-001 | Idempotency retry writes | BACKEND_ARCHITECTURE_INVARIANTS, ADR-015 | check-idempotency-flows, manual_gate | NO | Slice 24 shipped guard. ~33 pre-runtime files ACKed under EXC-016. |
 | PX-AIS-002 | Architecture Impact Statement | BACKEND_ARCHITECTURE_INVARIANTS | check-adr-required, manual_gate | PARTIAL | PR body / step report |
-| PX-APP-001 | application-v2 use-cases | active-rules §10, ADR-010 | manual_gate | YES | TODO_GUARD: check-application-use-cases-boundary |
-| PX-READMODEL-001 | Single read-model owner | ADR-011 | manual_gate | YES | MANUAL_GATE_REQUIRED |
-| PX-CONTRACT-001 | Public DTO contract tests | coding-standards | manual_gate, check-public-dto-pii | PARTIAL | TODO_GUARD: check-public-dto-contract-tests |
+| PX-APP-001 | application-v2 use-cases | active-rules §10, ADR-010 | check-application-use-cases-boundary, manual_gate | NO | Slice 24 shipped guard. |
+| PX-READMODEL-001 | Single read-model owner | ADR-011 | check-read-model-owner, manual_gate | NO | Slice 24 shipped guard. |
+| PX-CONTRACT-001 | Public DTO contract tests | coding-standards | check-public-dto-contract-tests, check-public-dto-pii, manual_gate | NO | Slice 24 shipped guard. 4 scaffold domains ACKed under EXC-016. |
 | PX-ID-001 | Branded ID types | ADR-012 | manual_gate | YES | TODO_GUARD: check-branded-id-types |
 | PX-ERROR-001 | Result/DomainError boundary | ADR-012 | manual_gate | YES | MANUAL_GATE_REQUIRED |
 | PX-CURSOR-001 | Opaque cursor | ADR-013, BACKEND_ARCHITECTURE_INVARIANTS | check-pagination, check-scalability-patterns | PARTIAL | Offset ban manual on new endpoints |
 | PX-LIFECYCLE-001 | status + deletedAt | active-rules §10 | manual_gate | YES | Aligns PX-LC-001 |
-| PX-IDEMPOTENCY-001 | Idempotency table | ADR-015 | manual_gate | YES | Aligns PX-IDEMP-001 |
-| PX-POLICY-001 | Pure policy functions | ADR-014 | manual_gate | YES | TODO_GUARD: check-policy-pure-functions |
+| PX-IDEMPOTENCY-001 | Idempotency table | ADR-015 | check-idempotency-flows, manual_gate | NO | Same guard as PX-IDEMP-001 (command-side). Table-side coverage stays manual until the idempotency table lands. |
+| PX-POLICY-001 | Pure policy functions | ADR-014 | check-policy-pure-functions, manual_gate | NO | Slice 24 shipped guard. |
 | PX-UI-001 | Design tokens | PROFILE_BLUEPRINT | manual_gate | YES | Visual review |
 | PX-UI-002 | Presentational/container | coding-standards | manual_gate | YES | TODO_GUARD: presentational boundary |
 | PX-OBS-003 | Correlation ID | active-rules §10 | manual_gate | YES | TODO_GUARD: check-correlation-id-boundary |
@@ -93,11 +93,14 @@ Counts are derived directly from the table above and verified by
 `scripts/check-rules-to-guards-coverage.mjs` — if a row's `Gap?` column
 changes, this summary must be updated in the same commit.
 
-- **Total rules:** 74
-- **Fully automated (Gap? = NO):** 47
-- **Manual gate only (Gap? = YES):** 22
-- **Partial automation (Gap? = PARTIAL):** 5
-- **Documented governance gaps (TODO_GUARD markers in last column):** 11 — these rows stay manual or partial until the planned guard ships; counted within the 22 manual-only or 5 partial rows above.
+- **Total rules:** 74 (unchanged)
+- **Fully automated (Gap? = NO):** 59 (Slice 24: +12 — flipped 10 YES rows and 2 PARTIAL rows to NO)
+- **Manual gate only (Gap? = YES):** 12 (Slice 24: −10)
+- **Partial automation (Gap? = PARTIAL):** 3 (Slice 24: −2)
+- **Documented governance gaps (TODO_GUARD markers in last column):** 4
+  — PX-ID-001 (branded IDs), PX-UI-002 (presentational/container),
+  PX-OBS-003 (correlation ID), PX-SEED-001 (deterministic seeds). All
+  scheduled for Slice 25 P1 — see the "Planned automation" bucket below.
 
 ## Gap Analysis
 
@@ -110,14 +113,19 @@ are **not** a single "few inherently non-automatable items" set:
    - `PX-AI-001` — agent self-reports docs read in baseline section.
    - `PX-AI-003` — agent must demonstrate honest BLOCKED behavior.
 
-2. **Planned automation (TODO_GUARD, not yet shipped) — 11 rules:**
-   See the rows whose `Required Improvement` column starts with `TODO_GUARD:`
-   (e.g. `PX-ID-001` branded IDs, `PX-EVENT-001/002` outbox envelope,
-   `PX-IDEMP-001`/`PX-IDEMPOTENCY-001` idempotency, `PX-APP-001`
-   application use-cases boundary, `PX-POLICY-001` pure policy functions,
-   `PX-OBS-003` correlation ID, `PX-UI-002` presentational boundary,
-   `PX-OWN-001`, `PX-SEED-001`, `PX-CONTRACT-001`). P0 rules in this
-   bucket retain `manual_gate` until the dedicated guard ships.
+2. **Planned automation (TODO_GUARD, not yet shipped) — 1 rule (after
+   Slice 24):**
+   - `PX-ID-001` branded IDs (Slice 25 P1).
+   The other Slice 24-prep TODO_GUARDs all shipped in Slice 24 (rows now
+   marked `Gap? = NO`). Pre-runtime files that are not yet compliant
+   with the newly enforced rule carry a per-file PX-RULE-ACK marker
+   listed under EXC-016 in EXCEPTIONS_REGISTER.md — the guard is
+   FAIL-CLOSED for new code while the ACK keeps the pre-existing
+   technical debt visible until the runtime backend slice removes it.
+   Slice 25 P1 TODO_GUARDs (planned, not in matrix yet): correlation
+   ID boundary (PX-OBS-003), presentational/container boundary
+   (PX-UI-002), deterministic seeds (PX-SEED-001), Result/DomainError
+   boundary (PX-ERROR-001).
 
 3. **Manual review (judgment-bound, no scripted check planned yet) — the
    remainder:** policy- or context-heavy rules where a guard would either

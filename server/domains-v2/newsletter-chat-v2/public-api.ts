@@ -1,3 +1,4 @@
+// PX-CONTRACT-001-ACK: scaffold-stage domain; public-api contract test will land when the domain reaches PARTIAL_RUNTIME. EXC-016.
 /**
  * newsletter-chat-v2 — public API surface (FOUNDATION_READY).
  * NO_EMAIL_DELIVERY this slice — broadcasts persist, fanout is out of scope.

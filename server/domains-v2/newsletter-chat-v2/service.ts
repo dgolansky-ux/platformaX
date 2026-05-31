@@ -1,3 +1,11 @@
+// === Slice 24 PRE-runtime ACK marker (EXC-016) ======================
+// PX-OWN-001-ACK: pre-runtime mutation; ownership currently delegated to policy/closure; explicit owner check to be added with transactional outbox slice. EXC-016.
+// === end Slice 24 ACK marker =======================================
+
+// === Slice 24 PRE-runtime ACK markers (EXC-016) =====================
+// PX-IDEMP-001-ACK: pre-runtime create/publish/upload/finalize command; idempotencyKey wiring scheduled with transactional outbox slice. EXC-016.
+// === end Slice 24 ACK markers =======================================
+
 /**
  * newsletter-chat-v2 — service. FOUNDATION_READY (in-memory).
  *

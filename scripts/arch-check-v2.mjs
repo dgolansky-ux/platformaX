@@ -15,6 +15,15 @@ const GUARDS = [
   "check-domain-registry.mjs",
   "check-domain-scaffold.mjs",
   "check-feature-registry.mjs",
+  // Slice 24 — architecture-class runtime invariants (P0)
+  "check-application-use-cases-boundary.mjs",
+  "check-policy-pure-functions.mjs",
+  "check-event-envelope-contract.mjs",
+  "check-visibility-matrix.mjs",
+  "check-transactional-outbox-pattern.mjs",
+  "check-read-model-owner.mjs",
+  "check-backend-ownership-invariants.mjs",
+  "check-media-attach-owner-purpose.mjs",
 ];
 
 let failed = 0;

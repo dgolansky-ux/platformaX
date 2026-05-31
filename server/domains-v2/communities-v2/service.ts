@@ -1,3 +1,4 @@
+// PX-IDEMP-001-ACK: pre-runtime command, idempotency wiring deferred (EXC-016). PX-OWN-001-ACK: ownership delegated to policy/closure (EXC-016). PX-OWN-002-ACK: public-only read, viewer-context deferred (EXC-016).
 /**
  * communities-v2 — service. Owns communities + memberships + join requests.
  * Stores NO posts and NO PII. Founder membership is created atomically with

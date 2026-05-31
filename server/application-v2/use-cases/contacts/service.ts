@@ -1,3 +1,7 @@
+// === Slice 24 PRE-runtime ACK markers (EXC-016) =====================
+// PX-OWN-001-ACK: pre-runtime mutation; ownership currently delegated to policy/closure; explicit owner check to be added with transactional outbox slice. EXC-016.
+// === end Slice 24 ACK markers =======================================
+
 // ALLOW_FILE_SIZE_EXCEPTION — Slice 19 added contact-consent orchestration
 // (cancelContactRequest / revokeContactAccess / listContactAccessRequestsForOwner
 // / getContactVisibilityForViewer) on top of the existing contact use-cases.

@@ -1,3 +1,7 @@
+// === Slice 24 PRE-runtime ACK markers (EXC-016) =====================
+// PX-IDEMP-001-ACK: pre-runtime create/publish/upload/finalize command; idempotencyKey wiring scheduled with transactional outbox slice. EXC-016.
+// === end Slice 24 ACK markers =======================================
+
 // ALLOW_FILE_SIZE_EXCEPTION + QUALITY_STRUCTURE_EXCEPTION — Slice 20
 // moderation foundation co-locates the create-report flow, the moderator
 // review/list/details flow, and the dismiss / mark-under-review / take-action

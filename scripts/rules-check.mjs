@@ -49,6 +49,19 @@ const GUARDS = [
   "check-dto-privacy-classification.mjs",
   "check-scalability-hot-paths.mjs",
   "check-governance-drift.mjs",
+  // Slice 24 — runtime invariant guards (P0)
+  "check-no-agent-bypass-language.mjs",
+  "check-application-use-cases-boundary.mjs",
+  "check-policy-pure-functions.mjs",
+  "check-event-envelope-contract.mjs",
+  "check-viewer-context-on-public-reads.mjs",
+  "check-visibility-matrix.mjs",
+  "check-public-dto-contract-tests.mjs",
+  "check-idempotency-flows.mjs",
+  "check-transactional-outbox-pattern.mjs",
+  "check-read-model-owner.mjs",
+  "check-backend-ownership-invariants.mjs",
+  "check-media-attach-owner-purpose.mjs",
 ];
 
 let failed = 0;

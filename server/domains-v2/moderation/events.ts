@@ -3,6 +3,11 @@
  *
  * Subscribers (notifications-v2 in particular) use the strongly-typed shape
  * here. Event payloads carry IDs only — never PII, never description body.
+ *
+ * PX-EVENT-001-ACK: moderation emits events in-process via the injected
+ * publisher; the transactional outbox + EventEnvelope wrap is scheduled
+ * for the runtime backend slice. Tracked in EXCEPTIONS_REGISTER under
+ * EXC-016.
  */
 import type { UserId } from "@shared/contracts/branded-ids";
 import type {

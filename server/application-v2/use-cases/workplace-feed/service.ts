@@ -1,3 +1,7 @@
+// === Slice 24 PRE-runtime ACK markers (EXC-016) =====================
+// PX-IDEMP-001-ACK: pre-runtime create/publish/upload/finalize command; idempotencyKey wiring scheduled with transactional outbox slice. EXC-016.
+// === end Slice 24 ACK markers =======================================
+
 /**
  * application-v2/use-cases/workplace-feed — orchestration.
  *

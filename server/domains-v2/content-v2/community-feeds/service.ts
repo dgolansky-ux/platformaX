@@ -1,3 +1,7 @@
+// === Slice 24 PRE-runtime ACK markers (EXC-016) =====================
+// PX-IDEMP-001-ACK: pre-runtime create/publish/upload/finalize command; idempotencyKey wiring scheduled with transactional outbox slice. EXC-016.
+// === end Slice 24 ACK markers =======================================
+
 /**
  * content-v2 / community-feeds — service. Owns community posts + feed items.
  * No role checks, no global feed, no ranking. Distribution down the structure is

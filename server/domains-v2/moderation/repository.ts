@@ -1,3 +1,7 @@
+// === Slice 24 PRE-runtime ACK marker (EXC-016) ======================
+// PX-OWN-001-ACK: pre-runtime mutation; ownership currently delegated to policy/closure; explicit owner check to be added with transactional outbox slice. EXC-016.
+// === end Slice 24 ACK marker =======================================
+
 /**
  * moderation — internal repository (Slice 20 in-memory foundation).
  *

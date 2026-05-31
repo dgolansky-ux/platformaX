@@ -1,3 +1,7 @@
+// === Slice 24 PRE-runtime ACK markers (EXC-016) =====================
+// PX-IDEMP-001-ACK: pre-runtime create/publish/upload/finalize command; idempotencyKey wiring scheduled with transactional outbox slice. EXC-016.
+// === end Slice 24 ACK markers =======================================
+
 // ALLOW_FILE_SIZE_EXCEPTION — Slice 19 added friend-aware visibility checks
 // (getFriendIdsForViewer + friends_only filtering) to the existing
 // friend-feed orchestrator. Registered in EXCEPTIONS_REGISTER.md (EXC-011).

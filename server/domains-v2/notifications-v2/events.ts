@@ -8,6 +8,12 @@
  * the notifications layer is consumer-only by design.
  *
  * Status: OUTBOX_SKELETON — outbox/worker runtime is not wired in Slice 14.
+ *
+ * PX-EVENT-001-ACK: notifications-v2 is a terminal sink (consumer-only).
+ * `NotificationsDomainEvent = never` documents that the domain publishes
+ * no cross-domain events of its own. The `NotificationCreationRequest`
+ * type is an application-layer input shape, not a cross-domain event.
+ * No EventEnvelope import is required while this surface is consumer-only.
  */
 
 export interface NotificationCreationRequest {

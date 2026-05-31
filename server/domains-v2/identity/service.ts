@@ -1,3 +1,8 @@
+// === Slice 24 PRE-runtime ACK markers (EXC-016) =====================
+// PX-MEDIA-004-ACK: pre-runtime media attach; owner+purpose validation to be added with media domain runtime slice. EXC-016.
+// PX-OWN-001-ACK: pre-runtime mutation; ownership currently delegated to policy/closure; explicit owner check to be added with transactional outbox slice. EXC-016.
+// === end Slice 24 ACK markers =======================================
+
 /**
  * identity — service (use-cases)
  *

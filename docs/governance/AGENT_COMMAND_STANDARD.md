@@ -51,9 +51,39 @@ Task-specific forbidden actions should be added.
 
 List files expected to be created, modified, or deleted.
 
-## 5. Gates
+## 5. Gates — deep-only acceptance
 
-Before commit, run:
+PlatformaX V2 has ONE acceptance mode: `pnpm verify:deep`. Before
+reporting a slice as READY / IMPLEMENTED / DONE / BACKEND_DONE /
+VISUAL_DONE, run:
+
+```
+pnpm verify:deep
+```
+
+This runs, in order:
+
+1. `pnpm check`
+2. `pnpm lint`
+3. `pnpm test`
+4. `pnpm build`
+5. `pnpm rules:check`
+6. `pnpm arch:check:v2`
+7. `pnpm guards:all-local`
+8. `pnpm depcruise:check`
+9. `pnpm arch-tests`
+10. `pnpm knip:check`
+11. `pnpm secrets:gitleaks`
+12. `pnpm tooling:redcase`
+
+Record exit codes per step in the report. A step that cannot run
+because of the environment (e.g. missing `gitleaks` binary) must be
+reported as `NOT_RUN / ENV_BLOCKED` truthfully — do NOT claim PASS.
+
+`verify:fast` and `verify:normal` exist as local developer helpers
+ONLY (HELPER_ONLY / NOT_ACCEPTANCE_GATE). They cannot grant READY.
+
+Before commit, run at minimum:
 
 ```
 pnpm check
@@ -64,7 +94,8 @@ pnpm rules:check
 pnpm arch:check:v2
 ```
 
-Record exit codes in report.
+— this is the commit-readiness floor. Push/PR readiness requires the
+full `pnpm verify:deep` log.
 
 ## 6. Self-Audit
 
@@ -165,3 +196,99 @@ db push/Railway without separate decision, --no-verify, fake DONE.
 ```
 
 Rule IDs: see `docs/governance/RULES_REGISTRY.yml` and `docs/governance/RULES_TO_GUARDS_MATRIX.md`.
+
+---
+
+## 11. Evidence verification block (Slice 24 onward)
+
+Every step report must include a `GATES_RUN:` block listing:
+
+```
+GATES_RUN:
+  pnpm check                : exit=<code>
+  pnpm lint                 : exit=<code>
+  pnpm test                 : exit=<code>
+  pnpm build                : exit=<code>
+  pnpm rules:check          : exit=<code>
+  pnpm arch:check:v2        : exit=<code>
+  pnpm guards:all-local     : exit=<code>
+  pnpm depcruise:check      : exit=<code>
+  pnpm arch-tests           : exit=<code>
+  pnpm knip:check           : exit=<code>
+  pnpm secrets:gitleaks     : exit=<code> | NOT_RUN | ENV_BLOCKED
+  pnpm tooling:redcase      : exit=<code>
+```
+
+If any gate is omitted, the report is incomplete and acceptance is
+blocked. `NOT_RUN` / `ENV_BLOCKED` must include the reason.
+
+## 12. No-scope-creep block
+
+Every report must include:
+
+```
+FILES_CHANGED_BY_SCOPE:
+  in_scope:      <list of files matching the slice's declared scope>
+  out_of_scope:  <list of files outside the declared scope; must be empty
+                 or each entry justified>
+```
+
+Any file in `out_of_scope` without a per-entry justification triggers a
+manual review.
+
+## 13. ZIP / manifest integrity
+
+Every audit ZIP generated for a slice must:
+
+- carry a JSON manifest with the same prefix as the ZIP and a
+  matching `commitShortSha` and `workingTreeDirty` flag,
+- embed the manifest inside the ZIP at `MANIFEST.json`,
+- declare `validationStatus: PASS` only if the validation step ran and
+  passed all checks (no `.git`, no `node_modules`, no `.env`, no
+  secrets, no old ZIPs),
+- be copied to `C:/Users/dgola/Desktop/ZIPY/` per the persistent owner
+  preference.
+
+Report ZIPs and full-source ZIPs are different products. A report ZIP
+must NEVER be presented as a full-source ZIP.
+
+## 14. No silent guard delta
+
+Any commit that touches `scripts/check-*.mjs`, `scripts/audit/**`,
+`scripts/rules-check.mjs`, `scripts/arch-check-v2.mjs`,
+`scripts/audit-domain-boundaries.mjs`, or any `tests/architecture/`
+fixture must include in the same commit:
+
+- a red-case fixture (or amended fixture) proving the guard still
+  fires on a planted violation,
+- an updated `GUARDS_REGISTRY.yml` row if the guard changed `runs_in`
+  or `blocks`,
+- the corresponding matrix row update if `Gap?` flipped.
+
+Removing a guard is forbidden without a registered `EXCEPTIONS_REGISTER`
+entry. Weakening a guard (e.g. narrowing a regex, broadening the
+allowlist) requires a documented `Why now safer:` line in the commit
+message AND a re-verified red-case fixture.
+
+## 15. No report rewrite
+
+Historical reports under `docs/review/**` are append-only after their
+slice closes. Status corrections require a new `*_AMENDED.md` file in
+the same folder, or an explicit "Status correction" row in the slice
+index — never silent edits to a closed report.
+
+## 16. READY-status gate
+
+An agent must NOT report any of:
+
+- `STATUS: COMMIT_ALLOWED`
+- `STATUS: READY`
+- `STATUS: IMPLEMENTED`
+- `STATUS: BACKEND_DONE`
+- `STATUS: VISUAL_DONE`
+- `STATUS: TOP_TIER_READY`
+
+unless the attached `GATES_RUN:` block shows every step ran with `exit=0`
+or was registered `ENV_BLOCKED` with reason. `tooling:redcase` is
+non-negotiable — a missing tooling:redcase line is treated as guard
+weakening (PX-GOV-002 violation).
