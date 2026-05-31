@@ -22,7 +22,7 @@ export function ProfileTopBar({ editEnabled, onEditBio }: ProfileTopBarProps) {
         <button
           type="button"
           className={layout.iconButton}
-          aria-label={editEnabled ? "Edytuj bio" : "Edytuj profil — wkrótce"}
+          aria-label={editEnabled ? "Edytuj bio" : "Edytuj profil — niedostępne"}
           title={
             editEnabled
               ? "Edytuj bio"

@@ -1,9 +1,10 @@
 ﻿import { describe, it, expect } from "vitest";
 
 describe("public-hub domain contract", () => {
-  it("public-api exposes no runtime surface yet (SCAFFOLD_ONLY)", async () => {
+  it("public-api exposes the composition factory", async () => {
     const mod = await import("../public-api");
-    expect(Object.keys(mod)).toHaveLength(0);
+    expect("createPublicHubService" in mod).toBe(true);
+    expect("visibleSections" in mod).toBe(true);
   });
 
   it("exports from public-api", async () => {

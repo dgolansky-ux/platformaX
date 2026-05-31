@@ -16,6 +16,19 @@ service.
   (`service.ts`, `dto.ts`, `errors.ts`, `public-api.ts`, `__tests__/`). The
   frontend feature adapter depends only on `@shared/contracts/profile`; a
   future HTTP controller will mount on top of `./profile/public-api`.
+- `contacts/` — composes **identity** (contact-access) and **social**
+  (social-contacts) into the Kontakty surface + public-profile actions.
+- `communities/` — `createCommunityWithDefaults`: **communities-v2** creates the
+  community + founder membership, then **modules** enables a bounded set of
+  default modules for it.
+- `channels/` — `createChannelForCommunity`: checks the **communities-v2**
+  `CommunityAuthorityResolver`, then delegates creation to **channels**.
+- `public-hub/` — `getProfileHubView` / `getCommunityHubView`: adapts
+  **identity** / **communities-v2** / **modules** public-api into the
+  **public-hub** resolver contracts and composes the hub view model.
+- `feed/` — `getFriendFeedFoundation`: resolves the viewer's friends from
+  **social**, then queries the **content-v2** friend feed for that explicit
+  author set (no global feed).
 
 ## Note
 

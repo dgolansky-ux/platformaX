@@ -14,20 +14,20 @@
 | Domain | Owns | Does NOT own | Reads from | Public surface | Status |
 |---|---|---|---|---|---|
 | identity | profile, auth subject, public/private profile DTO, professions | feed, friendships, communities, posts | — | public-api, contracts, events | PARTIAL |
-| social | friends/contact graph, relationship state, contact access | profile PII, posts, feed engine | identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
-| communities-v2 | community profile, members, roles, settings, invites, join requests, feed settings | posts, comments, chat, events, modules | identity, social (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
-| content-v2 | posts, feeds, comments, reactions, topics, read-models | memberships, roles, profiles, friendships | identity, communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
-| channels | channel definitions, memberships, settings | messages, chat history, community roles | communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| social | friends/contact graph, relationship state, contact access | profile PII, posts, feed engine | identity (public-api) | public-api, contracts, events | PARTIAL |
+| communities-v2 | community profile, members, roles, settings, invites, join requests, feed settings | posts, comments, chat, events, modules | identity, social (public-api) | public-api, contracts, events | PARTIAL |
+| content-v2 | posts, feeds, comments, reactions, topics, read-models | memberships, roles, profiles, friendships | identity, communities-v2 (public-api) | public-api, contracts, events | PARTIAL |
+| channels | channel definitions, follows, settings | messages, chat history, community roles, community membership | communities-v2 (public-api) | public-api, contracts, events | PARTIAL |
 | chat | messages, conversations, read state, typing indicators | channels, community roles, profiles | channels, identity (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
 | events | event definitions, RSVPs, event lifecycle, visibility | community membership, profiles, posts | identity, communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
-| modules | ModuleDefinition, registry, enablement | actual module business data | communities-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| modules | ModuleDefinition, registry, enablement | actual module business data | communities-v2 (public-api) | public-api, contracts, events | PARTIAL |
 | media | media assets, upload contracts, validation, refs | base64/dataUrl payloads (FORBIDDEN) | identity (public-api) | public-api, contracts, events | PARTIAL |
 
 ## Composition domains
 
 | Domain | Owns | Does NOT own | Reads from | Public surface | Status |
 |---|---|---|---|---|---|
-| public-hub | composition/read view of public profiles and communities | source-of-truth data | identity, communities-v2, content-v2 (public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
+| public-hub | composition/read view of public profiles and communities | source-of-truth data | identity, communities-v2, content-v2 (public-api) | public-api, contracts, events | PARTIAL |
 
 ## Operational domains
 
@@ -35,7 +35,7 @@
 |---|---|---|---|---|---|
 | notifications | notification delivery, templates, preferences | content creation, profiles | identity, communities-v2 (events) | public-api, contracts, events | SCAFFOLD_ONLY |
 | search | search indexing, query engine, relevance | source data | all domains (events/public-api) | public-api, contracts, events | SCAFFOLD_ONLY |
-| moderation | moderation rules, reports, actions, queues | content creation | content-v2, communities-v2 (events) | public-api, contracts, events | SCAFFOLD_ONLY |
+| moderation | moderation rules, reports, actions, queues | content creation | content-v2, communities-v2 (events) | public-api, contracts, events | PARTIAL |
 | audit | audit log, trail, events | business logic | all domains (events) | public-api, contracts, events | SCAFFOLD_ONLY |
 | system | health, config, feature flags, maintenance | domain data | internal metrics | public-api, contracts, events | SCAFFOLD_ONLY |
 

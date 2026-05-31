@@ -1,0 +1,226 @@
+/*
+ * features-v2/communities-v2 / CommunitiesShell — Slice 20B-FIX top-tier redesign.
+ *
+ * Clean hero (no heavy gradient slab), compact CTA, scannable section
+ * rhythm. Cards live in cards/* — this file ships layout primitives and the
+ * (legacy) generic CommunityCard fallback used in search results.
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  max-width: var(--shell-max-content, 1080px);
+  margin-inline: auto;
+  padding: 32px 24px calc(56px + env(safe-area-inset-bottom, 0px));
+  color: var(--c-text);
+  font-family: var(--font-sans);
+}
+
+@media (max-width: 760px) {
+  .root {
+    padding: 20px 16px 96px;
+    gap: 22px;
+  }
+}
+
+/* ── Hero ────────────────────────────────────────────────────────── */
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.heroContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.brand {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-brand);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--c-text);
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin: 10px 0 0;
+  max-width: 56ch;
+  color: var(--c-text-soft);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: #ffffff;
+  background: var(--c-brand);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 14px rgba(79, 95, 231, 0.32);
+  transition: background var(--dur-fast) var(--ease-soft), transform var(--dur-fast) var(--ease-soft);
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--c-brand-strong);
+  transform: translateY(-1px);
+}
+
+.primaryButtonPlus {
+  font-size: 16px;
+  line-height: 1;
+  margin-left: -2px;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-pill);
+  color: var(--c-text-muted);
+  background: var(--c-surface);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-soft), border-color var(--dur-fast) var(--ease-soft);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: var(--c-bg-subtle);
+  border-color: var(--c-border-strong);
+}
+
+@media (max-width: 760px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .heroActions {
+    width: 100%;
+  }
+  .primaryButton {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* ── Loading / error ──────────────────────────────────────────────── */
+.loadingState,
+.errorState {
+  padding: 32px;
+  text-align: center;
+  color: var(--c-text-soft);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--radius-xl);
+}
+
+.errorState {
+  color: var(--c-danger);
+  background: var(--c-danger-soft);
+  border-color: transparent;
+}
+
+/* ── Legacy/fallback card used by SearchResults ───────────────────── */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 180px;
+  padding: 18px;
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--radius-xl);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--dur-fast) var(--ease-soft), box-shadow var(--dur-fast) var(--ease-soft), transform var(--dur-fast) var(--ease-soft);
+}
+
+.card:hover {
+  border-color: var(--c-border);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.cardHeader,
+.metaRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.kicker {
+  margin: 0 0 4px;
+  color: var(--c-text-faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--c-text);
+}
+
+.visibility {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  color: var(--c-text-muted);
+  background: var(--c-bg-soft);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.description {
+  margin: 0;
+  color: var(--c-text-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.metaRow {
+  margin-top: auto;
+  color: var(--c-text-soft);
+  font-size: 13px;
+  font-weight: 500;
+}

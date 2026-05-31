@@ -1,11 +1,13 @@
-# public-hub — UI Feature
+# features-v2/public-hub
 
-Status: `SCAFFOLD_ONLY`
+**Status:** UI_SHELL_ONLY + MOCK_LOCAL_ONLY
 
-## Purpose
-UI shell for the public-hub domain.
+Owner-agnostic Public Hub renderer. Use `PublicHubView` with `ownerType`
+and `ownerId` to render the composed public surface for a personal profile
+or a community. The view reads enablement from the `modules` mock adapter
+and per-slot sample data from the `public-hub` mock adapter.
 
-## Constraints
-- Must not import from other feature domains' internal modules
-- Must not import legacy code
-- Must use public-api/contracts/events for cross-domain communication
+No `@server/*` imports. The 4 module slots (Tematy, Wydarzenia, Integracje,
+Newsletter chatowy) are dedicated components under `./slots/`; rendering is
+slot-driven, so disabling a module at the management screen is immediately
+reflected here.

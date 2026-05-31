@@ -1,0 +1,226 @@
+/*
+ * Community post interactions — Slice 20B-FIX top-tier FB-style refresh.
+ * Comment composer + comment thread under the FB-style action bar.
+ */
+
+.actionBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 0;
+  padding: 4px 12px;
+  border-top: 1px solid var(--c-border-faint);
+}
+
+.action {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--c-text-muted);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-soft), color var(--dur-fast) var(--ease-soft);
+  min-height: 38px;
+}
+
+.action:hover:not(:disabled) { background: var(--c-bg-soft); color: var(--c-text); }
+.action:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.actionActive {
+  color: var(--c-brand);
+}
+
+.actionActive:hover:not(:disabled) {
+  background: var(--c-brand-soft);
+}
+
+.actionIcon { font-size: 16px; line-height: 1; }
+.actionCount { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.thread {
+  margin-top: 0;
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--c-border-faint);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--c-bg-subtle);
+}
+
+.empty {
+  text-align: center;
+  padding: 16px 12px;
+  font-size: 13px;
+  color: var(--c-text-soft);
+}
+
+.loading { font-size: 12.5px; color: var(--c-text-soft); padding: 6px 2px; }
+
+.errorState {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--c-danger-soft);
+  color: var(--c-danger);
+  font-size: 13px;
+}
+
+.permissionState {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--c-bg-soft);
+  color: var(--c-text-soft);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.list { display: flex; flex-direction: column; gap: 8px; }
+
+.commentRow {
+  display: flex;
+  gap: 10px;
+  padding: 0;
+  background: transparent;
+}
+
+.commentRowDeleted { opacity: 0.6; }
+
+.commentAvatar {
+  width: 32px; height: 32px; flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--c-brand-gradient);
+  color: #ffffff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+
+.commentBody {
+  flex: 1;
+  min-width: 0;
+  background: var(--c-surface);
+  border-radius: 16px;
+  padding: 8px 12px;
+  border: 1px solid var(--c-border-soft);
+}
+
+.commentHead { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+
+.commentAuthor {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  margin: 0;
+  color: var(--c-text);
+  letter-spacing: -0.005em;
+}
+
+.commentDate {
+  color: var(--c-text-faint);
+  font-size: 11.5px;
+  margin: 0;
+}
+
+.commentText {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--c-text);
+}
+
+.commentDeleted {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--c-text-faint);
+  font-style: italic;
+}
+
+.commentActions { display: flex; gap: 6px; margin: 6px 0 0 4px; padding-left: 8px; }
+
+.commentAction {
+  border: none;
+  background: transparent;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--c-text-soft);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-soft);
+}
+
+.commentAction:hover { color: var(--c-text); }
+.commentReactionBtn[data-active="true"] { color: var(--c-brand); }
+
+.composer {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding-top: 4px;
+}
+
+.composerAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--c-brand-gradient);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  flex-shrink: 0;
+}
+
+.composerTextarea {
+  flex: 1;
+  min-height: 38px;
+  max-height: 140px;
+  padding: 9px 14px;
+  border-radius: 18px;
+  border: 0;
+  background: var(--c-surface);
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.4;
+  resize: vertical;
+  box-sizing: border-box;
+  color: var(--c-text);
+  transition: box-shadow var(--dur-fast) var(--ease-soft);
+}
+
+.composerTextarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--c-brand-soft);
+}
+
+.composerSend {
+  align-self: stretch;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: 0;
+  background: var(--c-brand);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-soft);
+}
+
+.composerSend:hover:not(:disabled) { background: var(--c-brand-strong); }
+.composerSend:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.composerError { color: var(--c-danger); font-size: 12px; margin: 4px 0 0; }

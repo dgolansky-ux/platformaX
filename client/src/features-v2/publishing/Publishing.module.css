@@ -1,0 +1,483 @@
+/*
+ * features-v2/publishing — shared composer styles.
+ *
+ * QUALITY_STRUCTURE_EXCEPTION + ALLOW_FILE_SIZE_EXCEPTION — Slice 20B-21
+ * appended ComposerTrigger + ComposerModal styles to this canonical module so
+ * the trigger/modal stays inside the publishing-feature cascade (CSS modules
+ * cannot import each other). Slice 20B-FIX refreshed those styles into the
+ * top-tier design tokens; size grew but remains a single-cascade module.
+ * Registered in EXCEPTIONS_REGISTER.md (EXC-013).
+ */
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.composerHeader {
+  display: none; /* modal chrome already provides title — avoid duplication */
+}
+
+.composerTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+.composerSubtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--c-text-soft);
+}
+
+.targetRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.targetLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.targetSelect, .visibilitySelect {
+  flex: 1 1 220px;
+  min-width: 180px;
+  padding: 9px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color var(--dur-fast) var(--ease-soft), box-shadow var(--dur-fast) var(--ease-soft);
+}
+
+.targetSelect:focus, .visibilitySelect:focus {
+  outline: none;
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 4px var(--c-brand-soft);
+}
+
+.titleInput, .dateInput {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: 15px;
+  font-family: inherit;
+  transition: border-color var(--dur-fast) var(--ease-soft), box-shadow var(--dur-fast) var(--ease-soft);
+}
+
+.titleInput {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+
+.titleInput:focus, .dateInput:focus {
+  outline: none;
+  border-color: var(--c-brand);
+  box-shadow: 0 0 0 4px var(--c-brand-soft);
+}
+
+/* FB-style body textarea: no border, large font, breathing room */
+.bodyInput {
+  width: 100%;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--c-text);
+  font-size: 18px;
+  line-height: 1.45;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+  outline: none;
+  transition: none;
+}
+
+.bodyInput::placeholder {
+  color: var(--c-text-faint);
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.bodyInput:focus {
+  outline: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.mediaPicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px dashed var(--c-border);
+  border-radius: var(--radius-md);
+  background: var(--c-bg-subtle);
+  color: var(--c-text-soft);
+  font-size: 13px;
+}
+
+.mediaPickerDisabled {
+  opacity: 0.6;
+}
+
+.submitBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--c-border-faint);
+}
+
+.submitMeta {
+  font-size: 12.5px;
+  color: var(--c-text-soft);
+}
+
+.submitButton {
+  padding: 11px 28px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--c-brand);
+  color: #ffffff;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(79, 95, 231, 0.32);
+  transition: background var(--dur-fast) var(--ease-soft), transform var(--dur-fast) var(--ease-soft);
+  font-family: inherit;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: var(--c-brand-strong);
+  transform: translateY(-1px);
+}
+
+.submitButton:disabled {
+  background: var(--c-bg-soft);
+  color: var(--c-text-faint);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.preview {
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.previewLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin: 0 0 6px;
+}
+
+.previewBody {
+  font-size: 14px;
+  color: #0f172a;
+  margin: 0 0 6px;
+  white-space: pre-wrap;
+}
+
+.previewMeta {
+  font-size: 12px;
+  color: #475569;
+}
+
+.warningList, .errorList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+}
+
+.warningList { color: #b45309; }
+.errorList   { color: #b91c1c; }
+
+.partialBadge, .blockedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.partialBadge {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.blockedBadge {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.successBadge {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.composerVariantFriend  { border-top: 3px solid #4f46e5; }
+.composerVariantChannel { border-top: 3px solid #0ea5e9; }
+.composerVariantWorkplace { border-top: 3px solid #0d9488; }
+.composerVariantCommunity { border-top: 3px solid #f97316; }
+.composerVariantCommunityStaff { border-top: 3px solid #db2777; }
+.composerVariantCommunityRelational { border-top: 3px solid #ea580c; }
+.composerVariantImportantEvent { border-top: 3px solid #b45309; }
+.composerVariantPresentation { border-top: 3px solid #7c3aed; }
+
+/* ─── Slice 20B-FIX: Composer trigger + modal (FB-style) ─────────────── */
+
+.composerTrigger {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  border: 1px solid var(--c-border-soft);
+  border-radius: var(--radius-xl);
+  background: var(--c-surface);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+
+.composerTriggerTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background 150ms ease;
+}
+
+.composerTriggerTop:hover:not(:disabled) {
+  background: var(--c-bg-subtle);
+}
+
+.composerTriggerTop:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.composerTriggerAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--c-brand-gradient);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(79, 95, 231, 0.24);
+}
+
+.composerTriggerPlaceholder {
+  flex: 1;
+  padding: 10px 18px;
+  background: var(--c-bg-soft);
+  border-radius: var(--radius-pill);
+  color: var(--c-text-soft);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  transition: background 150ms ease;
+}
+
+.composerTriggerTop:hover .composerTriggerPlaceholder {
+  background: var(--c-bg-app);
+}
+
+.composerTriggerActions {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 4px;
+  border-top: 1px solid var(--c-border-faint);
+}
+
+.composerTriggerAction {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--c-text-muted);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 9px 10px;
+  border-radius: 8px;
+  transition: background var(--dur-fast) var(--ease-soft), color var(--dur-fast) var(--ease-soft);
+  min-height: 40px;
+}
+
+.composerTriggerAction:hover:not(:disabled) {
+  background: var(--c-bg-soft);
+  color: var(--c-text);
+}
+
+.composerTriggerAction:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.composerTriggerActionIcon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.composerTriggerActionLabel {
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .composerTriggerActionLabel {
+    display: none;
+  }
+}
+
+.composerModalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 15, 26, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 24px;
+  animation: backdropIn 180ms ease;
+}
+
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.composerModal {
+  background: var(--c-surface, #ffffff);
+  border-radius: 22px;
+  width: min(640px, 100%);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.26), 0 4px 12px rgba(15, 23, 42, 0.1);
+  overflow: hidden;
+  animation: modalIn 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.97) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.composerModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--c-border-soft, #eef1f6);
+}
+
+.composerModalTitle {
+  margin: 0;
+  font-family: var(--font-display, "Sora");
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--c-text, #0b0f1a);
+  letter-spacing: -0.015em;
+}
+
+.composerModalSubtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--c-text-soft, #6b7488);
+}
+
+.composerModalClose {
+  appearance: none;
+  background: var(--c-bg-soft, #f1f3f9);
+  border: 0;
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+  color: var(--c-text-muted, #4a5366);
+  cursor: pointer;
+  line-height: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.composerModalClose:hover {
+  background: var(--c-bg-app, #f6f7fb);
+  color: var(--c-text, #0b0f1a);
+}
+
+.composerModalBody {
+  padding: 18px 24px 22px;
+  overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+  .composerModalBackdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .composerModal {
+    border-radius: 22px 22px 0 0;
+    width: 100%;
+    max-height: 92vh;
+    animation: sheetIn 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes sheetIn {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+}

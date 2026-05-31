@@ -40,9 +40,13 @@
     "tooling:redcase": "node scripts/verify-tooling-red-cases.mjs",
     "tooling:redcase:strict": "node scripts/verify-tooling-red-cases.mjs --strict",
     "tooling:weekly": "pnpm knip:check && pnpm depcruise:graph && pnpm auditzip",
+    "verify:deep": "pnpm check && pnpm lint && pnpm test && pnpm build && pnpm rules:check && pnpm arch:check:v2 && pnpm guards:all-local && pnpm depcruise:check && pnpm arch-tests && pnpm knip:check && pnpm secrets:gitleaks && pnpm tooling:redcase",
+    "verify:fast": "echo 'HELPER_ONLY / NOT_ACCEPTANCE_GATE — use pnpm verify:deep for acceptance.' && pnpm check && pnpm lint",
+    "verify:normal": "echo 'HELPER_ONLY / NOT_ACCEPTANCE_GATE — use pnpm verify:deep for acceptance.' && pnpm check && pnpm lint && pnpm test",
     "scaffold:domain": "node scripts/scaffold-domain.mjs",
     "scaffold:ui-shell": "node scripts/scaffold-ui-shell.mjs",
     "scaffold:route": "node scripts/scaffold-route.mjs",
+    "screenshots:v2": "playwright test --config=playwright.config.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -63,6 +67,7 @@
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
     "@eslint/js": "^9.27.0",
+    "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.1.0",

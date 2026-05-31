@@ -14,11 +14,15 @@ import {
 import { createInMemoryIdentityProfileRepository } from "@server/domains-v2/identity/repository";
 import {
   createMediaService,
+  type MediaPurpose,
   type MediaService,
   type MediaStoragePort,
   type UploadFileMeta,
 } from "@server/domains-v2/media/public-api";
-import { createInMemoryMediaRepository } from "@server/domains-v2/media/repository";
+import {
+  createInMemoryMediaRepository,
+  createInMemoryUploadIntentRepository,
+} from "@server/domains-v2/media/repository";
 import {
   createProfileApplicationService,
   type ProfileApplicationService,
@@ -37,6 +41,7 @@ function connectedStorage(): MediaStoragePort {
         provider: "test-storage",
         uploadUrl: `https://storage.test/${req.storageKey}?sig=x`,
         publicUrl: `https://cdn.test/${req.storageKey}`,
+        cdnUrl: null,
         transport: "READY",
         expiresAt: null,
       };
@@ -56,6 +61,7 @@ function buildService(): {
   let assetCounter = 0;
   const media = createMediaService({
     repository: createInMemoryMediaRepository(),
+    intentRepository: createInMemoryUploadIntentRepository(),
     storage: connectedStorage(),
     clock: () => NOW,
     idGen: () => `asset-${++assetCounter}`,
@@ -187,22 +193,35 @@ describe("profile application service — completeOnboarding / updateMyProfile",
   });
 });
 
+async function createProfileIntent(
+  media: MediaService,
+  ownerId: string,
+  purpose: MediaPurpose,
+  meta: UploadFileMeta,
+) {
+  return media.createUploadIntent({
+    actorUserId: ownerId,
+    ownerRef: { ownerType: "user_profile", ownerId },
+    purpose,
+    fileMeta: meta,
+    idempotencyKey: `idem-${ownerId}-${purpose}-${meta.sizeBytes}-${Math.random()}`,
+  });
+}
+
 describe("profile application service — attachProfileAvatarRef / attachProfileBannerRef", () => {
   async function readyAsset(
     media: MediaService,
-    purpose: "avatar" | "banner",
+    purpose: "profile_avatar" | "profile_banner",
     ownerId: string = OWNER,
   ): Promise<string> {
-    const meta = purpose === "avatar" ? SAMPLE_AVATAR : SAMPLE_BANNER;
-    const intent =
-      purpose === "avatar"
-        ? await media.createAvatarUploadIntent(ownerId, meta)
-        : await media.createBannerUploadIntent(ownerId, meta);
+    const meta = purpose === "profile_avatar" ? SAMPLE_AVATAR : SAMPLE_BANNER;
+    const intent = await createProfileIntent(media, ownerId, purpose, meta);
     if (!intent.ok) throw new Error("intent failed");
-    const confirmed = await media.confirmProfileMediaUpload(
-      ownerId,
-      intent.value.assetId,
-    );
+    const confirmed = await media.completeUpload({
+      actorUserId: ownerId,
+      intentId: intent.value.intentId,
+      assetId: intent.value.assetId,
+    });
     if (!confirmed.ok) throw new Error("confirm failed");
     return intent.value.assetId;
   }
@@ -210,7 +229,7 @@ describe("profile application service — attachProfileAvatarRef / attachProfile
   it("attachProfileAvatarRef stores the ref and returns the composed view with avatar url", async () => {
     const { app, media } = buildService();
     await app.completeOnboarding(OWNER, ONBOARDING_INPUT);
-    const assetId = await readyAsset(media, "avatar");
+    const assetId = await readyAsset(media, "profile_avatar");
     const result = await app.attachProfileAvatarRef(OWNER, assetId);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -221,7 +240,7 @@ describe("profile application service — attachProfileAvatarRef / attachProfile
   it("attachProfileBannerRef stores the ref and returns the composed view with banner url", async () => {
     const { app, media } = buildService();
     await app.completeOnboarding(OWNER, ONBOARDING_INPUT);
-    const assetId = await readyAsset(media, "banner");
+    const assetId = await readyAsset(media, "profile_banner");
     const result = await app.attachProfileBannerRef(OWNER, assetId);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -232,7 +251,7 @@ describe("profile application service — attachProfileAvatarRef / attachProfile
   it("rejects attaching a foreign asset as MEDIA_ASSET_FORBIDDEN", async () => {
     const { app, media } = buildService();
     await app.completeOnboarding(OWNER, ONBOARDING_INPUT);
-    const foreignAssetId = await readyAsset(media, "avatar", STRANGER);
+    const foreignAssetId = await readyAsset(media, "profile_avatar", STRANGER);
     const result = await app.attachProfileAvatarRef(OWNER, foreignAssetId);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe("MEDIA_ASSET_FORBIDDEN");
@@ -241,7 +260,7 @@ describe("profile application service — attachProfileAvatarRef / attachProfile
   it("rejects attaching an avatar asset as a banner ref as MEDIA_ASSET_TYPE_MISMATCH", async () => {
     const { app, media } = buildService();
     await app.completeOnboarding(OWNER, ONBOARDING_INPUT);
-    const assetId = await readyAsset(media, "avatar");
+    const assetId = await readyAsset(media, "profile_avatar");
     const result = await app.attachProfileBannerRef(OWNER, assetId);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe("MEDIA_ASSET_TYPE_MISMATCH");
@@ -250,7 +269,7 @@ describe("profile application service — attachProfileAvatarRef / attachProfile
   it("rejects attaching a pending (not ready) asset as MEDIA_ASSET_NOT_READY", async () => {
     const { app, media } = buildService();
     await app.completeOnboarding(OWNER, ONBOARDING_INPUT);
-    const intent = await media.createAvatarUploadIntent(OWNER, SAMPLE_AVATAR);
+    const intent = await createProfileIntent(media, OWNER, "profile_avatar", SAMPLE_AVATAR);
     if (!intent.ok) throw new Error("intent failed");
     const result = await app.attachProfileAvatarRef(OWNER, intent.value.assetId);
     expect(result.ok).toBe(false);
@@ -312,12 +331,16 @@ describe("profile application service — personal status", () => {
   it("attachProfileStatusPhotoRef verifies media owner + purpose + ready, then stores the ref", async () => {
     const { app, media } = await ready();
     await app.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
-    const intent = await media.createStatusPhotoUploadIntent(OWNER, {
+    const intent = await createProfileIntent(media, OWNER, "profile_bio_media", {
       mimeType: "image/png",
       sizeBytes: 1024,
     });
     if (!intent.ok) throw new Error("intent failed");
-    const confirmed = await media.confirmProfileMediaUpload(OWNER, intent.value.assetId);
+    const confirmed = await media.completeUpload({
+      actorUserId: OWNER,
+      intentId: intent.value.intentId,
+      assetId: intent.value.assetId,
+    });
     if (!confirmed.ok) throw new Error("confirm failed");
     const result = await app.attachProfileStatusPhotoRef(OWNER, intent.value.assetId);
     expect(result.ok).toBe(true);
@@ -329,12 +352,16 @@ describe("profile application service — personal status", () => {
   it("attachProfileStatusPhotoRef rejects a foreign asset (MEDIA_ASSET_FORBIDDEN)", async () => {
     const { app, media } = await ready();
     await app.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
-    const intent = await media.createStatusPhotoUploadIntent(STRANGER, {
+    const intent = await createProfileIntent(media, STRANGER, "profile_bio_media", {
       mimeType: "image/png",
       sizeBytes: 1024,
     });
     if (!intent.ok) throw new Error("intent failed");
-    const confirmed = await media.confirmProfileMediaUpload(STRANGER, intent.value.assetId);
+    const confirmed = await media.completeUpload({
+      actorUserId: STRANGER,
+      intentId: intent.value.intentId,
+      assetId: intent.value.assetId,
+    });
     if (!confirmed.ok) throw new Error("confirm failed");
     const result = await app.attachProfileStatusPhotoRef(OWNER, intent.value.assetId);
     expect(result.ok).toBe(false);
@@ -344,12 +371,16 @@ describe("profile application service — personal status", () => {
   it("attachProfileStatusPhotoRef rejects an avatar-purpose asset as MEDIA_ASSET_TYPE_MISMATCH", async () => {
     const { app, media } = await ready();
     await app.updatePersonalStatus(OWNER, { text: "skupiona", visibility: "public" });
-    const intent = await media.createAvatarUploadIntent(OWNER, {
+    const intent = await createProfileIntent(media, OWNER, "profile_avatar", {
       mimeType: "image/png",
       sizeBytes: 1024,
     });
     if (!intent.ok) throw new Error("intent failed");
-    const confirmed = await media.confirmProfileMediaUpload(OWNER, intent.value.assetId);
+    const confirmed = await media.completeUpload({
+      actorUserId: OWNER,
+      intentId: intent.value.intentId,
+      assetId: intent.value.assetId,
+    });
     if (!confirmed.ok) throw new Error("confirm failed");
     const result = await app.attachProfileStatusPhotoRef(OWNER, intent.value.assetId);
     expect(result.ok).toBe(false);

@@ -1,0 +1,158 @@
+.overlay {
+  --c-surface: #ffffff;
+  --c-border: #e5e7eb;
+  --c-border-soft: #eef2f7;
+  --c-text: #111827;
+  --c-text-soft: #64748b;
+  --c-primary: #1e4fd8;
+  --c-primary-soft: #eef2ff;
+  --c-danger: #b91c1c;
+
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  color: var(--c-text);
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--c-border-soft);
+  flex-shrink: 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.headerSub {
+  margin: 2px 0 0;
+  color: var(--c-text-soft);
+  font-size: 0.78rem;
+}
+
+.iconButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 0;
+  background: #f1f5f9;
+  color: var(--c-text-soft);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: #e2e8f0;
+}
+
+.progressBar {
+  display: flex;
+  gap: 6px;
+  padding: 12px 20px 4px;
+  flex-shrink: 0;
+}
+
+.progressDash {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--c-border);
+  transition: background 200ms ease;
+}
+
+.progressDashActive {
+  background: var(--c-primary);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.contentInner {
+  max-width: 580px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--c-border-soft);
+  padding: 12px 20px;
+  background: #ffffff;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.footerInner {
+  max-width: 580px;
+  margin-inline: auto;
+}
+
+.footerRow {
+  display: flex;
+  gap: 10px;
+}
+
+.primaryButton,
+.secondaryButton {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.92rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.primaryButton {
+  background: var(--c-primary);
+  color: #ffffff;
+  border-color: var(--c-primary);
+}
+
+.primaryButton:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  flex: 0 1 auto;
+  background: #f1f5f9;
+  color: var(--c-text-soft);
+  border-color: #e2e8f0;
+}
+
+.error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fee2e2;
+  color: var(--c-danger);
+  font-size: 0.88rem;
+}

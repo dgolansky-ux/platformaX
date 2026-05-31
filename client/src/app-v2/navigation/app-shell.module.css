@@ -1,0 +1,74 @@
+/*
+ * app-v2/navigation/app-shell.module.css — single source of truth for the
+ * page chrome (sidebar offset + main column). Synchronises every route shell
+ * with --shell-sidebar-width so no page can drift out of sync and the sidebar
+ * can never overlap content.
+ */
+
+.page {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--c-bg-app);
+  display: flex;
+  flex-direction: column;
+}
+
+.page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 480px at 12% -8%, rgba(79, 95, 231, 0.07), transparent 60%),
+    radial-gradient(720px 520px at 88% 0%, rgba(124, 76, 224, 0.05), transparent 60%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  flex: 1;
+}
+
+.content:focus {
+  outline: none;
+}
+
+.skipLink {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10000;
+  padding: 8px 14px;
+  background: var(--c-text-strong, #0f172a);
+  color: var(--c-bg-app, #ffffff);
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 120ms ease-out;
+}
+
+.skipLink:focus,
+.skipLink:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid var(--c-primary, #4f5fe7);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1024px) {
+  .content {
+    padding-left: var(--shell-sidebar-width);
+  }
+}
+
+@media (max-width: 1023px) {
+  .content {
+    padding-bottom: calc(var(--shell-bottom-nav) + env(safe-area-inset-bottom, 0px));
+  }
+}

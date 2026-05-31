@@ -28,6 +28,15 @@ const SCAN_DIRS = [
   "supabase",
 ];
 
+// Top-level config files that may carry an inline exception marker but
+// don't live under one of the SCAN_DIRS above. Scanned individually.
+const SCAN_ROOT_FILES = [
+  "eslint.config.js",
+  ".dependency-cruiser.cjs",
+  "knip.json",
+  ".gitleaks.toml",
+];
+
 const MARKERS = [
   "QUALITY_STRUCTURE_EXCEPTION",
   "ALLOW_FILE_SIZE_EXCEPTION",
@@ -44,6 +53,10 @@ const MARKER_OWNERS = new Set([
   "scripts/check-file-size-limits.mjs",
   "scripts/check-public-dto-pii.mjs",
   "scripts/check-dto-privacy-classification.mjs",
+  // Slice 24 — the new agent-bypass guard mentions PLATFORMAX_EXCEPTION
+  // by name so it can detect the marker outside registered paths. It
+  // does not USE the marker as an escape hatch.
+  "scripts/check-no-agent-bypass-language.mjs",
 ]);
 
 function walk(dir) {
@@ -116,19 +129,26 @@ function parseActiveRegisteredFiles() {
 
 function findInlineMarkers() {
   const hits = [];
+  function scanFile(fp) {
+    const rel = relative(ROOT, fp).replace(/\\/g, "/");
+    if (MARKER_OWNERS.has(rel)) return;
+    if (rel.includes("__tests__/")) return;
+    let content;
+    try { content = readFileSync(fp, "utf-8"); } catch { return; }
+    const matched = MARKERS.filter((m) => content.includes(m));
+    if (matched.length) hits.push({ rel, markers: matched });
+  }
   for (const scanDir of SCAN_DIRS) {
     const absDir = join(ROOT, scanDir);
     if (!existsSync(absDir)) continue;
     for (const fp of walk(absDir)) {
-      if (!/\.(ts|tsx|js|jsx|mjs|css|scss|sql)$/.test(fp)) continue;
-      const rel = relative(ROOT, fp).replace(/\\/g, "/");
-      if (MARKER_OWNERS.has(rel)) continue;
-      if (rel.includes("__tests__/")) continue;
-      let content;
-      try { content = readFileSync(fp, "utf-8"); } catch { continue; }
-      const matched = MARKERS.filter((m) => content.includes(m));
-      if (matched.length) hits.push({ rel, markers: matched });
+      if (!/\.(ts|tsx|js|jsx|mjs|cjs|css|scss|sql)$/.test(fp)) continue;
+      scanFile(fp);
     }
+  }
+  for (const rel of SCAN_ROOT_FILES) {
+    const fp = join(ROOT, rel);
+    if (existsSync(fp)) scanFile(fp);
   }
   return hits;
 }

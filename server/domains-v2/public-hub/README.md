@@ -1,11 +1,34 @@
 # public-hub
 
-Status: `SCAFFOLD_ONLY`
+Status: `PARTIAL` (BACKEND_PARTIAL)
 Owner: @dgolansky-ux
 Type: COMPOSITION_DOMAIN
 
 ## Purpose
 Composes read-only public views of profiles and communities from other domains.
+
+## Implemented (BACKEND_PARTIAL)
+
+A pure composition runtime that owns no data and performs no writes:
+
+- `dto.ts` — `HubViewModel` (ownerType, ownerId, owner summary, enabled modules,
+  visible section keys). Public DTO, no PII.
+- `contracts.ts` — driven resolver ports `HubOwnerResolver` /
+  `HubModulesResolver`. The **application layer** implements these on top of the
+  owner domains' public-api (identity, communities-v2, modules). public-hub never
+  imports those domains directly — it depends only on the resolver interfaces.
+- `policy.ts` — `visibleSections(ownerType, enabledModuleKeys)` (about always;
+  modules when any enabled; channels = community + channel_entry; feed_preview on
+  profiles).
+- `service.ts` — `createPublicHubService`: `getProfileHubView` /
+  `getCommunityHubView` (NOT_FOUND when the owner summary is absent/not public).
+- `mapper.ts` — `toHubViewModel`.
+
+## NOT implemented (out of scope here)
+
+- Persistence / caching of composed views (recomputed per call).
+- Section-level content payloads (only section *keys* are returned).
+- Any write path — composition is read-only by definition.
 
 ## Owns
 - Composition logic

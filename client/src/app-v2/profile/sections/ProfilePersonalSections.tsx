@@ -53,7 +53,7 @@ function SectionBlock({
             type="button"
             className={styles.addButton}
             aria-label={addLabel}
-            title={`${addLabel} — wkrótce`}
+            title={`${addLabel} — funkcja w przygotowaniu`}
             disabled
           >
             +

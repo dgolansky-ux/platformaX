@@ -1,3 +1,8 @@
+// === Slice 24 PRE-runtime ACK markers (EXC-016) =====================
+// PX-OBS-003-ACK: pre-runtime use-case; request-context tracing wiring scheduled with RequestContext slice. EXC-016.
+// PX-IDEMP-001-ACK: pre-runtime create/publish/upload/finalize command; idempotencyKey wiring scheduled with transactional outbox slice. EXC-016.
+// === end Slice 24 ACK markers =======================================
+
 /**
  * application-v2/use-cases/profile — application service
  *
@@ -120,6 +125,8 @@ function mapMediaError(err: MediaError): ProfileApplicationError {
     case "FORBIDDEN":
       return makeProfileError("MEDIA_ASSET_FORBIDDEN", "Brak uprawnień do zasobu.");
     case "INVALID_INPUT":
+    case "INVALID_PURPOSE":
+    case "INVALID_OWNER_TYPE":
     case "UNSUPPORTED_TYPE":
       return makeProfileError(
         "MEDIA_ASSET_TYPE_MISMATCH",
@@ -128,6 +135,9 @@ function mapMediaError(err: MediaError): ProfileApplicationError {
     case "NOT_READY":
     case "STORAGE_UNAVAILABLE":
     case "TOO_LARGE":
+    case "TOO_MANY_FILES":
+    case "INTENT_EXPIRED":
+    case "INTENT_ALREADY_USED":
       return makeProfileError(
         "MEDIA_ASSET_NOT_READY",
         "Zasób nie jest jeszcze gotowy do podpięcia.",
@@ -229,7 +239,7 @@ async function attachRef(
   purpose: MediaPurpose,
 ): Promise<ProfileApplicationResult<OwnerProfileView>> {
   if (!currentUserId) return { ok: false, error: unauthError() };
-  const verified = await deps.media.verifyProfileAssetForAttach(
+  const verified = await deps.media.verifyOwnedAssetForAttach(
     currentUserId,
     assetId,
     purpose,
@@ -237,9 +247,9 @@ async function attachRef(
   if (!verified.ok) return { ok: false, error: mapMediaError(verified.error) };
 
   let updated;
-  if (purpose === "avatar") {
+  if (purpose === "profile_avatar") {
     updated = await deps.identity.attachAvatarMediaRef(currentUserId, assetId);
-  } else if (purpose === "banner") {
+  } else if (purpose === "profile_banner") {
     updated = await deps.identity.attachBannerMediaRef(currentUserId, assetId);
   } else {
     updated = await deps.identity.attachStatusPhotoMediaRef(currentUserId, assetId);
@@ -294,12 +304,12 @@ export function createProfileApplicationService(
     },
 
     attachProfileAvatarRef: (currentUserId, assetId) =>
-      attachRef(deps, currentUserId, assetId, "avatar"),
+      attachRef(deps, currentUserId, assetId, "profile_avatar"),
 
     attachProfileBannerRef: (currentUserId, assetId) =>
-      attachRef(deps, currentUserId, assetId, "banner"),
+      attachRef(deps, currentUserId, assetId, "profile_banner"),
 
     attachProfileStatusPhotoRef: (currentUserId, assetId) =>
-      attachRef(deps, currentUserId, assetId, "statusPhoto"),
+      attachRef(deps, currentUserId, assetId, "profile_bio_media"),
   };
 }

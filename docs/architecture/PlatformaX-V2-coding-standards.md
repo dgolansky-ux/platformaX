@@ -24,6 +24,29 @@ It is not a style preference file. It is a safety contract. Code that passes loc
 6. Prefer one clean path over several compatibility paths.
 7. Every exception must be visible, justified and testable.
 
+## 2a. Deep-only acceptance (Slice 24 onward)
+
+PlatformaX V2 has ONE acceptance mode: `pnpm verify:deep`. No
+sub-mode (`verify:fast`, `verify:normal`, `tooling:check`, individual
+guards) can grant a READY / DONE / IMPLEMENTED / BACKEND_DONE /
+VISUAL_DONE / TOP_TIER_READY status. The deep pipeline runs, in
+order: `check`, `lint`, `test`, `build`, `rules:check`,
+`arch:check:v2`, `guards:all-local`, `depcruise:check`, `arch-tests`,
+`knip:check`, `secrets:gitleaks`, `tooling:redcase`. A step that
+cannot run in the current environment (e.g. `gitleaks` binary
+missing) must be reported as `NOT_RUN / ENV_BLOCKED` truthfully — it
+does NOT pass.
+
+Forbidden:
+
+- claiming PASS for a step that was not run,
+- claiming READY without an attached `verify:deep` log,
+- using `verify:fast` / `verify:normal` as acceptance,
+- promoting `tooling:redcase` to PASS while `--strict` mode is
+  informational (use `BLOCKED` or document the gap, see EXC-017).
+
+See `docs/governance/STATUS_TAXONOMY.md §Deep-only acceptance`.
+
 ## 3. TypeScript standard
 
 Required:
@@ -558,3 +581,130 @@ Cross-checks (all fail-closed):
 
 These three guards together make the integration model self-checking: a
 silent drift between any pair of artifacts above breaks the build.
+
+## 24. Minimum test-density rubric (Slice 24)
+
+A "tests exist" claim must meet the rubric below before READY is
+allowed for the touched scope. Backed by `check-placeholder-tests.mjs`
+and by the new `check-public-dto-contract-tests.mjs`.
+
+| Surface | Minimum required test |
+|---|---|
+| `policy.ts` | one negative test per exported predicate (denies the wrong viewer). |
+| `service.ts` | one positive + one negative test per public command. |
+| `public-api.ts` | a sibling `__tests__/public-api*.test.ts` (or `domain-contract*.test.ts` or `public-mapper*.test.ts`) asserting the export shape AND zero PII in any public DTO. |
+| `repository.ts` | builder + at least one round-trip test against the in-memory mock when the real DB is not yet wired. |
+| Lists / feeds / search | a cursor-pagination test asserting `nextCursor` + stable order. |
+| Mutations (`update*`, `delete*`, `attach*`, `revoke*`) | one positive test + one "wrong owner" negative test. |
+
+A placeholder test (`expect(true).toBe(true)` and friends) is
+detected by `check-placeholder-tests.mjs` and fails closed. A test
+file with only happy-path assertions on a public boundary is allowed
+only when the corresponding rule carries a `PX-RULE-ACK:` marker.
+
+## 25. Backend layer responsibilities (canonical)
+
+| Layer | Responsibility | Allowed imports | Forbidden imports |
+|---|---|---|---|
+| `router.ts` | Transport adapter; deserialize input, call service or use-case, serialize response. Owns Zod parsing. | own service, own public-api, `shared/contracts`. | other domains, repository, policy, mapper. |
+| `service.ts` | One-domain command handlers + read paths. Owns the in-domain transaction shape. | own repository, own policy, own mapper, own contracts, `shared/contracts`. | other domains' public-api / service / repository (`check-application-use-cases-boundary.mjs`). |
+| `repository.ts` | Persistence + projections. | own db helpers, own contracts, `shared/contracts`. | other domains; transport. |
+| `policy.ts` | Pure visibility / permission predicates. | type imports only (`check-policy-pure-functions.mjs`). | IO, fs, fetch, supabase, repository, service, Date.now / Math.random / crypto.randomUUID. |
+| `mapper.ts` | DB row ↔ DTO. | own dto, own contracts. | service, repository at runtime. |
+| `public-api.ts` | Safe domain entry-point for other domains and `application-v2`. | own service factory, own dto. | other domains' internals. |
+| `events.ts` | Cross-domain event types wrapped in `EventEnvelope`. | `@shared/contracts/event-envelope`, own dto. | service, repository. |
+
+`server/application-v2/use-cases/<flow>/service.ts` is the ONLY place
+where a flow that crosses 2+ domains may live (PX-APP-001 +
+`check-application-use-cases-boundary.mjs`).
+
+## 26. Visibility matrix (owner / friend / stranger / anonymous / admin)
+
+Every domain that owns user-visible data must declare its visibility
+matrix in `policy.ts` as `can*` / `may*` / `is*` / `visible*` /
+`select*` / `allow*` / `filter*` predicates. Routers MUST NOT
+contain raw `if (viewer === "stranger")` checks (caught by
+`check-visibility-matrix.mjs`). The supported viewer kinds are
+documented in `BACKEND_ARCHITECTURE_INVARIANTS.md §3`.
+
+Public reads must accept a `viewer*` parameter (any of
+`viewerContext`, `viewerRole`, `viewerId`, `viewerUserId`,
+`viewerSession`) — caught by `check-viewer-context-on-public-reads.mjs`.
+Truly public-only reads (anyone gets the same data, no per-viewer
+filtering) carry a file-level `PX-OWN-002-ACK:` marker registered in
+`EXCEPTIONS_REGISTER.md`.
+
+## 27. Idempotency, EventEnvelope, transactional outbox
+
+| Concern | Rule | Guard | Marker for pre-runtime files |
+|---|---|---|---|
+| Retry-sensitive commands (`create*`, `publish*`, `upload*`, `finalize*`) take `idempotencyKey`. | PX-IDEMP-001 / PX-IDEMPOTENCY-001 | `check-idempotency-flows.mjs` | `PX-IDEMP-001-ACK:` |
+| Cross-domain events travel inside `EventEnvelope` from `@shared/contracts/event-envelope`. | PX-EVENT-001 | `check-event-envelope-contract.mjs` | `PX-EVENT-001-ACK:` |
+| Event publish happens inside the same DB transaction as the source-of-truth write (outbox pattern). | PX-EVENT-002 | `check-transactional-outbox-pattern.mjs` | `PX-EVENT-002-ACK:` |
+
+Each `*-ACK:` marker is logged but does not block. Files carrying a
+marker must appear in `EXCEPTIONS_REGISTER.md` (EXC-016 for the
+Slice 24 backlog).
+
+## 28. Read-model ownership
+
+Each projection / read-model table has exactly one owning domain
+(PX-READMODEL-001). The owner is the domain that DECLARES the
+projection in its README under `## Read models` or `## Projections`.
+A second domain may LIST the same projection as a SUBSCRIBER only
+with a `<!-- PX-READMODEL-001-ACK: <reason> -->` HTML comment in its
+README; the first domain declaration is treated as the owner.
+Guard: `check-read-model-owner.mjs`.
+
+## 29. Public-DTO contract tests
+
+Every `server/domains-v2/<domain>/public-api.ts` must have a sibling
+test under `__tests__/` whose filename matches `public-api*.test.*` /
+`domain-contract*.test.*` / `public-mapper*.test.*`. The test must
+assert the export shape AND that no PII (email, phone, DOB, token,
+session, raw provider) leaks via the public DTO. Guard:
+`check-public-dto-contract-tests.mjs`.
+
+## 30. Agent safety addenda (Slice 24)
+
+- Adding a new `ALLOW_STATUS_TERM_IN_POLICY_DOC` marker requires the
+  file path be added to the allowlist in
+  `scripts/check-no-agent-bypass-language.mjs`. Planting the marker
+  in arbitrary files fails closed.
+- Phrases suggesting a gate can be skipped without `BLOCKED` status —
+  "temporary bypass", "skip the gate", "skip verify:deep", "disable
+  guard", "bypass the gate" — are forbidden outside the registered
+  governance / AI policy docs.
+- An inline `PLATFORMAX_EXCEPTION` marker in a file NOT listed in
+  `EXCEPTIONS_REGISTER.md` fails closed via
+  `check-inline-exceptions-registered.mjs` AND
+  `check-no-agent-bypass-language.mjs` (defense in depth).
+- A guard modification commit MUST include a red-case fixture or
+  amended fixture proving the guard still fires (see
+  `docs/governance/AGENT_COMMAND_STANDARD.md §14`).
+- READY / TOP_TIER_READY without a `pnpm verify:deep` log is treated
+  as PX-GOV-002 (guard weakening). See `STATUS_TAXONOMY.md
+  §Deep-only acceptance`.
+
+## 31. ZIP and manifest truth
+
+A "report ZIP" (slim, only the audit reports + manifests for a
+slice) and a "full-source ZIP" (entire working tree minus
+exclusions) are different products. Confusing one for the other in a
+report is forbidden. Every audit ZIP must:
+
+- carry a JSON manifest with the same prefix as the ZIP and a
+  matching `commitShortSha` and `workingTreeDirty` flag,
+- embed the manifest inside the ZIP at `MANIFEST.json`,
+- exclude `.git/**`, `node_modules/**`, `dist/**`, `build/**`,
+  `.next/**`, `coverage/**`, `.cache/**`, `tmp/**`, `.wip-safety/**`,
+  `audit-out/**`, `.claude/**`, `.env`, `.env.*` (except
+  `.env.example` and `.env.test.example`), `secrets/**`, prior
+  ZIPs, `test-results/**`, `playwright-report/**`, and private
+  local settings,
+- set `finalStatus: BLOCKED` if any validation check fails (no `.git`,
+  no `node_modules`, no env except examples, no secrets, no old
+  zips, manifest present inside the ZIP).
+
+`workingTreeDirty: true` is acceptable when truthful; `workingTreeDirty:
+false` is forbidden when the working tree actually has changes.

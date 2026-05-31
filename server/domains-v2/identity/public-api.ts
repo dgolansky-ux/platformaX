@@ -68,3 +68,43 @@ export type {
   ProfilePublicSummaryChangedEvent,
   IdentityEventEnvelope,
 } from "./events";
+
+// === contact-access submodule (Kontakty slice) ===========================
+export { createContactAccessService } from "./contact-access-service";
+export type {
+  ContactAccessService,
+  ContactAccessServiceDeps,
+  ContactAccessClock,
+  ContactAccessIdGenerator,
+  ContactAccessError,
+  ContactAccessErrorCode,
+  ContactAccessResult,
+  RelationshipSignalResolver,
+} from "./contact-access-service";
+export type {
+  ContactFieldsRepository,
+  ContactPermissionsRepository,
+  ContactRequestsRepository,
+  CreateContactRequestInput,
+} from "./contact-access-ports";
+export type {
+  UpdateContactFieldsInput,
+  UpdateContactPermissionsInput,
+  SendContactRequestInput,
+  RespondToContactRequestInput,
+} from "./contact-access-dto";
+export { defaultContactFieldPermissions } from "./contact-access-dto";
+export {
+  createInMemoryContactFieldsRepository,
+  createInMemoryContactPermissionsRepository,
+  createInMemoryContactRequestsRepository,
+} from "./contact-access-store";
+export type { RelationshipSignal } from "./contact-access-policy";
+export {
+  buildVisibleContactFields,
+  canSeeContactField,
+  canRespondToContactRequest,
+  isApprovedFieldsValid,
+  isDuplicatePendingRequest,
+  isSelfRequest,
+} from "./contact-access-policy";

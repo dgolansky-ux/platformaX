@@ -1,9 +1,6 @@
-﻿/**
- * moderation — barrel export
- * Status: SCAFFOLD_ONLY
+/**
+ * moderation — barrel export.
  *
- * Re-exports public surface only.
+ * Re-exports public surface only (no repository / mapper / service internals).
  */
 export * from "./public-api";
-export * from "./contracts";
-export * from "./events";

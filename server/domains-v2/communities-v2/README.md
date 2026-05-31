@@ -1,11 +1,18 @@
 # communities-v2
 
-Status: `SCAFFOLD_ONLY`
+Status: `BACKEND_PARTIAL`
 Owner: @dgolansky-ux
 Type: OWNER_DOMAIN
 
 ## Purpose
 Owns community lifecycle — profile, members, roles, settings, invites, join requests, and feed settings.
+
+## Runtime (BACKEND_PARTIAL)
+In-memory runtime: `service.ts`, `store.ts` (in-memory repository adapters
+behind `ports.ts`), `policy.ts`, `mapper.ts`. `public-api.ts` exports the
+service factory + in-memory repos + the `CommunityAuthorityResolver` contract
+(consumed cross-domain by channels/public-hub). No DB, no transport yet.
+Public DTO carries no PII and no founder id. No posts stored here.
 
 ## Owns
 - Community profile

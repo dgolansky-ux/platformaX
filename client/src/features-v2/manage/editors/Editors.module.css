@@ -1,0 +1,269 @@
+/* features-v2/manage/editors — shared styles for deep-dive editor panels. */
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.panelHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 18px;
+  color: #111827;
+  font-weight: 700;
+}
+
+.panelLead {
+  margin: 0;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* Toggle list (privacy + notifications) */
+.toggleList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid #f3f4f6;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.toggleLabelBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.toggleLabel {
+  font-weight: 600;
+  color: #111827;
+  font-size: 14px;
+}
+
+.toggleValue {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.toggleGroup {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.toggleBtn {
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggleBtnActive {
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+}
+
+/* Switch (notifications) */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #d1d5db;
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  min-width: 76px;
+  justify-content: space-between;
+}
+
+.switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.switchOn {
+  background: #ecfdf5;
+  border-color: #34d399;
+  color: #047857;
+}
+
+.switchOff {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  color: #6b7280;
+}
+
+.switchThumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: currentColor;
+  display: inline-block;
+}
+
+.switchText {
+  font-size: 11px;
+}
+
+/* Consents */
+.statsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.statPill {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.consentList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.consentItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #f3f4f6;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.consentBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 240px;
+  flex: 1 1 240px;
+}
+
+.consentName {
+  margin: 0;
+  font-weight: 700;
+  color: #111827;
+  font-size: 14px;
+}
+
+.consentHandle {
+  color: #6b7280;
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+.consentMeta {
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.consentStatusBadge {
+  align-self: flex-start;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.statusApproved {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+}
+
+.statusPending {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.statusRevoked {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.consentActions {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btnAccept {
+  background: #047857;
+  color: #ffffff;
+  border: 1px solid #047857;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btnReject {
+  background: #ffffff;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+}

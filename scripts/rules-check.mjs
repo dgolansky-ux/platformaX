@@ -49,6 +49,30 @@ const GUARDS = [
   "check-dto-privacy-classification.mjs",
   "check-scalability-hot-paths.mjs",
   "check-governance-drift.mjs",
+  // Slice 24 — runtime invariant guards (P0)
+  "check-no-agent-bypass-language.mjs",
+  "check-application-use-cases-boundary.mjs",
+  "check-policy-pure-functions.mjs",
+  "check-event-envelope-contract.mjs",
+  "check-viewer-context-on-public-reads.mjs",
+  "check-visibility-matrix.mjs",
+  "check-public-dto-contract-tests.mjs",
+  "check-idempotency-flows.mjs",
+  "check-transactional-outbox-pattern.mjs",
+  "check-read-model-owner.mjs",
+  "check-backend-ownership-invariants.mjs",
+  "check-media-attach-owner-purpose.mjs",
+  // Slice 25 — narrow P1 guards (fail-closed; ACK markers honored)
+  "check-branded-id-types.mjs",
+  "check-domain-result-errors.mjs",
+  "check-correlation-id-boundary.mjs",
+  "check-presentational-container-boundary.mjs",
+  "check-deterministic-seeds.mjs",
+  "check-resource-context-refs.mjs",
+  "check-mock-adapter-status-truth.mjs",
+  "check-features-v2-internal-import.mjs",
+  "check-no-storage-as-backend.mjs",
+  "check-public-hub-source-of-truth.mjs",
 ];
 
 let failed = 0;

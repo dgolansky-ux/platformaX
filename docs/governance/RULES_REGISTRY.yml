@@ -1052,11 +1052,12 @@ rules:
       - "ownerUserId or ownerId on owned resources"
       - "slug or publicId for public URL resources when applicable"
     enforced_by:
+      - scripts/check-backend-ownership-invariants.mjs
       - manual_gate
     evidence_required: policy/service tests or Architecture Impact Statement owner matrix
     status: active
     owner: architecture
-    notes: Partial automation via domain-scaffold and policy tests; dedicated guard TODO
+    notes: Slice 24 shipped check-backend-ownership-invariants.mjs (narrow body-signal heuristic). Pre-runtime closure-based ownership is ACKed via per-file PX-OWN-001-ACK markers tracked under EXC-016; explicit owner-check sweep happens in the runtime backend slice.
 
   - id: PX-OWN-002
     title: Public reads require viewerContext or explicit public-only policy
@@ -1073,11 +1074,12 @@ rules:
       - "viewerContext owner|friend|stranger|anonymous|admin"
       - "or documented public-only read path"
     enforced_by:
+      - scripts/check-viewer-context-on-public-reads.mjs
       - manual_gate
     evidence_required: public read service signature + policy tests
     status: active
     owner: architecture
-    notes: null
+    notes: Slice 24 shipped check-viewer-context-on-public-reads.mjs (matches any `viewer*` parameter). Three pre-runtime public-only read files registered as PX-OWN-002-ACK under EXC-016.
 
   - id: PX-VIS-001
     title: Profile and resource visibility matrix required
@@ -1094,11 +1096,13 @@ rules:
       - "policy.ts defines canView/canEdit per viewerContext"
       - "visibility matrix tests for profile fields"
     enforced_by:
+      - scripts/check-visibility-matrix.mjs
+      - scripts/check-policy-pure-functions.mjs
       - manual_gate
     evidence_required: policy tests + PROFILE_RUNTIME_LOGIC alignment
     status: active
     owner: architecture
-    notes: Pure policy functions — see PX-POLICY-001
+    notes: Pure policy functions — see PX-POLICY-001. Slice 24 shipped check-visibility-matrix.mjs (requires can/may/is/visible/select/allow/filter predicate or ACK marker).
 
   - id: PX-DTO-002
     title: Public DTO zero PII and no raw auth provider session storage paths
@@ -1137,11 +1141,12 @@ rules:
     required_patterns:
       - "contextType contextOwnerId contextRefId visibility ownerUserId"
     enforced_by:
+      - scripts/check-resource-context-refs.mjs
       - manual_gate
     evidence_required: contracts/DTO fields + mapper tests
     status: active
     owner: architecture
-    notes: null
+    notes: Slice 25 shipped narrow token-presence guard on content-v2 contracts/dto files. 28 pre-runtime files ACKed under EXC-016. Semantic validation that contextOwnerId/contextRefId are present alongside contextType stays manual.
 
   - id: PX-MEDIA-004
     title: Media attach requires owner and purpose validation
@@ -1158,12 +1163,13 @@ rules:
     required_patterns:
       - "validate asset ownerUserId ownerType purpose status before attach"
     enforced_by:
-      - manual_gate
+      - scripts/check-media-attach-owner-purpose.mjs
       - scripts/check-media-base64.mjs
+      - manual_gate
     evidence_required: media policy tests + attach service tests
     status: active
     owner: architecture
-    notes: Dedicated attach guard TODO; base64 path blocked by PX-MEDIA-001
+    notes: Slice 24 shipped check-media-attach-owner-purpose.mjs (body must mention ownerUserId AND purpose). identity/service.ts attach* functions registered as PX-MEDIA-004-ACK under EXC-016 until owner/purpose wiring lands in the runtime media slice.
 
   - id: PX-LIST-004
     title: Runtime lists feed search require limit maxLimit cursor stable order
@@ -1227,12 +1233,13 @@ rules:
       - "EventEnvelope id type version occurredAt actorId payload idempotencyKey"
       - "fanout via events outbox worker"
     enforced_by:
+      - scripts/check-event-envelope-contract.mjs
       - scripts/check-scalability-hot-paths.mjs
       - manual_gate
     evidence_required: events.ts contracts + ADR-009 + no sync fanout in touched paths
     status: active
     owner: architecture
-    notes: Extends PX-SCALE-001; envelope guard TODO
+    notes: Slice 24 shipped check-event-envelope-contract.mjs. moderation/social/notifications-v2 events.ts registered as PX-EVENT-001-ACK under EXC-016 until the outbox slice ships.
 
   - id: PX-EVENT-002
     title: Outbox event persisted in same DB transaction as source write
@@ -1248,11 +1255,12 @@ rules:
     required_patterns:
       - "transactional outbox write with source of truth"
     enforced_by:
+      - scripts/check-transactional-outbox-pattern.mjs
       - manual_gate
     evidence_required: repository transaction pattern or ADR rollout note
     status: active
     owner: architecture
-    notes: Automated outbox guard TODO — MANUAL_GATE_REQUIRED until outbox table exists
+    notes: Slice 24 shipped check-transactional-outbox-pattern.mjs (narrow heuristic — flags publish/emitEvent calls outside a tx/outbox/db.transaction scope). Fail-closed once the outbox table exists.
 
   - id: PX-LC-001
     title: Domain entities with lifecycle require explicit statuses
@@ -1289,11 +1297,12 @@ rules:
       - "idempotencyKey on retry-sensitive commands"
       - "or explicit reason in Architecture Impact Statement"
     enforced_by:
+      - scripts/check-idempotency-flows.mjs
       - manual_gate
     evidence_required: command contract + service handling or AIS exemption
     status: active
     owner: architecture
-    notes: Aligns with PX-IDEMPOTENCY-001 when table lands
+    notes: Slice 24 shipped check-idempotency-flows.mjs. ~33 pre-runtime service/use-case files registered as PX-IDEMP-001-ACK under EXC-016 — the wiring lands with the idempotency table slice.
 
   - id: PX-AIS-002
     title: Backend tasks require Architecture Impact Statement
@@ -1333,11 +1342,12 @@ rules:
     required_patterns:
       - "use-case module under server/application-v2/use-cases"
     enforced_by:
+      - scripts/check-application-use-cases-boundary.mjs
       - manual_gate
     evidence_required: use-case file + import graph review
     status: active
     owner: architecture
-    notes: check-application-use-cases-boundary.mjs TODO
+    notes: Slice 24 shipped check-application-use-cases-boundary.mjs (rejects cross-domain public-api / service / repository / policy / mapper / router imports from a domain service.ts).
 
   - id: PX-READMODEL-001
     title: Every read model projection has exactly one owner domain
@@ -1353,11 +1363,12 @@ rules:
     required_patterns:
       - "single owner domain per read model"
     enforced_by:
+      - scripts/check-read-model-owner.mjs
       - manual_gate
     evidence_required: DOMAIN_OWNERSHIP_MATRIX + read model README
     status: active
     owner: architecture
-    notes: null
+    notes: Slice 24 shipped check-read-model-owner.mjs (scans Read models / Projections sections in domain READMEs; duplicates fail unless tagged with a PX-READMODEL-001-ACK subscriber marker).
 
   - id: PX-CONTRACT-001
     title: Public DTO and public-api require contract or snapshot tests
@@ -1372,12 +1383,13 @@ rules:
     required_patterns:
       - "contract test or snapshot test for public DTO exports"
     enforced_by:
-      - manual_gate
+      - scripts/check-public-dto-contract-tests.mjs
       - scripts/check-public-dto-pii.mjs
+      - manual_gate
     evidence_required: __tests__ public-api or dto contract suite
     status: active
     owner: architecture
-    notes: Dedicated check-public-dto-contract-tests.mjs TODO
+    notes: Slice 24 shipped check-public-dto-contract-tests.mjs (requires sibling public-api*.test.* / domain-contract*.test.* / public-mapper*.test.*). Four scaffold domains registered as PX-CONTRACT-001-ACK under EXC-016.
 
   - id: PX-ID-001
     title: Domain IDs use branded types not raw string at boundaries
@@ -1392,11 +1404,12 @@ rules:
     required_patterns:
       - "UserId PostId MediaAssetId CommunityId branded types at domain boundary"
     enforced_by:
+      - scripts/check-branded-id-types.mjs
       - manual_gate
     evidence_required: shared/types or domain contracts
     status: active
     owner: engineering
-    notes: check-branded-id-types.mjs TODO
+    notes: Slice 25 shipped narrow guard. Files declaring raw `<name>Id: string` on public-api.ts must either import branded-ids or carry a PX-ID-001-ACK marker.
 
   - id: PX-ERROR-001
     title: Domain boundaries return typed Result not raw thrown errors
@@ -1410,11 +1423,12 @@ rules:
     required_patterns:
       - "Result or DomainError at domain public boundary"
     enforced_by:
+      - scripts/check-domain-result-errors.mjs
       - manual_gate
     evidence_required: public-api return types + tests
     status: active
     owner: engineering
-    notes: null
+    notes: Slice 25 shipped narrow guard. server/domains-v2/media/service.ts ACKed under EXC-016.
 
   - id: PX-CURSOR-001
     title: Runtime list feed search uses opaque cursor not offset pagination
@@ -1470,11 +1484,12 @@ rules:
     required_patterns:
       - "idempotency key storage for create publish upload finalize"
     enforced_by:
+      - scripts/check-idempotency-flows.mjs
       - manual_gate
     evidence_required: migration + repository idempotency check
     status: active
     owner: architecture
-    notes: Aligns with PX-IDEMP-001; table guard TODO
+    notes: Same guard as PX-IDEMP-001 — Slice 24 ships the command-side check. Migration/table coverage stays manual until the idempotency table lands.
 
   - id: PX-POLICY-001
     title: Policies are pure testable functions canView canEdit canAttach canDelete
@@ -1490,11 +1505,12 @@ rules:
     required_patterns:
       - "pure policy functions with unit tests"
     enforced_by:
+      - scripts/check-policy-pure-functions.mjs
       - manual_gate
     evidence_required: policy.ts tests without mocks for IO
     status: active
     owner: architecture
-    notes: check-policy-pure-functions.mjs TODO
+    notes: Slice 24 shipped check-policy-pure-functions.mjs (forbids repository / service / router / mapper / fs / crypto / supabase / fetch imports and Date.now / Math.random / crypto.randomUUID calls in policy.ts; type-only imports are allowed).
 
   - id: PX-UI-001
     title: Design tokens are source of truth for profile visual parity
@@ -1528,11 +1544,12 @@ rules:
     required_patterns:
       - "container owns data presentational owns markup"
     enforced_by:
+      - scripts/check-presentational-container-boundary.mjs
       - manual_gate
     evidence_required: import review or lint rule future
     status: active
     owner: engineering
-    notes: check-presentational-container-boundary.mjs TODO
+    notes: Slice 25 shipped narrow guard. Scans components/ subfolders under features-v2 / app-v2. Forward-looking tripwire — current repo has no components/ subfolders.
 
   - id: PX-OBS-003
     title: Correlation ID flows through request use-case log error boundaries
@@ -1547,11 +1564,12 @@ rules:
     required_patterns:
       - "correlationId end to end"
     enforced_by:
+      - scripts/check-correlation-id-boundary.mjs
       - manual_gate
     evidence_required: middleware/use-case log fields
     status: active
     owner: engineering
-    notes: check-correlation-id-boundary.mjs TODO
+    notes: Slice 25 shipped narrow token-presence guard. 18 pre-runtime use-case service files ACKed under EXC-016. Semantic propagation check stays manual.
 
   - id: PX-TEST-001
     title: No placeholder or tautological assertions in tests
@@ -1589,9 +1607,53 @@ rules:
     required_patterns:
       - "stable IDs deterministic dates MOCK fixtures"
     enforced_by:
+      - scripts/check-deterministic-seeds.mjs
       - scripts/check-test-env-safety.mjs
       - manual_gate
     evidence_required: fixture builders + seed scripts review
     status: active
     owner: engineering
-    notes: check-deterministic-seeds.mjs TODO
+    notes: Slice 25 shipped narrow guard. Scans seed/fixture files for Math.random/Date.now/randomUUID; *.test.* files out of scope.
+
+  - id: PX-STORAGE-001
+    title: No localStorage or sessionStorage as fake backend
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-active-rules.md
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+    applies_to: [client]
+    forbidden_patterns:
+      - "localStorage.setItem for domain data outside UI prefs / consent / theme allow-list"
+      - "sessionStorage.setItem for domain data outside allow-list"
+    required_patterns:
+      - "feature-registry MOCK_LOCAL_ONLY adapter for in-memory state"
+      - "real transport adapter for runtime"
+    enforced_by:
+      - scripts/check-no-storage-as-backend.mjs
+    evidence_required: gate log + allow-list review
+    status: active
+    owner: architecture
+    notes: Slice 25 shipped narrow guard with UI-prefs/consent/theme/app-v2-system allow-list. New allow-listed paths must be registered in EXCEPTIONS_REGISTER.md.
+
+  - id: PX-HUB-001
+    title: Public Hub is composition-only and never owns source data
+    severity: P1
+    category: architecture
+    source_docs:
+      - docs/architecture/PlatformaX-V2-coding-standards.md
+      - docs/governance/BACKEND_ARCHITECTURE_INVARIANTS.md
+    applies_to: [server/domains-v2/public-hub]
+    forbidden_patterns:
+      - "public-hub imports another domain's repository"
+      - "public-hub imports db/ or adapters/ module"
+      - "public-hub imports @supabase/supabase-js"
+    required_patterns:
+      - "public-hub consumes resolver interfaces declared in its own contracts.ts"
+      - "owner-domain provides the resolver implementation"
+    enforced_by:
+      - scripts/check-public-hub-source-of-truth.mjs
+    evidence_required: gate log + public-hub service.ts review
+    status: active
+    owner: architecture
+    notes: Slice 25 shipped narrow guard. Public Hub is a COMPOSITION_DOMAIN by design.

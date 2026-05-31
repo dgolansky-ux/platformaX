@@ -1,13 +1,40 @@
+/**
+ * app-v2/navigation/DesktopSidebar — Slice 20B-FIX (top-tier redesign).
+ *
+ * Premium left rail (280px). Layout: monogram + brandword, compact user
+ * card (clickable → /profile), primary navigation, secondary "Twoje konto"
+ * group with "Zarządzaj", and a minimal "Aktywni teraz" strip pinned to the
+ * bottom. "Wiadomości" / "Znajdź ludzi" stay disabled with a "Wkrótce"
+ * pill — never fake-active.
+ *
+ * Active-now strip uses MOCK_LOCAL_ONLY data; presence is presentational
+ * only and never sent to any adapter.
+ */
 import { useNavigate } from "react-router-dom";
+import { useNotificationsUnreadCount } from "@client/features-v2/notifications-v2";
+import {
+  IconBell,
+  IconChannel,
+  IconChat,
+  IconCommunity,
+  IconContacts,
+  IconFeed,
+  IconHome,
+  IconSearch,
+  IconSettings,
+  IconUser,
+} from "./desktop-sidebar-icons";
 import styles from "./desktop-sidebar.module.css";
 
 export type SidebarTab =
   | "centrum"
   | "profil"
+  | "kontakty"
   | "feed"
   | "wiadomosci"
   | "znajdz"
   | "spolecznosci"
+  | "kanaly"
   | "powiadomienia"
   | "zarzadzaj";
 
@@ -17,114 +44,46 @@ type DesktopSidebarProps = {
   handle: string;
   avatarInitial: string;
   online?: boolean;
+  viewerUserId?: string;
 };
 
-const ACTIVE_NOW_MOCK = [
-  { id: "a1", initial: "M", color: "#1e4fd8" },
-  { id: "a2", initial: "O", color: "#2563eb" },
-  { id: "a3", initial: "P", color: "#3b82f6" },
-  { id: "a4", initial: "K", color: "#475569" },
-  { id: "a5", initial: "T", color: "#1e3a5f" },
-  { id: "a6", initial: "E", color: "#334155" },
+const ACTIVE_NOW_MOCK: readonly { id: string; initial: string; color: string }[] = [
+  { id: "a1", initial: "M", color: "linear-gradient(135deg,#4f5fe7,#7c4ce0)" },
+  { id: "a2", initial: "O", color: "linear-gradient(135deg,#0ea5e9,#6366f1)" },
+  { id: "a3", initial: "P", color: "linear-gradient(135deg,#10b981,#0ea5e9)" },
+  { id: "a4", initial: "K", color: "linear-gradient(135deg,#f59e0b,#ef4444)" },
 ];
-const ACTIVE_EXTRA_COUNT = 5;
+const ACTIVE_EXTRA_COUNT = 7;
+const DEFAULT_VIEWER_ID = "u-viewer";
 
 type NavItemProps = {
   icon: React.ReactNode;
   label: string;
   active: boolean;
   disabled?: boolean;
+  badge?: number;
   onClick?: () => void;
 };
 
-function NavItem({ icon, label, active, disabled, onClick }: NavItemProps) {
+function NavItem({ icon, label, active, disabled, badge, onClick }: NavItemProps) {
+  const showBadge = typeof badge === "number" && badge > 0;
   return (
     <button
       type="button"
       className={`${styles.navItem} ${active ? styles.navItemActive : ""}`}
       aria-current={active ? "page" : undefined}
-      aria-label={disabled ? `${label} — wkrótce` : label}
+      aria-label={disabled ? `${label} — funkcja w przygotowaniu` : showBadge ? `${label} (${badge} nowych)` : label}
       disabled={disabled}
       onClick={disabled ? undefined : onClick}
     >
       <span className={styles.navItemIcon} aria-hidden="true">{icon}</span>
       <span className={styles.navItemLabel}>{label}</span>
+      {showBadge ? (
+        <span className={styles.navItemBadge} data-testid="notifications-unread-badge">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      ) : null}
     </button>
-  );
-}
-
-function IconHome() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
-  );
-}
-
-function IconUser() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  );
-}
-
-function IconFeed() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 00-3-3.87" />
-      <path d="M16 3.13a4 4 0 010 7.75" />
-    </svg>
-  );
-}
-
-function IconChat() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-    </svg>
-  );
-}
-
-function IconSearch() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  );
-}
-
-function IconCommunity() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  );
-}
-
-function IconBell() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 01-3.46 0" />
-    </svg>
-  );
-}
-
-function IconSettings() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
-    </svg>
   );
 }
 
@@ -134,30 +93,77 @@ export function DesktopSidebar({
   handle,
   avatarInitial,
   online = true,
+  viewerUserId,
 }: DesktopSidebarProps) {
   const navigate = useNavigate();
+  const unread = useNotificationsUnreadCount(viewerUserId ?? DEFAULT_VIEWER_ID);
 
   return (
     <aside className={styles.sidebar} aria-label="Menu boczne">
-      <div className={styles.logo}>PlatformaX</div>
+      <button
+        type="button"
+        className={styles.brandRow}
+        onClick={() => navigate("/")}
+        aria-label="PlatformaX — przejdź do centrum"
+        style={{ background: "transparent", border: 0, cursor: "pointer" }}
+      >
+        <span className={styles.brandMark} aria-hidden="true">X</span>
+        <span className={styles.brandWord}>PlatformaX</span>
+      </button>
 
-      <div className={styles.userCard}>
-        <div className={styles.userAvatar}>{avatarInitial}</div>
-        <div className={styles.userName}>{displayName}</div>
-        <div className={styles.userHandle}>
-          {online ? <span className={styles.onlineDot} aria-label="Online" /> : null}
+      <button
+        type="button"
+        className={styles.userCard}
+        onClick={() => navigate("/profile")}
+        aria-label={`Otwórz profil ${displayName}`}
+      >
+        <span className={styles.userAvatar}>{avatarInitial}</span>
+        <span className={styles.userName}>{displayName}</span>
+        <span className={styles.userHandle}>
+          {online ? <span className={styles.onlineDot} aria-hidden="true" /> : null}
           @{handle}
-        </div>
-      </div>
+        </span>
+        <span className={styles.userChevron} aria-hidden="true">›</span>
+      </button>
 
-      <div className={styles.activeNow}>
-        <div className={styles.activeNowHeader}>
-          <span className={styles.sectionLabel}>AKTYWNI TERAZ</span>
-          <button type="button" className={styles.activeNowAction} disabled aria-label="Ustaw aktywnych — wkrótce">
-            Ustaw
-          </button>
+      <nav className={styles.navGroup} aria-label="Nawigacja główna">
+        <NavItem icon={<IconHome />} label="Centrum" active={active === "centrum"} onClick={() => navigate("/")} />
+        <NavItem icon={<IconUser />} label="Mój profil" active={active === "profil"} onClick={() => navigate("/profile")} />
+        <NavItem icon={<IconFeed />} label="Feed znajomych" active={active === "feed"} onClick={() => navigate("/friends-feed")} />
+        <NavItem icon={<IconCommunity />} label="Społeczności" active={active === "spolecznosci"} onClick={() => navigate("/communities")} />
+        <NavItem icon={<IconChannel />} label="Kanały" active={active === "kanaly"} onClick={() => navigate("/channels")} />
+        <NavItem
+          icon={<IconBell />}
+          label="Powiadomienia"
+          active={active === "powiadomienia"}
+          badge={unread.total}
+          onClick={() => navigate("/notifications")}
+        />
+        <NavItem icon={<IconContacts />} label="Kontakty" active={active === "kontakty"} onClick={() => navigate("/contacts")} />
+      </nav>
+
+      <div className={styles.sectionLabel}>W przygotowaniu</div>
+      <nav className={styles.navGroup} aria-label="Funkcje w przygotowaniu">
+        <NavItem icon={<IconSearch />} label="Znajdź ludzi" active={false} disabled />
+        <NavItem icon={<IconChat />} label="Wiadomości" active={false} disabled />
+      </nav>
+
+      <div className={styles.sectionLabel}>Twoje konto</div>
+      <nav className={styles.navGroup} aria-label="Ustawienia konta">
+        <NavItem
+          icon={<IconSettings />}
+          label="Zarządzaj"
+          active={active === "zarzadzaj"}
+          onClick={() => navigate("/manage")}
+        />
+      </nav>
+
+      <div className={styles.activeStrip}>
+        <div className={styles.activeStripHeader}>
+          <span className={styles.activeStripLabel}>Aktywni teraz</span>
+          <span className={styles.activeStripCount}>{ACTIVE_NOW_MOCK.length + ACTIVE_EXTRA_COUNT}</span>
         </div>
-        <div className={styles.activeNowAvatars}>
+        <div className={styles.activeStripRow}>
           {ACTIVE_NOW_MOCK.map((a) => (
             <span key={a.id} className={styles.activeAvatar} style={{ background: a.color }}>
               {a.initial}
@@ -166,25 +172,6 @@ export function DesktopSidebar({
           <span className={styles.activeExtra}>+{ACTIVE_EXTRA_COUNT}</span>
         </div>
       </div>
-
-      <nav className={styles.nav}>
-        <NavItem icon={<IconHome />} label="Centrum" active={active === "centrum"} onClick={() => navigate("/")} />
-        <NavItem icon={<IconUser />} label="Mój profil" active={active === "profil"} onClick={() => navigate("/profile")} />
-        <NavItem icon={<IconFeed />} label="Feed znajomych" active={active === "feed"} disabled />
-        <NavItem icon={<IconChat />} label="Wiadomości" active={active === "wiadomosci"} disabled />
-        <NavItem icon={<IconSearch />} label="Znajdź ludzi" active={active === "znajdz"} disabled />
-
-        <div className={styles.sectionDivider}>
-          <span className={styles.sectionLabel}>SPOŁECZNOŚĆ</span>
-        </div>
-        <NavItem icon={<IconCommunity />} label="Społeczności" active={active === "spolecznosci"} disabled />
-        <NavItem icon={<IconBell />} label="Powiadomienia" active={active === "powiadomienia"} disabled />
-
-        <div className={styles.sectionDivider}>
-          <span className={styles.sectionLabel}>USŁUGI</span>
-        </div>
-        <NavItem icon={<IconSettings />} label="Zarządzaj" active={active === "zarzadzaj"} disabled />
-      </nav>
     </aside>
   );
 }

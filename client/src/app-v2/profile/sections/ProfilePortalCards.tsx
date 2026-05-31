@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../styles/profile-portal.module.css";
 
 type PortalCard = {
@@ -13,6 +14,8 @@ type PortalCard = {
   discoverCount: number;
   /** Optional pink "N new" badge with a close X (overrides the discovery badge). */
   newCount?: number;
+  /** Route the card opens. When undefined, the card stays disabled. */
+  route?: string;
 };
 
 // Per-card accent colors mirror legacy ProfileTopRow (Społeczności = blue,
@@ -31,6 +34,11 @@ const ICONS: Record<string, ReactNode> = {
   "friends-feed": (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
+    </svg>
+  ),
+  contacts: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 11h-6" /><path d="M20 8v6" />
     </svg>
   ),
 };
@@ -55,6 +63,7 @@ const CARDS: ReadonlyArray<PortalCard> = [
     bg: "#FFFFFF",
     delayMs: 80,
     discoverCount: 0,
+    route: "/channels",
   },
   {
     id: "friends-feed",
@@ -67,6 +76,17 @@ const CARDS: ReadonlyArray<PortalCard> = [
     discoverCount: 0,
     newCount: 20,
   },
+  {
+    id: "contacts",
+    title: "Kontakty",
+    subtitle: "Znajomi, kontakty i specjaliści",
+    icon: "",
+    accent: "#0EA5E9",
+    bg: "#FFFFFF",
+    delayMs: 240,
+    discoverCount: 0,
+    route: "/contacts",
+  },
 ];
 
 /**
@@ -78,6 +98,7 @@ const CARDS: ReadonlyArray<PortalCard> = [
  * plus a soft-pulsing green "open" indicator on the right.
  */
 export function ProfilePortalCards() {
+  const navigate = useNavigate();
   return (
     <div className={styles.portalCards}>
       {CARDS.map((card) => {
@@ -86,15 +107,17 @@ export function ProfilePortalCards() {
           "--ptlBg": card.bg,
           "--ptlDelay": `${card.delayMs}ms`,
         };
+        const enabled = typeof card.route === "string";
         return (
           <button
             key={card.id}
             type="button"
             className={styles.portalCard}
-            disabled
-            aria-disabled="true"
-            title={`${card.title} — wkrótce`}
+            disabled={!enabled}
+            aria-disabled={enabled ? undefined : "true"}
+            title={enabled ? card.title : `${card.title} — niedostępne`}
             style={cssVars}
+            onClick={enabled ? () => navigate(card.route!) : undefined}
           >
             <span className={styles.portalIcon} aria-hidden="true">
               {ICONS[card.id] ?? card.icon}

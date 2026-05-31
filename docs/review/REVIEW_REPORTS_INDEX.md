@@ -1,6 +1,6 @@
 # Review Reports Index
 
-Last updated: 2026-05-26 (Step 29)
+Last updated: 2026-05-30 (Slice 23)
 
 ## Allowed statuses
 
@@ -59,3 +59,16 @@ Last updated: 2026-05-26 (Step 29)
 | step-47-personal-profile-core-runtime | Personal profile core runtime in identity — status, socialLinks, civilStatus, location, slug; visibility-aware public mapper; statusPhoto media purpose; forward-additive migration 0003 | pending | 2026-05 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_47_SUMMARY.md (status: SERVER_READY_NOT_FULLY_WIRED) |
 | step-49-governance-backend-architecture-invariants | Governance: backend architecture invariants (owner/viewer/visibility/DTO privacy/media ownership/limits/outbox/idempotency/status truth) | pending | 2026-05-27 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_49_SUMMARY.md |
 | step-49-governance-runtime-invariants-reconciliation | Governance: runtime invariants reconciliation (application use-cases, envelope+outbox, read-model ownership, cursor/idempotency/policy invariants) | pending | 2026-05-27 | Yes | ACTIVE_EVIDENCE | — | Evidence: STEP_49_SUMMARY.md |
+| communities-mvp-product-slice | Communities MVP: domains + application use-cases + Profile/Manage/Modules/Channels/Hub UI shells | pending | 2026-05-29 | Yes | ACTIVE_EVIDENCE | — | Evidence: communities-mvp-product-slice/REPORT.md |
+| communities-v2-slice-1-list-and-create | Slice 1: legacy-parity list (cards/search/categories) + 4-step CreateCommunityWizard | pending | 2026-05-29 | Yes | ACTIVE_EVIDENCE | — | Evidence: communities-v2/SLICE_1_LIST_AND_CREATE_REPORT.md + LEGACY_COMMUNITIES_SLICE_1_UI_MAP.md |
+| channels-v2-slice-8-content-feed | Slice 8: channel feed + lead publishing + pinned post | pending | 2026-05-29 | Yes | ACTIVE_EVIDENCE | — | Evidence: channels-v2/CHANNELS_SLICE_8_CONTENT_FEED_REPORT.md + LEGACY_RINGPOST_CHANNEL_CONTENT_UI_MAP.md |
+| social-v2-slice-19-friends-consents | Slice 19: friendship + contact consent + blocking foundations (social/contact/profile/feed integration) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: social-v2/SOCIAL_SLICE_19_FRIENDS_CONTACT_CONSENTS_REPORT.md |
+| moderation-v2-slice-20-reports-foundation | Slice 20: moderation domain + report dialog + moderator queue + Post Display Kit integration | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: moderation-v2/MODERATION_SLICE_20_REPORTS_FOUNDATION_REPORT.md |
+| ui-v2-slice-20b-21-global-cards-and-composer | Slice 20B-21: top-tier sidebar + composer trigger/modal foundation + feed cards polish | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: ui-v2/UI_POLISH_SLICE_20B_21_GLOBAL_CARDS_AND_COMPOSER_REPORT.md |
+| ui-v2-slice-20b-fix-top-tier-redesign | Slice 20B-FIX: top-tier visual redesign (sidebar, nav, communities cards) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: ui-v2/UI_POLISH_SLICE_20B_FIX_TOP_TIER_REDESIGN_REPORT.md |
+| manage-v2-slice-21-account-privacy-settings-center | Slice 21: central manage dashboard (13 sections), privacy/contact/notifications editors, mock orchestrator | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: manage-v2/MANAGE_SLICE_21_ACCOUNT_PRIVACY_SETTINGS_CENTER_REPORT.md |
+| global-audit-v2-slice-20c | Slice 20C: pre-ZIP global audit (architecture, features, dead code, security, UI, gates) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: global-audit-v2/slice-20c/SLICE_20C_EXECUTIVE_SUMMARY.md |
+| stabilization-v2-slice-22a | Slice 22A: P1 stabilization (AppShell consolidation, route-aware FAB, status truth, code-splitting, dead-code prune) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: stabilization-v2/slice-22a/SLICE_22A_STABILIZATION_REPORT.md |
+| slice-22-audit-package | Slice 22 full-source audit ZIP package (git state, gate results, validation) | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: slice-22-audit-package/SLICE_22_ZIP_GENERATION_REPORT.md |
+| foundation-v2-slice-23 | Slice 23: foundation hardening — ProfilePage → AppShell, screenshot tooling, status truth, knip cleanup, audit ZIP | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: foundation-v2/slice-23/SLICE_23_FOUNDATION_HARDENING_REPORT.md |
+| visual-v2-slice-23 | Slice 23 visual evidence — Playwright screenshots for 8 routes × desktop + mobile | pending | 2026-05-30 | Yes | ACTIVE_EVIDENCE | — | Evidence: visual-v2/slice-23/SLICE_23_VISUAL_SCREENSHOT_REPORT.md |

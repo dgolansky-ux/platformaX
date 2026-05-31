@@ -19,6 +19,15 @@ const BLOCKED_TERMS = [
   "payments", "knowledgeBase", "recruitment", "portfolio",
 ];
 
+// False-positive suppression: a few BLOCKED_TERMS are also legitimate words in
+// owner-defined reference data. Suppress ONLY the listed term in ONLY the listed
+// file — the term stays blocked in every other file (no weakening of the rule).
+// "Handel i e-commerce" is one of the 30 profession CATEGORY labels, not the
+// removed commerce product module.
+const TERM_FILE_ALLOWLIST = {
+  commerce: ["shared/contracts/professions-categories.ts"],
+};
+
 const GOVERNANCE_PREFIXES = [
   "docs/", "scripts/check-", "scripts/rules-",
   "scripts/arch-", "scripts/audit-", "scripts/no-commit-",
@@ -72,6 +81,7 @@ for (const fp of files) {
   try { content = readFileSync(fp, "utf-8"); } catch { continue; }
 
   for (const term of BLOCKED_TERMS) {
+    if (TERM_FILE_ALLOWLIST[term]?.includes(rel)) continue;
     const regex = new RegExp(`\\b${term}\\b`, "i");
     if (regex.test(content)) {
       const isImportOrRoute = /import|from|Route|path:|href:|Link|require|chunk/i.test(content);

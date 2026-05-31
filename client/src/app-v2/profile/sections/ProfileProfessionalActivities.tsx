@@ -64,7 +64,7 @@ export function ProfileProfessionalActivities({ isOwner }: ProfileProfessionalAc
             <button
               type="button"
               className={pro.workplaceAnchor}
-              title="Sekcja Miejsce pracy będzie dostępna wkrótce"
+              title="Sekcja Miejsce pracy w przygotowaniu"
               disabled
             >
               <span aria-hidden="true">+</span> Moja praca
@@ -76,7 +76,7 @@ export function ProfileProfessionalActivities({ isOwner }: ProfileProfessionalAc
             <div className={pro.workplaceWarningBody}>
               <p className={pro.workplaceWarningTitle}>Moduł w budowie</p>
               <p className={pro.workplaceWarningText}>
-                Sekcja Miejsce pracy będzie dostępna wkrótce.
+                Sekcja Miejsce pracy jest w przygotowaniu.
               </p>
             </div>
           </div>
@@ -127,7 +127,7 @@ export function ProfileProfessionalActivities({ isOwner }: ProfileProfessionalAc
               key={type.id}
               type="button"
               className={pro.sheetOption}
-              title={`${type.label} — edytor wkrótce`}
+              title={`${type.label} — edytor w przygotowaniu`}
               disabled
             >
               <span className={pro.sheetOptionLabel}>{type.label}</span>

@@ -1,7 +1,9 @@
-/* Profile shell layout + design tokens. Imported by ProfilePage.
-   Tokens live on .page and cascade to every descendant in all split modules. */
+/* Profile design tokens + shell layout. Imported by ProfilePage.
+   Tokens live on .profileTokens (Slice 23: this used to be .page; AppShell
+   now owns the route chrome so the profile only needs a tokens-wrapper +
+   inner column). Tokens cascade to every descendant in all split modules. */
 
-.page {
+.profileTokens {
   --color-bg: #ffffff;
   --color-surface: #ffffff;
   --color-surface-tint: #f8fafc;
@@ -28,17 +30,18 @@
     "Helvetica Neue", Arial, sans-serif;
   --font-heading: "Sora", "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
 
-  min-height: 100vh;
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  flex: 1;
+  min-width: 0;
 }
 
-.page *,
-.page *::before,
-.page *::after {
+.profileTokens *,
+.profileTokens *::before,
+.profileTokens *::after {
   box-sizing: border-box;
 }
 
@@ -117,9 +120,8 @@
 }
 
 @media (min-width: 1024px) {
-  .page {
-    background: #f3f4f6;
-    padding-left: 250px;
+  .profileTokens {
+    background: var(--c-bg-app, #f6f7fb);
   }
 
   .shell {

@@ -1,0 +1,3 @@
+ .../slice-22-audit-package/GIT_DIFF_STAT.txt       | 76 -----------------
+ .../slice-22-audit-package/GIT_STATUS_SHORT.txt    | 95 +---------------------
+ 2 files changed, 1 insertion(+), 170 deletions(-)

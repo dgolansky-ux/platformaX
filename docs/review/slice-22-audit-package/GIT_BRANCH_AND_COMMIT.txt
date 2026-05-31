@@ -1,0 +1,3 @@
+branch: feat/contacts-v2-clean-room-slice
+commitSha: 6b97735caf814fd98521ebdc6b3a971cc157bba9
+commitShortSha: 6b97735

@@ -26,6 +26,12 @@ export default tseslint.config(
       ],
     },
   },
+  // PLATFORMAX_EXCEPTION
+  // RULE: PX-GOV-002
+  // REASON: eslint-plugin-boundaries v6 PARTIAL_NOT_ENFORCED — see EXC-017 + the followup file. Compensating coverage via depcruise + arch-tests + audit-domain-boundaries.mjs.
+  // EXPIRY: 2026-08-31
+  // OWNER: dawid
+  //
   // === eslint-plugin-boundaries — INSTALLED but PARTIAL_NOT_ENFORCED ======
   //
   // Status: PARTIAL_NOT_ENFORCED. The plugin is installed and ESLint loads
